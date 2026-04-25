@@ -1,0 +1,2147 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#0077b6">
+<meta name="description" content="临床医学计算器 - 离线可用">
+<link rel="manifest" href="data:application/json;base64,eyJuYW1lIjoi5Yy75a2m6K6h566X5Yqp5omLIiwic2hvcnRfbmFtZSI6IuWMu+WtpuiuoeeulyIsInN0YXJ0X3VybCI6Ii4iLCJkaXNwbGF5Ijoic3RhbmRhbG9uZSIsImJhY2tncm91bmRfY29sb3IiOiIjZjBmNGY4IiwidGhlbWVfY29sb3IiOiIjMDA3N2I2IiwiaWNvbnMiOlt7InNyYyI6ImRhdGE6aW1hZ2Uvc3ZnK3htbCwlM0NzdmcgeG1sbnM9JTIyaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmclMjIgdmlld0JveD0lMjIwIDAgMTkyIDE5MiUyMiUzRSUzQ3JlY3QgZmlsbD0lMjIlMjMwMDc3YjYlMjIgd2lkdGg9JTIyMTkyJTIyIGhlaWdodD0lMjIxOTIlMjIgcng9JTIyMzYlMjIvJTNFJTNDdGV4dCB4PSUyMjk2JTIyIHk9JTIyMTIwJTIyIGZvbnQtc2l6ZT0lMjI4MCUyMiB0ZXh0LWFuY2hvcj0lMjJtaWRkbGUlMjIgZmlsbD0lMjJ3aGl0ZSUyMiUzRSslM0MvdGV4dCUzRSUzQy9zdmclM0UiLCJzaXplcyI6IjE5MngxOTIiLCJ0eXBlIjoiaW1hZ2Uvc3ZnK3htbCJ9XX0=">
+<title>医学计算助手</title>
+<style>
+/* ============ CSS Variables ============ */
+:root {
+  --primary: #0077b6;
+  --primary-dark: #005a8a;
+  --primary-light: #e6f3fa;
+  --danger: #e63946;
+  --danger-bg: #ffebee;
+  --warning: #f4a261;
+  --warning-bg: #fff8e1;
+  --success: #2a9d8f;
+  --success-bg: #e8f5f3;
+  --bg: #f0f4f8;
+  --card: #ffffff;
+  --text: #1a1a2e;
+  --text-secondary: #5c6b73;
+  --border: #e1e5e9;
+  --radius: 14px;
+  --shadow: 0 4px 16px rgba(0,0,0,0.06);
+  --shadow-hover: 0 8px 24px rgba(0,0,0,0.10);
+}
+[data-theme="dark"] {
+  --primary: #4dabf7;
+  --primary-dark: #339af0;
+  --primary-light: #1a3a5c;
+  --danger: #ff6b6b;
+  --danger-bg: #3a1a1a;
+  --warning: #ffd43b;
+  --warning-bg: #3a3310;
+  --success: #51cf66;
+  --success-bg: #1a3a1a;
+  --bg: #0f1419;
+  --card: #1a1f2e;
+  --text: #e9ecef;
+  --text-secondary: #adb5bd;
+  --border: #2d3748;
+  --shadow: 0 4px 16px rgba(0,0,0,0.3);
+  --shadow-hover: 0 8px 24px rgba(0,0,0,0.4);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.6;
+  -webkit-tap-highlight-color: transparent;
+  font-size: 15px;
+  transition: background 0.3s, color 0.3s;
+}
+
+/* ============ Header ============ */
+header {
+  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+  color: white;
+  padding: 16px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.15);
+}
+.header-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+header h1 { font-size: 1.25rem; font-weight: 700; letter-spacing: 1px; }
+.header-actions { display: flex; gap: 8px; }
+.icon-btn {
+  width: 36px; height: 36px; border-radius: 50%;
+  background: rgba(255,255,255,0.2); border: none; color: white;
+  font-size: 1rem; cursor: pointer; display: flex; align-items: center; justify-content: center;
+  transition: background 0.2s;
+}
+.icon-btn:hover { background: rgba(255,255,255,0.3); }
+
+/* Search */
+.search-box {
+  position: relative;
+}
+.search-box input {
+  width: 100%; padding: 10px 14px 10px 38px;
+  border: none; border-radius: 10px;
+  background: rgba(255,255,255,0.95);
+  color: var(--text); font-size: 0.95rem;
+  outline: none;
+}
+.search-box::before {
+  content: "🔍"; position: absolute; left: 12px; top: 50%; transform: translateY(-50%);
+  font-size: 0.9rem; opacity: 0.5;
+}
+.search-results {
+  position: absolute; top: 100%; left: 0; right: 0; margin-top: 4px;
+  background: var(--card); border-radius: 10px;
+  box-shadow: var(--shadow-hover); z-index: 101;
+  max-height: 300px; overflow-y: auto; display: none;
+}
+.search-results.show { display: block; }
+.search-item {
+  padding: 10px 14px; cursor: pointer;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.9rem;
+}
+.search-item:hover { background: var(--primary-light); }
+.search-item small { color: var(--text-secondary); font-size: 0.75rem; }
+
+/* ============ Nav Tabs ============ */
+.nav-tabs {
+  display: flex; overflow-x: auto; gap: 6px;
+  padding: 10px 12px 6px;
+  background: var(--bg);
+  position: sticky; top: 105px;
+  z-index: 99;
+  -ms-overflow-style: none; scrollbar-width: none;
+}
+.nav-tabs::-webkit-scrollbar { display: none; }
+.nav-tab {
+  flex-shrink: 0; padding: 7px 14px;
+  border: none; border-radius: 20px;
+  background: var(--card); color: var(--text-secondary);
+  font-size: 0.82rem; font-weight: 500;
+  cursor: pointer; transition: all 0.2s;
+  box-shadow: var(--shadow); white-space: nowrap;
+}
+.nav-tab.active { background: var(--primary); color: white; }
+.nav-tab .fav-star { margin-right: 2px; }
+
+/* ============ Modules ============ */
+.module { display: none; padding: 0 12px 100px; animation: fadeIn 0.25s ease; }
+.module.active { display: block; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+.section-title {
+  font-size: 0.75rem; font-weight: 600; color: var(--text-secondary);
+  text-transform: uppercase; letter-spacing: 1px;
+  margin: 16px 0 8px; padding-left: 4px;
+}
+
+/* ============ Cards ============ */
+.card {
+  background: var(--card); border-radius: var(--radius);
+  padding: 16px; margin-bottom: 12px;
+  box-shadow: var(--shadow); transition: box-shadow 0.2s;
+  position: relative;
+}
+.card:hover { box-shadow: var(--shadow-hover); }
+.card-header {
+  display: flex; justify-content: space-between; align-items: flex-start;
+  margin-bottom: 14px; padding-bottom: 8px;
+  border-bottom: 2px solid var(--bg);
+}
+.card-title {
+  font-size: 1.05rem; font-weight: 600; color: var(--primary);
+  display: flex; align-items: center; gap: 6px;
+}
+.fav-btn {
+  background: none; border: none; font-size: 1.2rem;
+  cursor: pointer; opacity: 0.4; transition: opacity 0.2s; padding: 0 4px;
+}
+.fav-btn:hover, .fav-btn.active { opacity: 1; }
+.fav-btn.active { color: var(--warning); }
+
+/* ============ Form Elements ============ */
+.form-group { margin-bottom: 12px; }
+.form-group label {
+  display: block; font-size: 0.82rem; font-weight: 500;
+  color: var(--text-secondary); margin-bottom: 4px;
+}
+.form-group input, .form-group select {
+  width: 100%; padding: 10px 12px;
+  border: 1.5px solid var(--border); border-radius: 10px;
+  font-size: 1rem; background: var(--card); color: var(--text);
+  transition: border-color 0.2s, box-shadow 0.2s;
+  -webkit-appearance: none;
+}
+.form-group input:focus, .form-group select:focus {
+  outline: none; border-color: var(--primary);
+  box-shadow: 0 0 0 3px var(--primary-light);
+}
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.radio-group { display: flex; gap: 12px; margin-top: 4px; flex-wrap: wrap; }
+.radio-group label { display: flex; align-items: center; gap: 6px; font-size: 0.9rem; color: var(--text); cursor: pointer; }
+.radio-group input[type="radio"] { width: 18px; height: 18px; accent-color: var(--primary); }
+.checkbox-label {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 0.9rem; cursor: pointer;
+}
+.checkbox-label input[type="checkbox"] { width: 18px; height: 18px; accent-color: var(--primary); flex-shrink: 0; }
+
+/* ============ Buttons ============ */
+.btn {
+  width: 100%; padding: 12px; border: none; border-radius: 10px;
+  font-size: 1rem; font-weight: 600; cursor: pointer;
+  transition: all 0.2s; margin-top: 6px;
+}
+.btn-primary {
+  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+  color: white; box-shadow: 0 4px 12px rgba(0,119,182,0.3);
+}
+.btn-primary:active { transform: translateY(1px); }
+.btn-secondary {
+  background: var(--bg); color: var(--text);
+  border: 1.5px solid var(--border);
+}
+.btn-sm {
+  width: auto; padding: 6px 14px; font-size: 0.8rem; margin-top: 0;
+}
+
+/* ============ Results ============ */
+.result-box {
+  margin-top: 14px; padding: 14px;
+  border-radius: 10px;
+  background: var(--primary-light);
+  border-left: 4px solid var(--primary);
+  display: none;
+}
+.result-box.show { display: block; animation: slideDown 0.3s ease; }
+@keyframes slideDown { from { opacity: 0; max-height: 0; } to { opacity: 1; max-height: 600px; } }
+.result-main {
+  font-size: 1.3rem; font-weight: 700;
+  color: var(--primary); margin-bottom: 6px;
+  display: flex; justify-content: space-between; align-items: center;
+}
+.result-detail { font-size: 0.9rem; color: var(--text); line-height: 1.7; }
+.result-ref {
+  font-size: 0.75rem; color: var(--text-secondary); margin-top: 8px;
+  padding-top: 8px; border-top: 1px dashed var(--border);
+}
+.copy-btn {
+  font-size: 0.75rem; padding: 4px 10px;
+  background: var(--primary); color: white; border: none;
+  border-radius: 6px; cursor: pointer;
+}
+.copy-btn:active { transform: scale(0.95); }
+
+/* ============ Warnings ============ */
+.warning-banner {
+  padding: 12px 14px; border-radius: 10px;
+  margin-top: 10px; font-weight: 600; font-size: 0.9rem;
+  display: none; align-items: center; gap: 8px;
+}
+.warning-banner.show { display: flex; }
+.warning-danger { background: var(--danger-bg); color: var(--danger); border-left: 4px solid var(--danger); }
+.warning-warn { background: var(--warning-bg); color: #e65100; border-left: 4px solid var(--warning); }
+
+/* ============ Score Buttons ============ */
+.score-group { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+.score-btn {
+  padding: 6px 12px; border: 1.5px solid var(--border);
+  border-radius: 8px; background: var(--card);
+  cursor: pointer; font-size: 0.82rem; transition: all 0.2s;
+  color: var(--text);
+}
+.score-btn.selected {
+  background: var(--primary); color: white; border-color: var(--primary);
+}
+
+/* ============ History Panel ============ */
+.history-btn {
+  position: fixed; bottom: 20px; right: 20px;
+  width: 56px; height: 56px; border-radius: 50%;
+  background: var(--primary); color: white; border: none;
+  font-size: 1.3rem; cursor: pointer;
+  box-shadow: 0 4px 16px rgba(0,119,182,0.4);
+  z-index: 200; display: flex; align-items: center; justify-content: center;
+}
+.history-panel {
+  position: fixed; bottom: 0; left: 0; right: 0;
+  max-height: 70vh; background: var(--card);
+  border-radius: var(--radius) var(--radius) 0 0;
+  box-shadow: 0 -4px 24px rgba(0,0,0,0.15);
+  z-index: 300; transform: translateY(100%);
+  transition: transform 0.3s ease;
+  display: flex; flex-direction: column;
+}
+.history-panel.open { transform: translateY(0); }
+.history-header {
+  padding: 16px; border-bottom: 1px solid var(--border);
+  display: flex; justify-content: space-between; align-items: center;
+}
+.history-list { overflow-y: auto; padding: 12px; flex: 1; }
+.history-item {
+  padding: 12px; border-radius: 10px; background: var(--bg);
+  margin-bottom: 8px; font-size: 0.85rem; cursor: pointer;
+  transition: background 0.2s;
+}
+.history-item:hover { background: var(--primary-light); }
+.history-item .h-title { font-weight: 600; color: var(--primary); }
+.history-item .h-time { font-size: 0.72rem; color: var(--text-secondary); }
+.overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.4);
+  z-index: 250; display: none;
+}
+.overlay.show { display: block; }
+
+/* ============ Disclaimer ============ */
+.disclaimer-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.6);
+  z-index: 1000; display: flex; align-items: center; justify-content: center;
+  padding: 20px;
+}
+.disclaimer-box {
+  background: var(--card); border-radius: var(--radius);
+  padding: 24px; max-width: 400px; width: 100%;
+  box-shadow: var(--shadow-hover);
+}
+.disclaimer-box h3 { color: var(--danger); margin-bottom: 12px; font-size: 1.1rem; }
+.disclaimer-box p { font-size: 0.88rem; color: var(--text-secondary); line-height: 1.7; margin-bottom: 12px; }
+
+/* ============ Converter ============ */
+.convert-box {
+  display: grid; grid-template-columns: 1fr auto 1fr;
+  gap: 10px; align-items: center; margin: 12px 0;
+}
+.convert-box .arrow { text-align: center; font-size: 1.2rem; color: var(--primary); font-weight: bold; }
+
+/* ============ Misc ============ */
+.empty-state { text-align: center; color: var(--text-secondary); padding: 30px; font-size: 0.9rem; }
+.divider { height: 1px; background: var(--border); margin: 10px 0; }
+
+/* ============ Footer ============ */
+footer {
+  text-align: center; padding: 20px;
+  font-size: 0.72rem; color: var(--text-secondary);
+}
+
+/* ============ Responsive ============ */
+@media (min-width: 768px) {
+  body { max-width: 500px; margin: 0 auto; }
+  .module { padding: 0 16px 100px; }
+}
+
+/* Hidden for search filtering */
+.card.hidden { display: none; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-top">
+    <h1>医学计算助手</h1>
+    <div class="header-actions">
+      <button class="icon-btn" onclick="toggleTheme()" title="切换主题">🌓</button>
+    </div>
+  </div>
+  <div class="search-box">
+    <input type="text" id="search-input" placeholder="搜索计算器..." oninput="handleSearch(this.value)" onfocus="handleSearch(this.value)">
+    <div class="search-results" id="search-results"></div>
+  </div>
+</header>
+
+<nav class="nav-tabs">
+  <button class="nav-tab active" data-module="kidney" onclick="switchTab('kidney')">肾脏</button>
+  <button class="nav-tab" data-module="nutrition" onclick="switchTab('nutrition')">营养</button>
+  <button class="nav-tab" data-module="pn" onclick="switchTab('pn')">PN</button>
+  <button class="nav-tab" data-module="fluid" onclick="switchTab('fluid')">补液</button>
+  <button class="nav-tab" data-module="insulin" onclick="switchTab('insulin')">胰岛素</button>
+  <button class="nav-tab" data-module="prep" onclick="switchTab('prep')">配制</button>
+  <button class="nav-tab" data-module="convert" onclick="switchTab('convert')">换算</button>
+  <button class="nav-tab" data-module="scores" onclick="switchTab('scores')">评分</button>
+  <button class="nav-tab" data-module="obgyn" onclick="switchTab('obgyn')">妇产儿</button>
+  <button class="nav-tab" data-module="favorites" onclick="switchTab('favorites')">⭐收藏</button>
+</nav>
+
+<main>
+
+<!-- ==================== KIDNEY ==================== -->
+<section class="module active" id="mod-kidney">
+<div class="section-title">肾功能与电解质</div>
+
+<div class="card" data-keywords="egfr gfr 肾 肌酐 滤过率" data-id="egfr">
+  <div class="card-header">
+    <div class="card-title">eGFR (CKD-EPI 2021)</div>
+    <button class="fav-btn" data-id="egfr" onclick="toggleFav('egfr')">☆</button>
+  </div>
+  <div class="form-row">
+    <div class="form-group"><label>肌酐</label><input type="number" id="egfr-cr" placeholder="μmol/L" step="0.1" oninput="autoCalc('egfr')"></div>
+    <div class="form-group"><label>年龄</label><input type="number" id="egfr-age" placeholder="岁" min="1" max="120" oninput="autoCalc('egfr')"></div>
+  </div>
+  <div class="form-group">
+    <label>性别</label>
+    <div class="radio-group">
+      <label><input type="radio" name="egfr-sex" value="male" checked onchange="autoCalc('egfr')"> 男</label>
+      <label><input type="radio" name="egfr-sex" value="female" onchange="autoCalc('egfr')"> 女</label>
+    </div>
+  </div>
+  <div class="warning-banner warning-danger" id="egfr-warn"></div>
+  <div class="result-box" id="egfr-res">
+    <div class="result-main"><span id="egfr-main"></span><button class="copy-btn" onclick="copyResult('egfr')">复制</button></div>
+    <div class="result-detail" id="egfr-detail"></div>
+    <div class="result-ref">CKD-EPI 2021 (race-free). Inker LA, et al. N Engl J Med 2021.</div>
+  </div>
+</div>
+
+<div class="card" data-keywords="cockcroft gault cg crcl 肌酐清除率" data-id="cg">
+  <div class="card-header">
+    <div class="card-title">Cockcroft-Gault CrCl</div>
+    <button class="fav-btn" data-id="cg" onclick="toggleFav('cg')">☆</button>
+  </div>
+  <div class="form-row">
+    <div class="form-group"><label>年龄</label><input type="number" id="cg-age" placeholder="岁" oninput="autoCalc('cg')"></div>
+    <div class="form-group"><label>体重</label><input type="number" id="cg-weight" placeholder="kg" step="0.1" oninput="autoCalc('cg')"></div>
+  </div>
+  <div class="form-row">
+    <div class="form-group"><label>肌酐</label><input type="number" id="cg-cr" placeholder="μmol/L" step="0.1" oninput="autoCalc('cg')"></div>
+    <div class="form-group"><label>性别</label>
+      <select id="cg-sex" onchange="autoCalc('cg')"><option value="male">男</option><option value="female">女</option></select>
+    </div>
+  </div>
+  <label class="checkbox-label"><input type="checkbox" id="cg-ibw" onchange="autoCalc('cg')"> 使用去脂体重 (IBW，肥胖患者)</label>
+  <div class="result-box" id="cg-res">
+    <div class="result-main"><span id="cg-main"></span><button class="copy-btn" onclick="copyResult('cg')">复制</button></div>
+    <div class="result-detail" id="cg-detail"></div>
+    <div class="result-ref">Cockcroft DW, Gault MH. Nephron 1976;16:31-41.</div>
+  </div>
+</div>
+
+<div class="card" data-keywords="schwartz 儿童 肾 egfr" data-id="schwartz">
+  <div class="card-header">
+    <div class="card-title">儿童 Schwartz eGFR</div>
+    <button class="fav-btn" data-id="schwartz" onclick="toggleFav('schwartz')">☆</button>
+  </div>
+  <div class="form-row">
+    <div class="form-group"><label>身高</label><input type="number" id="sch-h" placeholder="cm" oninput="autoCalc('schwartz')"></div>
+    <div class="form-group"><label>肌酐</label><input type="number" id="sch-cr" placeholder="μmol/L" step="0.1" oninput="autoCalc('schwartz')"></div>
+  </div>
+  <div class="result-box" id="sch-res">
+    <div class="result-main"><span id="sch-main"></span><button class="copy-btn" onclick="copyResult('schwartz')">复制</button></div>
+    <div class="result-detail" id="sch-detail"></div>
+    <div class="result-ref">Schwartz GJ, et al. J Am Soc Nephrol 2009;20:629-637. 系数0.413。</div>
+  </div>
+</div>
+
+<div class="card" data-keywords="钠缺失 低钠 补钠" data-id="nadeficit">
+  <div class="card-header">
+    <div class="card-title">钠缺失量</div>
+    <button class="fav-btn" data-id="nadeficit" onclick="toggleFav('nadeficit')">☆</button>
+  </div>
+  <div class="form-row">
+    <div class="form-group"><label>血钠</label><input type="number" id="na-na" placeholder="mmol/L" step="0.1" oninput="autoCalc('nadeficit')"></div>
+    <div class="form-group"><label>体重</label><input type="number" id="na-wt" placeholder="kg" step="0.1" oninput="autoCalc('nadeficit')"></div>
+  </div>
+  <div class="form-group">
+    <label>性别</label>
+    <div class="radio-group">
+      <label><input type="radio" name="na-sex" value="0.6" checked onchange="autoCalc('nadeficit')"> 男 (×0.6)</label>
+      <label><input type="radio" name="na-sex" value="0.5" onchange="autoCalc('nadeficit')"> 女 (×0.5)</label>
+    </div>
+  </div>
+  <div class="result-box" id="na-res">
+    <div class="result-main"><span id="na-main"></span><button class="copy-btn" onclick="copyResult('nadeficit')">复制</button></div>
+    <div class="result-detail" id="na-detail"></div>
+    <div class="result-ref">Adrogué HJ, Madias NE. N Engl J Med 2000;342:1581-1589.</div>
+  </div>
+</div>
+
+<div class="card" data-keywords="补钾 钾缺失 低钾" data-id="kdeficit">
+  <div class="card-header">
+    <div class="card-title">补钾计算</div>
+    <button class="fav-btn" data-id="kdeficit" onclick="toggleFav('kdeficit')">☆</button>
+  </div>
+  <div class="form-row">
+    <div class="form-group"><label>血钾</label><input type="number" id="k-k" placeholder="mmol/L" step="0.01" oninput="autoCalc('kdeficit')"></div>
+    <div class="form-group"><label>体重</label><input type="number" id="k-wt" placeholder="kg" step="0.1" oninput="autoCalc('kdeficit')"></div>
+  </div>
+  <div class="warning-banner warning-danger" id="k-warn"></div>
+  <div class="result-box" id="k-res">
+    <div class="result-main"><span id="k-main"></span><button class="copy-btn" onclick="copyResult('kdeficit')">复制</button></div>
+    <div class="result-detail" id="k-detail"></div>
+    <div class="result-ref">经验估计: 血钾每降低0.3 mmol/L ≈ 缺钾100 mmol。</div>
+  </div>
+</div>
+
+<div class="card" data-keywords="校正钙 白蛋白 钙" data-id="correctedca">
+  <div class="card-header">
+    <div class="card-title">校正钙</div>
+    <button class="fav-btn" data-id="correctedca" onclick="toggleFav('correctedca')">☆</button>
+  </div>
+  <div class="form-row">
+    <div class="form-group"><label>实测钙</label><input type="number" id="ca-ca" placeholder="mmol/L" step="0.01" oninput="autoCalc('correctedca')"></div>
+    <div class="form-group"><label>白蛋白</label><input type="number" id="ca-alb" placeholder="g/L" step="0.1" oninput="autoCalc('correctedca')"></div>
+  </div>
+  <div class="result-box" id="ca-res">
+    <div class="result-main"><span id="ca-main"></span><button class="copy-btn" onclick="copyResult('correctedca')">复制</button></div>
+    <div class="result-detail" id="ca-detail"></div>
+    <div class="result-ref">Payne RB, et al. Br Med J 1973. 校正钙 = 实测钙 + 0.02×(40-白蛋白)。</div>
+  </div>
+</div>
+
+<div class="card" data-keywords="阴离子间隙 ag 代谢性酸中毒" data-id="ag">
+  <div class="card-header">
+    <div class="card-title">阴离子间隙 AG</div>
+    <button class="fav-btn" data-id="ag" onclick="toggleFav('ag')">☆</button>
+  </div>
+  <div class="form-row">
+    <div class="form-group"><label>Na⁺</label><input type="number" id="ag-na" placeholder="mmol/L" oninput="autoCalc('ag')"></div>
+    <div class="form-group"><label>Cl⁻</label><input type="number" id="ag-cl" placeholder="mmol/L" oninput="autoCalc('ag')"></div>
+  </div>
+  <div class="form-group"><label>HCO₃⁻</label><input type="number" id="ag-hco3" placeholder="mmol/L" oninput="autoCalc('ag')"></div>
+  <div class="result-box" id="ag-res">
+    <div class="result-main"><span id="ag-main"></span><button class="copy-btn" onclick="copyResult('ag')">复制</button></div>
+    <div class="result-detail" id="ag-detail"></div>
+    <div class="result-ref">Emmett M, Narins RG. Medicine 1977;56:38-54. 正常 AG 8-12。</div>
+  </div>
+</div>
+
+<div class="card" data-keywords="渗透压 间隙 中毒" data-id="osmgap">
+  <div class="card-header">
+    <div class="card-title">渗透压间隙</div>
+    <button class="fav-btn" data-id="osmgap" onclick="toggleFav('osmgap')">☆</button>
+  </div>
+  <div class="form-row">
+    <div class="form-group"><label>Na⁺</label><input type="number" id="osm-na" placeholder="mmol/L" oninput="autoCalc('osmgap')"></div>
+    <div class="form-group"><label>葡萄糖</label><input type="number" id="osm-gluc" placeholder="mmol/L" step="0.1" oninput="autoCalc('osmgap')"></div>
+  </div>
+  <div class="form-row">
+    <div class="form-group"><label>尿素氮</label><input type="number" id="osm-bun" placeholder="mmol/L" step="0.1" oninput="autoCalc('osmgap')"></div>
+    <div class="form-group"><label>实测渗透压</label><input type="number" id="osm-meas" placeholder="mOsm/kg" step="0.1" oninput="autoCalc('osmgap')"></div>
+  </div>
+  <div class="warning-banner warning-danger" id="osm-warn"></div>
+  <div class="result-box" id="osm-res">
+    <div class="result-main"><span id="osm-main"></span><button class="copy-btn" onclick="copyResult('osmgap')">复制</button></div>
+    <div class="result-detail" id="osm-detail"></div>
+    <div class="result-ref">计算渗透压 = 2×Na + 葡萄糖 + 尿素氮。Gap >10 提示外源性溶质(乙醇、甲醇等)。</div>
+  </div>
+</div>
+
+</section>
+
+<!-- ==================== NUTRITION ==================== -->
+<section class="module" id="mod-nutrition">
+<div class="section-title">营养与代谢</div>
+
+<div class="card" data-keywords="bmi 体重指数 肥胖 理想体重" data-id="bmi">
+  <div class="card-header">
+    <div class="card-title">BMI + 理想体重</div>
+    <button class="fav-btn" data-id="bmi" onclick="toggleFav('bmi')">☆</button>
+  </div>
+  <div class="form-row">
+    <div class="form-group"><label>身高</label><input type="number" id="bmi-h" placeholder="cm" oninput="autoCalc('bmi')"></div>
+    <div class="form-group"><label>体重</label><input type="number" id="bmi-wt" placeholder="kg" step="0.1" oninput="autoCalc('bmi')"></div>
+  </div>
+  <div class="result-box" id="bmi-res">
+    <div class="result-main"><span id="bmi-main"></span><button class="copy-btn" onclick="copyResult('bmi')">复制</button></div>
+    <div class="result-detail" id="bmi-detail"></div>
+    <div class="result-ref">WHO / 中国成人超重和肥胖预防控制指南。</div>
+  </div>
+</div>
+
+<div class="card" data-keywords="bsa 体表面积 dubois mosteller" data-id="bsa">
+  <div class="card-header">
+    <div class="card-title">体表面积 BSA</div>
+    <button class="fav-btn" data-id="bsa" onclick="toggleFav('bsa')">☆</button>
+  </div>
+  <div class="form-row">
+    <div class="form-group"><label>身高</label><input type="number" id="bsa-h" placeholder="cm" oninput="autoCalc('bsa')"></div>
+    <div class="form-group"><label>体重</label><input type="number" id="bsa-wt" placeholder="kg" step="0.1" oninput="autoCalc('bsa')"></div>
+  </div>
+  <div class="result-box" id="bsa-res">
+    <div class="result-main"><span id="bsa-main"></span><button class="copy-btn" onclick="copyResult('bsa')">复制</button></div>
+    <div class="result-detail" id="bsa-detail"></div>
+    <div class="result-ref">Du Bois 1916; Mosteller 1987. 两种公式同时显示。</div>
+  </div>
+</div>
+
+<div class="card" data-keywords="bmr tdee 基础代谢 能量消耗" data-id="bmr">
+  <div class="card-header">
+    <div class="card-title">BMR + TDEE</div>
+    <button class="fav-btn" data-id="bmr" onclick="toggleFav('bmr')">☆</button>
+  </div>
+  <div class="form-row">
+    <div class="form-group"><label>年龄</label><input type="number" id="bmr-age" placeholder="岁" oninput="autoCalc('bmr')"></div>
+    <div class="form-group"><label>体重</label><input type="number" id="bmr-wt" placeholder="kg" step="0.1" oninput="autoCalc('bmr')"></div>
+  </div>
+  <div class="form-row">
+    <div class="form-group"><label>身高</label><input type="number" id="bmr-h" placeholder="cm" oninput="autoCalc('bmr')"></div>
+    <div class="form-group"><label>性别</label><select id="bmr-sex" onchange="autoCalc('bmr')"><option value="male">男</option><option value="female">女</option></select></div>
+  </div>
+  <div class="form-group"><label>活动系数</label>
+    <select id="bmr-act" onchange="autoCalc('bmr')">
+      <option value="1.2">卧床 (×1.2)</option>
+      <option value="1.3">轻度活动 (×1.3)</option>
+      <option value="1.5" selected>轻-中度 (×1.5)</option>
+      <option value="1.7">中度活动 (×1.7)</option>
+      <option value="1.9">重度活动 (×1.9)</option>
+    </select>
+  </div>
+  <div class="result-box" id="bmr-res">
+    <div class="result-main"><span id="bmr-main"></span><button class="copy-btn" onclick="copyResult('bmr')">复制</button></div>
+    <div class="result-detail" id="bmr-detail"></div>
+    <div class="result-ref">Harris-Benedict 1919; Mifflin-St Jeor 1990. TDEE = BMR × 活动系数。</div>
+  </div>
+</div>
+
+<div class="card" data-keywords="腰臀比 腰高比 中心性肥胖" data-id="whr">
+  <div class="card-header">
+    <div class="card-title">腰臀比 / 腰高比</div>
+    <button class="fav-btn" data-id="whr" onclick="toggleFav('whr')">☆</button>
+  </div>
+  <div class="form-row">
+    <div class="form-group"><label>腰围</label><input type="number" id="wh-waist" placeholder="cm" step="0.1" oninput="autoCalc('whr')"></div>
+    <div class="form-group"><label>臀围</label><input type="number" id="wh-hip" placeholder="cm" step="0.1" oninput="autoCalc('whr')"></div>
+  </div>
+  <div class="form-group"><label>身高（用于腰高比）</label><input type="number" id="wh-h" placeholder="cm" oninput="autoCalc('whr')"></div>
+  <div class="result-box" id="wh-res">
+    <div class="result-main"><span id="wh-main"></span><button class="copy-btn" onclick="copyResult('whr')">复制</button></div>
+    <div class="result-detail" id="wh-detail"></div>
+    <div class="result-ref">WHO 腰围测量协议。Ashwell M, et al. Obes Rev 2012. 腰高比>0.5提示中心性肥胖。</div>
+  </div>
+</div>
+
+</section>
+
+<!-- ==================== PN ==================== -->
+<section class="module" id="mod-pn">
+<div class="section-title">静脉营养</div>
+
+<div class="card" data-keywords="pn 肠外营养 能量 热量" data-id="pnenergy">
+  <div class="card-header">
+    <div class="card-title">总能量目标</div>
+    <button class="fav-btn" data-id="pnenergy" onclick="toggleFav('pnenergy')">☆</button>
+  </div>
+  <div class="form-row">
+    <div class="form-group"><label>体重</label><input type="number" id="pn-wt" placeholder="kg" step="0.1" oninput="autoCalc('pnenergy')"></div>
+    <div class="form-group"><label>应激状态</label>
+      <select id="pn-stress" onchange="autoCalc('pnenergy')">
+        <option value="20">正常维护 (20)</option>
+        <option value="25" selected>轻-中度应激 (25)</option>
+        <option value="28">中度应激 (28)</option>
+        <option value="30">重度应激 (30)</option>
+        <option value="12">肥胖 (12, 按实际体重)</option>
+      </select>
+    </div>
+  </div>
+  <div class="result-box" id="pn-en-res">
+    <div class="result-main"><span id="pn-en-main"></span><button class="copy-btn" onclick="copyResult('pnenergy')">复制</button></div>
+    <div class="result-detail" id="pn-en-detail"></div>
+    <div class="result-ref">ASPEN/SCCM Guidelines. JPEN 2016;40:159-211.</div>
+  </div>
+</div>
+
+<div class="card" data-keywords="pn 宏量 葡萄糖 脂肪 氨基酸" data-id="pnmacro">
+  <div class="card-header">
+    <div class="card-title">PN 宏量营养素分配</div>
+    <button class="fav-btn" data-id="pnmacro" onclick="toggleFav('pnmacro')">☆</button>
+  </div>
+  <div class="form-group"><label>总能量 (kcal/d)</label><input type="number" id="pn-total-kcal" placeholder="kcal" oninput="autoCalc('pnmacro')"></div>
+  <div class="form-row">
+    <div class="form-group"><label>糖供能比 (%)</label><input type="number" id="pn-carb-pct" value="60" min="30" max="70" oninput="autoCalc('pnmacro')"></div>
+    <div class="form-group"><label>脂肪供能比 (%)</label><input type="number" id="pn-fat-pct" value="25" min="15" max="30" oninput="autoCalc('pnmacro')"></div>
+  </div>
+  <div class="form-group"><label>蛋白供能比 (%)</label><input type="number" id="pn-prot-pct" value="15" min="10" max="20" oninput="autoCalc('pnmacro')"></div>
+  <div class="warning-banner warning-danger" id="pn-macro-warn"></div>
+  <div class="result-box" id="pn-macro-res">
+    <div class="result-main"><span id="pn-macro-main"></span><button class="copy-btn" onclick="copyResult('pnmacro')">复制</button></div>
+    <div class="result-detail" id="pn-macro-detail"></div>
+    <div class="result-ref">糖3.4kcal/g, 脂肪10kcal/g, 蛋白4kcal/g。50%GS→每mL供糖0.5g, 20%脂肪乳→每mL供脂0.2g。</div>
+  </div>
+</div>
+
+<div class="card" data-keywords="葡萄糖 输注速率 gik" data-id="glucoserate">
+  <div class="card-header">
+    <div class="card-title">最大葡萄糖输注速率</div>
+    <button class="fav-btn" data-id="glucoserate" onclick="toggleFav('glucoserate')">☆</button>
+  </div>
+  <div class="form-row">
+    <div class="form-group"><label>葡萄糖量</label><input type="number" id="gr-gluc" placeholder="g/d" oninput="autoCalc('glucoserate')"></div>
+    <div class="form-group"><label>体重</label><input type="number" id="gr-wt" placeholder="kg" step="0.1" oninput="autoCalc('glucoserate')"></div>
+  </div>
+  <div class="warning-banner warning-danger" id="gr-warn"></div>
+  <div class="result-box" id="gr-res">
+    <div class="result-main"><span id="gr-main"></span><button class="copy-btn" onclick="copyResult('glucoserate')">复制</button></div>
+    <div class="result-detail" id="gr-detail"></div>
+    <div class="result-ref">ASPEN 指南建议外周静脉葡萄糖输注不超过 5 mg/kg/min。</div>
+  </div>
+</div>
+
+<div class="card" data-keywords="热氮比 氨基酸 npc" data-id="tnratio">
+  <div class="card-header">
+    <div class="card-title">热氮比</div>
+    <button class="fav-btn" data-id="tnratio" onclick="toggleFav('tnratio')">☆</button>
+  </div>
+  <div class="form-row">
+    <div class="form-group"><label>非蛋白热卡</label><input type="number" id="tn-npc" placeholder="kcal" oninput="autoCalc('tnratio')"></div>
+    <div class="form-group"><label>氨基酸</label><input type="number" id="tn-aa" placeholder="g" oninput="autoCalc('tnratio')"></div>
+  </div>
+  <div class="result-box" id="tn-res">
+    <div class="result-main"><span id="tn-main"></span><button class="copy-btn" onclick="copyResult('tnratio')">复制</button></div>
+    <div class="result-detail" id="tn-detail"></div>
+    <div class="result-ref">氮(g) = 氨基酸(g) × 0.16。推荐热氮比 100-150:1。</div>
+  </div>
+</div>
+
+<div class="card" data-keywords="渗透压 中心静脉 外周" data-id="pnosm">
+  <div class="card-header">
+    <div class="card-title">总液量及渗透压估算</div>
+    <button class="fav-btn" data-id="pnosm" onclick="toggleFav('pnosm')">☆</button>
+  </div>
+  <div class="form-row">
+    <div class="form-group"><label>50% GS (mL)</label><input type="number" id="pnvol-gluc" placeholder="mL" oninput="autoCalc('pnosm')"></div>
+    <div class="form-group"><label>20% 脂肪乳 (mL)</label><input type="number" id="pnvol-fat" placeholder="mL" oninput="autoCalc('pnosm')"></div>
+  </div>
+  <div class="form-row">
+    <div class="form-group"><label>8.5% 氨基酸 (mL)</label><input type="number" id="pnvol-aa" placeholder="mL" oninput="autoCalc('pnosm')"></div>
+    <div class="form-group"><label>其他体积 (mL)</label><input type="number" id="pnvol-other" placeholder="mL" value="0" oninput="autoCalc('pnosm')"></div>
+  </div>
+  <div class="warning-banner warning-danger" id="pnosm-warn"></div>
+  <div class="result-box" id="pnosm-res">
+    <div class="result-main"><span id="pnosm-main"></span><button class="copy-btn" onclick="copyResult('pnosm')">复制</button></div>
+    <div class="result-detail" id="pnosm-detail"></div>
+    <div class="result-ref">50%GS≈2500, 20%脂肪乳≈350, 8.5%氨基酸≈800 mOsm/L。>900建议中心静脉。</div>
+  </div>
+</div>
+
+</section>
+
+<!-- ==================== FLUID ==================== -->
+<section class="module" id="mod-fluid">
+<div class="section-title">补液管理</div>
+
+<div class="card" data-keywords="维持液 成人 补液" data-id="mainadult">
+  <div class="card-header">
+    <div class="card-title">成人维持液量</div>
+    <button class="fav-btn" data-id="mainadult" onclick="toggleFav('mainadult')">☆</button>
+  </div>
+  <div class="form-group"><label>体重</label><input type="number" id="main-adult-wt" placeholder="kg" step="0.1" oninput="autoCalc('mainadult')"></div>
+  <div class="result-box" id="main-adult-res">
+    <div class="result-main"><span id="main-adult-main"></span><button class="copy-btn" onclick="copyResult('mainadult')">复制</button></div>
+    <div class="result-detail" id="main-adult-detail"></div>
+    <div class="result-ref">4-2-1 法则。0-10kg:4, 10-20kg:40+2, >20kg:60+1 mL/kg/h。</div>
+  </div>
+</div>
+
+<div class="card" data-keywords="儿童 维持液 holliday segar" data-id="mainchild">
+  <div class="card-header">
+    <div class="card-title">儿童维持液量</div>
+    <button class="fav-btn" data-id="mainchild" onclick="toggleFav('mainchild')">☆</button>
+  </div>
+  <div class="form-group"><label>体重</label><input type="number" id="main-child-wt" placeholder="kg" step="0.1" oninput="autoCalc('mainchild')"></div>
+  <div class="warning-banner warning-warn" id="main-child-warn"></div>
+  <div class="result-box" id="main-child-res">
+    <div class="result-main"><span id="main-child-main"></span><button class="copy-btn" onclick="copyResult('mainchild')">复制</button></div>
+    <div class="result-detail" id="main-child-detail"></div>
+    <div class="result-ref">Holliday MA, Segar WE. Pediatr Res 1957。最大量约 2400 mL/m²/d。</div>
+  </div>
+</div>
+
+<div class="card" data-keywords="脱水 高钠 缺水" data-id="dehydration">
+  <div class="card-header">
+    <div class="card-title">脱水量纠正</div>
+    <button class="fav-btn" data-id="dehydration" onclick="toggleFav('dehydration')">☆</button>
+  </div>
+  <div class="form-row">
+    <div class="form-group"><label>体重</label><input type="number" id="dehyd-wt" placeholder="kg" step="0.1" oninput="autoCalc('dehydration')"></div>
+    <div class="form-group"><label>实测钠</label><input type="number" id="dehyd-na" placeholder="mmol/L" step="0.1" oninput="autoCalc('dehydration')"></div>
+  </div>
+  <div class="form-group"><label>目标钠 (默认140)</label><input type="number" id="dehyd-target" value="140" oninput="autoCalc('dehydration')"></div>
+  <div class="result-box" id="dehyd-res">
+    <div class="result-main"><span id="dehyd-main"></span><button class="copy-btn" onclick="copyResult('dehydration')">复制</button></div>
+    <div class="result-detail" id="dehyd-detail"></div>
+    <div class="result-ref">缺水量(L) = 体重 × 0.6 × (实测钠/目标钠 - 1)。Adrogué HJ, Madias NE. NEJM 2000。</div>
+  </div>
+</div>
+
+<div class="card" data-keywords="烧伤 parkland 补液" data-id="parkland">
+  <div class="card-header">
+    <div class="card-title">烧伤补液 (Parkland)</div>
+    <button class="fav-btn" data-id="parkland" onclick="toggleFav('parkland')">☆</button>
+  </div>
+  <div class="form-row">
+    <div class="form-group"><label>体重</label><input type="number" id="burn-wt" placeholder="kg" oninput="autoCalc('parkland')"></div>
+    <div class="form-group"><label>烧伤面积 %</label><input type="number" id="burn-tbsa" placeholder="%" min="0" max="100" oninput="autoCalc('parkland')"></div>
+  </div>
+  <div class="form-group"><label>受伤后时间</label><input type="number" id="burn-hours" placeholder="小时" step="0.5" value="0" oninput="autoCalc('parkland')"></div>
+  <div class="result-box" id="burn-res">
+    <div class="result-main"><span id="burn-main"></span><button class="copy-btn" onclick="copyResult('parkland')">复制</button></div>
+    <div class="result-detail" id="burn-detail"></div>
+    <div class="result-ref">Baxter CR, Shires T. Ann Surg 1968。24h总量 = 4mL × kg × %TBSA，前8h给一半。</div>
+  </div>
+</div>
+
+<div class="card" data-keywords="dka hhs 糖尿病 酮症 高血糖" data-id="dka">
+  <div class="card-header">
+    <div class="card-title">DKA/HHS 补液估算</div>
+    <button class="fav-btn" data-id="dka" onclick="toggleFav('dka')">☆</button>
+  </div>
+  <div class="form-row">
+    <div class="form-group"><label>体重</label><input type="number" id="dka-wt" placeholder="kg" step="0.1" oninput="autoCalc('dka')"></div>
+    <div class="form-group"><label>脱水程度</label>
+      <select id="dka-degree" onchange="autoCalc('dka')">
+        <option value="0.05">轻度 (5%)</option>
+        <option value="0.08" selected>中度 (8%)</option>
+        <option value="0.10">重度 (10%)</option>
+      </select>
+    </div>
+  </div>
+  <div class="result-box" id="dka-res">
+    <div class="result-main"><span id="dka-main"></span><button class="copy-btn" onclick="copyResult('dka')">复制</button></div>
+    <div class="result-detail" id="dka-detail"></div>
+    <div class="result-ref">ADA Standards of Care 2024。先快后慢，第1h 15-20mL/kg，注意监测血钠血糖。</div>
+  </div>
+</div>
+
+</section>
+
+<!-- ==================== INSULIN ==================== -->
+<section class="module" id="mod-insulin">
+<div class="section-title">糖尿病与胰岛素</div>
+
+<div class="card" data-keywords="胰岛素 起始剂量 tdd" data-id="insulintdd">
+  <div class="card-header">
+    <div class="card-title">起始每日总剂量 (TDD)</div>
+    <button class="fav-btn" data-id="insulintdd" onclick="toggleFav('insulintdd')">☆</button>
+  </div>
+  <div class="form-row">
+    <div class="form-group"><label>类型</label>
+      <select id="ins-type" onchange="autoCalc('insulintdd')"><option value="1">1型糖尿病</option><option value="2" selected>2型糖尿病</option></select>
+    </div>
+    <div class="form-group"><label>体重</label><input type="number" id="ins-wt" placeholder="kg" step="0.1" oninput="autoCalc('insulintdd')"></div>
+  </div>
+  <div class="result-box" id="ins-tdd-res">
+    <div class="result-main"><span id="ins-tdd-main"></span><button class="copy-btn" onclick="copyResult('insulintdd')">复制</button></div>
+    <div class="result-detail" id="ins-tdd-detail"></div>
+    <div class="result-ref">ADA Standards of Care 2024。T1D: 0.3-0.6, T2D: 0.2-0.4 U/kg。基础/餐时各50%。</div>
+  </div>
+</div>
+
+<div class="card" data-keywords="胰岛素敏感系数 isf 纠正" data-id="isf">
+  <div class="card-header">
+    <div class="card-title">胰岛素敏感系数 (ISF)</div>
+    <button class="fav-btn" data-id="isf" onclick="toggleFav('isf')">☆</button>
+  </div>
+  <div class="form-group"><label>每日总剂量 TDD (U)</label><input type="number" id="isf-tdd" placeholder="U" oninput="autoCalc('isf')"></div>
+  <div class="result-box" id="isf-res">
+    <div class="result-main"><span id="isf-main"></span><button class="copy-btn" onclick="copyResult('isf')">复制</button></div>
+    <div class="result-detail" id="isf-detail"></div>
+    <div class="result-ref">1800/TDD = mg/dL per U。mmol/L ≈ 100/TDD。Walsh J, Roberts R. Pumping Insulin。</div>
+  </div>
+</div>
+
+<div class="card" data-keywords="碳水系数 icr 餐时" data-id="icr">
+  <div class="card-header">
+    <div class="card-title">碳水化合物系数 (ICR)</div>
+    <button class="fav-btn" data-id="icr" onclick="toggleFav('icr')">☆</button>
+  </div>
+  <div class="form-group"><label>每日总剂量 TDD (U)</label><input type="number" id="icr-tdd" placeholder="U" oninput="autoCalc('icr')"></div>
+  <div class="result-box" id="icr-res">
+    <div class="result-main"><span id="icr-main"></span><button class="copy-btn" onclick="copyResult('icr')">复制</button></div>
+    <div class="result-detail" id="icr-detail"></div>
+    <div class="result-ref">500/TDD = g carb per U (mg/dL)。mmol/L ≈ 28/TDD。</div>
+  </div>
+</div>
+
+<div class="card" data-keywords="静脉胰岛素 泵速 vriii" data-id="ivinsulin">
+  <div class="card-header">
+    <div class="card-title">静脉胰岛素起始泵速</div>
+    <button class="fav-btn" data-id="ivinsulin" onclick="toggleFav('ivinsulin')">☆</button>
+  </div>
+  <div class="form-group"><label>体重</label><input type="number" id="ivins-wt" placeholder="kg" step="0.1" oninput="autoCalc('ivinsulin')"></div>
+  <div class="result-box" id="ivins-res">
+    <div class="result-main"><span id="ivins-main"></span><button class="copy-btn" onclick="copyResult('ivinsulin')">复制</button></div>
+    <div class="result-detail" id="ivins-detail"></div>
+    <div class="result-ref">Umpierrez GE, et al. J Clin Endocrinol Metab 2012。起始 0.02-0.05 U/kg/h。</div>
+  </div>
+</div>
+
+<div class="card" data-keywords="pn胰岛素 葡萄糖" data-id="pninsulin">
+  <div class="card-header">
+    <div class="card-title">PN 中添加胰岛素</div>
+    <button class="fav-btn" data-id="pninsulin" onclick="toggleFav('pninsulin')">☆</button>
+  </div>
+  <div class="form-group"><label>葡萄糖量 (g)</label><input type="number" id="pnins-gluc" placeholder="g" oninput="autoCalc('pninsulin')"></div>
+  <div class="result-box" id="pnins-res">
+    <div class="result-main"><span id="pnins-main"></span><button class="copy-btn" onclick="copyResult('pninsulin')">复制</button></div>
+    <div class="result-detail" id="pnins-detail"></div>
+    <div class="result-ref">经验法则: 初始每 10g 葡萄糖加 1U 胰岛素，根据血糖调整。</div>
+  </div>
+</div>
+
+</section>
+
+<!-- ==================== PREP ==================== -->
+<section class="module" id="mod-prep">
+<div class="section-title">溶液稀释与配制</div>
+
+<div class="card" data-keywords="稀释 c1v1 浓度" data-id="dilution">
+  <div class="card-header">
+    <div class="card-title">液体稀释 C₁V₁=C₂V₂</div>
+    <button class="fav-btn" data-id="dilution" onclick="toggleFav('dilution')">☆</button>
+  </div>
+  <div class="form-row">
+    <div class="form-group"><label>原液浓度 C₁</label><input type="number" id="dil-c1" placeholder="任意单位" step="0.001" oninput="autoCalc('dilution')"></div>
+    <div class="form-group"><label>目标浓度 C₂</label><input type="number" id="dil-c2" placeholder="同上单位" step="0.001" oninput="autoCalc('dilution')"></div>
+  </div>
+  <div class="form-row">
+    <div class="form-group"><label>定容体积 V₂</label><input type="number" id="dil-v2" placeholder="mL" step="0.1" oninput="autoCalc('dilution')"></div>
+    <div class="form-group"><label>实际移取 V₁</label><input type="number" id="dil-v1-act" placeholder="mL (回算)" step="0.1" oninput="autoCalc('dilution')"></div>
+  </div>
+  <div class="result-box" id="dil-res">
+    <div class="result-main"><span id="dil-main"></span><button class="copy-btn" onclick="copyResult('dilution')">复制</button></div>
+    <div class="result-detail" id="dil-detail"></div>
+    <div class="result-ref">稀释公式: C₁V₁ = C₂V₂。</div>
+  </div>
+</div>
+
+<div class="card" data-keywords="溶解 浓度 mg/ml" data-id="solution">
+  <div class="card-header">
+    <div class="card-title">固体溶解浓度</div>
+    <button class="fav-btn" data-id="solution" onclick="toggleFav('solution')">☆</button>
+  </div>
+  <div class="form-row">
+    <div class="form-group"><label>溶质质量</label><input type="number" id="sol-mass" placeholder="mg" step="0.1" oninput="autoCalc('solution')"></div>
+    <div class="form-group"><label>溶剂体积</label><input type="number" id="sol-vol" placeholder="mL" step="0.1" oninput="autoCalc('solution')"></div>
+  </div>
+  <div class="result-box" id="sol-res">
+    <div class="result-main"><span id="sol-main"></span><button class="copy-btn" onclick="copyResult('solution')">复制</button></div>
+    <div class="result-detail" id="sol-detail"></div>
+  </div>
+</div>
+
+<div class="card" data-keywords="多巴胺 配泵 升压" data-id="dopamine">
+  <div class="card-header">
+    <div class="card-title">多巴胺标准配泵</div>
+    <button class="fav-btn" data-id="dopamine" onclick="toggleFav('dopamine')">☆</button>
+  </div>
+  <div class="form-group"><label>体重</label><input type="number" id="dopa-wt" placeholder="kg" step="0.1" oninput="autoCalc('dopamine')"></div>
+  <div class="result-box" id="dopa-res">
+    <div class="result-main"><span id="dopa-main"></span><button class="copy-btn" onclick="copyResult('dopamine')">复制</button></div>
+    <div class="result-detail" id="dopa-detail"></div>
+    <div class="result-ref">体重×3mg + NS 至 50mL，1mL/h = 1μg/kg/min。Micromedex。</div>
+  </div>
+</div>
+
+<div class="card" data-keywords="胰岛素 配泵 u/ml" data-id="insprep">
+  <div class="card-header">
+    <div class="card-title">胰岛素标准配泵</div>
+    <button class="fav-btn" data-id="insprep" onclick="toggleFav('insprep')">☆</button>
+  </div>
+  <button class="btn btn-primary" onclick="calcInsulinPrep()">显示配法</button>
+  <div class="result-box" id="insprep-res">
+    <div class="result-main" id="insprep-main"></div>
+    <div class="result-detail" id="insprep-detail"></div>
+    <div class="result-ref">50U 胰岛素 + 49.5mL NS = 1U/mL。</div>
+  </div>
+</div>
+
+<div class="card" data-keywords="补钾 浓度 kcl 警告" data-id="kclconc">
+  <div class="card-header">
+    <div class="card-title">补钾浓度警告</div>
+    <button class="fav-btn" data-id="kclconc" onclick="toggleFav('kclconc')">☆</button>
+  </div>
+  <div class="form-row">
+    <div class="form-group"><label>KCl 输入</label>
+      <select id="kcl-type" onchange="toggleKclInput();autoCalc('kclconc')">
+        <option value="mg">KCl 质量 (mg)</option>
+        <option value="ml">10% KCl 体积 (mL)</option>
+      </select>
+    </div>
+    <div class="form-group"><label id="kcl-input-label">KCl 质量</label><input type="number" id="kcl-amt" placeholder="mg" step="0.1" oninput="autoCalc('kclconc')"></div>
+  </div>
+  <div class="form-group"><label>输液袋总体积</label><input type="number" id="kcl-total" placeholder="mL" oninput="autoCalc('kclconc')"></div>
+  <div class="warning-banner warning-danger" id="kcl-warn"></div>
+  <div class="result-box" id="kcl-res">
+    <div class="result-main"><span id="kcl-main"></span><button class="copy-btn" onclick="copyResult('kclconc')">复制</button></div>
+    <div class="result-detail" id="kcl-detail"></div>
+    <div class="result-ref">外周静脉钾浓度不超过 0.3% (40 mmol/L)。>0.3% 需中心静脉。</div>
+  </div>
+</div>
+
+</section>
+
+<!-- ==================== CONVERT ==================== -->
+<section class="module" id="mod-convert">
+<div class="section-title">单位换算</div>
+
+<div class="card" data-keywords="血糖 mmol mg" data-id="conv-gluc">
+  <div class="card-header"><div class="card-title">血糖</div></div>
+  <div class="convert-box">
+    <div class="form-group"><input type="number" id="conv-gluc-mmol" placeholder="mmol/L" step="0.1" oninput="convGluc('mmol')"></div>
+    <div class="arrow">⇄</div>
+    <div class="form-group"><input type="number" id="conv-gluc-mg" placeholder="mg/dL" step="1" oninput="convGluc('mg')"></div>
+  </div>
+  <div class="result-ref">1 mmol/L = 18.02 mg/dL</div>
+</div>
+
+<div class="card" data-keywords="肌酐 umol mg" data-id="conv-cr">
+  <div class="card-header"><div class="card-title">肌酐</div></div>
+  <div class="convert-box">
+    <div class="form-group"><input type="number" id="conv-cr-umol" placeholder="μmol/L" step="0.1" oninput="convCr('umol')"></div>
+    <div class="arrow">⇄</div>
+    <div class="form-group"><input type="number" id="conv-cr-mg" placeholder="mg/dL" step="0.01" oninput="convCr('mg')"></div>
+  </div>
+  <div class="result-ref">1 mg/dL = 88.4 μmol/L</div>
+</div>
+
+<div class="card" data-keywords="钙 mmol mg" data-id="conv-ca">
+  <div class="card-header"><div class="card-title">血钙</div></div>
+  <div class="convert-box">
+    <div class="form-group"><input type="number" id="conv-ca-mmol" placeholder="mmol/L" step="0.01" oninput="convCa('mmol')"></div>
+    <div class="arrow">⇄</div>
+    <div class="form-group"><input type="number" id="conv-ca-mg" placeholder="mg/dL" step="0.1" oninput="convCa('mg')"></div>
+  </div>
+  <div class="result-ref">1 mmol/L = 4.008 mg/dL</div>
+</div>
+
+<div class="card" data-keywords="镁 mmol mg meq" data-id="conv-mg">
+  <div class="card-header"><div class="card-title">血镁</div></div>
+  <div class="convert-box">
+    <div class="form-group"><input type="number" id="conv-mg-mmol" placeholder="mmol/L" step="0.01" oninput="convMg('mmol')"></div>
+    <div class="arrow">⇄</div>
+    <div class="form-group"><input type="number" id="conv-mg-mg" placeholder="mg/dL" step="0.1" oninput="convMg('mg')"></div>
+  </div>
+  <div class="result-ref">1 mmol/L = 2.43 mg/dL = 2 mEq/L</div>
+</div>
+
+<div class="card" data-keywords="胆红素 umol mg" data-id="conv-bili">
+  <div class="card-header"><div class="card-title">胆红素</div></div>
+  <div class="convert-box">
+    <div class="form-group"><input type="number" id="conv-bili-umol" placeholder="μmol/L" step="0.1" oninput="convBili('umol')"></div>
+    <div class="arrow">⇄</div>
+    <div class="form-group"><input type="number" id="conv-bili-mg" placeholder="mg/dL" step="0.1" oninput="convBili('mg')"></div>
+  </div>
+  <div class="result-ref">1 mg/dL = 17.1 μmol/L</div>
+</div>
+
+<div class="card" data-keywords="胆固醇 mmol mg" data-id="conv-chol">
+  <div class="card-header"><div class="card-title">胆固醇</div></div>
+  <div class="convert-box">
+    <div class="form-group"><input type="number" id="conv-chol-mmol" placeholder="mmol/L" step="0.01" oninput="convChol('mmol')"></div>
+    <div class="arrow">⇄</div>
+    <div class="form-group"><input type="number" id="conv-chol-mg" placeholder="mg/dL" step="1" oninput="convChol('mg')"></div>
+  </div>
+  <div class="result-ref">1 mmol/L = 38.67 mg/dL</div>
+</div>
+
+<div class="card" data-keywords="甘油三酯 tg mmol mg" data-id="conv-tg">
+  <div class="card-header"><div class="card-title">甘油三酯</div></div>
+  <div class="convert-box">
+    <div class="form-group"><input type="number" id="conv-tg-mmol" placeholder="mmol/L" step="0.01" oninput="convTG('mmol')"></div>
+    <div class="arrow">⇄</div>
+    <div class="form-group"><input type="number" id="conv-tg-mg" placeholder="mg/dL" step="1" oninput="convTG('mg')"></div>
+  </div>
+  <div class="result-ref">1 mmol/L = 88.57 mg/dL</div>
+</div>
+
+<div class="card" data-keywords="压力 mmhg kpa cmh2o" data-id="conv-pres">
+  <div class="card-header"><div class="card-title">压力</div></div>
+  <div class="form-row">
+    <div class="form-group"><label>mmHg</label><input type="number" id="conv-pres-mmhg" placeholder="mmHg" oninput="convPres('mmhg')"></div>
+    <div class="form-group"><label>kPa</label><input type="number" id="conv-pres-kpa" placeholder="kPa" step="0.01" oninput="convPres('kpa')"></div>
+  </div>
+  <div class="form-group"><label>cmH₂O</label><input type="number" id="conv-pres-cmh2o" placeholder="cmH₂O" step="0.1" oninput="convPres('cmh2o')"></div>
+  <div class="result-ref">1 mmHg = 0.1333 kPa = 1.36 cmH₂O</div>
+</div>
+
+<div class="card" data-keywords="温度 c f 摄氏 华氏" data-id="conv-temp">
+  <div class="card-header"><div class="card-title">温度</div></div>
+  <div class="convert-box">
+    <div class="form-group"><input type="number" id="conv-temp-c" placeholder="℃" step="0.1" oninput="convTemp('c')"></div>
+    <div class="arrow">⇄</div>
+    <div class="form-group"><input type="number" id="conv-temp-f" placeholder="℉" step="0.1" oninput="convTemp('f')"></div>
+  </div>
+</div>
+
+</section>
+
+<!-- ==================== SCORES ==================== -->
+<section class="module" id="mod-scores">
+<div class="section-title">医学评分</div>
+
+<div class="card" data-keywords="gcs 昏迷 格拉斯哥" data-id="gcs">
+  <div class="card-header">
+    <div class="card-title">Glasgow 昏迷评分</div>
+    <button class="fav-btn" data-id="gcs" onclick="toggleFav('gcs')">☆</button>
+  </div>
+  <div class="form-group"><label>睁眼反应 (E)</label>
+    <div class="score-group">
+      <button class="score-btn" onclick="setGCS('e',4,this)">4 自发</button>
+      <button class="score-btn" onclick="setGCS('e',3,this)">3 语言</button>
+      <button class="score-btn" onclick="setGCS('e',2,this)">2 疼痛</button>
+      <button class="score-btn" onclick="setGCS('e',1,this)">1 无</button>
+    </div>
+  </div>
+  <div class="form-group"><label>语言反应 (V)</label>
+    <div class="score-group">
+      <button class="score-btn" onclick="setGCS('v',5,this)">5 定向</button>
+      <button class="score-btn" onclick="setGCS('v',4,this)">4 混乱</button>
+      <button class="score-btn" onclick="setGCS('v',3,this)">3 不当</button>
+      <button class="score-btn" onclick="setGCS('v',2,this)">2 不清</button>
+      <button class="score-btn" onclick="setGCS('v',1,this)">1 无</button>
+      <button class="score-btn" onclick="setGCS('v',1,this)">T 插管</button>
+    </div>
+  </div>
+  <div class="form-group"><label>运动反应 (M)</label>
+    <div class="score-group">
+      <button class="score-btn" onclick="setGCS('m',6,this)">6 遵嘱</button>
+      <button class="score-btn" onclick="setGCS('m',5,this)">5 定位</button>
+      <button class="score-btn" onclick="setGCS('m',4,this)">4 退缩</button>
+      <button class="score-btn" onclick="setGCS('m',3,this)">3 屈曲</button>
+      <button class="score-btn" onclick="setGCS('m',2,this)">2 伸展</button>
+      <button class="score-btn" onclick="setGCS('m',1,this)">1 无</button>
+    </div>
+  </div>
+  <button class="btn btn-primary" onclick="calcGCS()">计算 GCS</button>
+  <div class="result-box" id="gcs-res">
+    <div class="result-main"><span id="gcs-main"></span><button class="copy-btn" onclick="copyResult('gcs')">复制</button></div>
+    <div class="result-detail" id="gcs-detail"></div>
+    <div class="result-ref">Teasdale G, Jennett B. Lancet 1974;2:81-84。</div>
+  </div>
+</div>
+
+<div class="card" data-keywords="child-pugh 肝硬化 肝功能" data-id="childpugh">
+  <div class="card-header">
+    <div class="card-title">Child-Pugh 评分</div>
+    <button class="fav-btn" data-id="childpugh" onclick="toggleFav('childpugh')">☆</button>
+  </div>
+  <div class="form-group"><label>胆红素 (μmol/L)</label><input type="number" id="cp-bili" placeholder="μmol/L" step="0.1" oninput="autoCalc('childpugh')"></div>
+  <div class="form-group"><label>白蛋白 (g/L)</label><input type="number" id="cp-alb" placeholder="g/L" step="0.1" oninput="autoCalc('childpugh')"></div>
+  <div class="form-group"><label>INR</label><input type="number" id="cp-inr" placeholder="INR" step="0.1" oninput="autoCalc('childpugh')"></div>
+  <div class="form-group"><label>腹水</label>
+    <select id="cp-ascites" onchange="autoCalc('childpugh')"><option value="1">无</option><option value="2">轻度/药物可控</option><option value="3">中度/难治</option></select>
+  </div>
+  <div class="form-group"><label>肝性脑病</label>
+    <select id="cp-enceph" onchange="autoCalc('childpugh')"><option value="1">无</option><option value="2">1-2级/药物可控</option><option value="3">3-4级/难治</option></select>
+  </div>
+  <div class="result-box" id="cp-res">
+    <div class="result-main"><span id="cp-main"></span><button class="copy-btn" onclick="copyResult('childpugh')">复制</button></div>
+    <div class="result-detail" id="cp-detail"></div>
+    <div class="result-ref">Pugh RNH, et al. Br J Surg 1973。</div>
+  </div>
+</div>
+
+<div class="card" data-keywords="wells 肺栓塞 pe dvt" data-id="wellspe">
+  <div class="card-header">
+    <div class="card-title">Wells 肺栓塞评分</div>
+    <button class="fav-btn" data-id="wellspe" onclick="toggleFav('wellspe')">☆</button>
+  </div>
+  <label class="checkbox-label"><input type="checkbox" id="wells-dvt" onchange="autoCalc('wellspe')"> 临床 DVT 症状 (3分)</label>
+  <label class="checkbox-label"><input type="checkbox" id="wells-pe" onchange="autoCalc('wellspe')"> PE 为最可能诊断 (3分)</label>
+  <label class="checkbox-label"><input type="checkbox" id="wells-hr" onchange="autoCalc('wellspe')"> 心率 >100 次/分 (1.5分)</label>
+  <label class="checkbox-label"><input type="checkbox" id="wells-imm" onchange="autoCalc('wellspe')"> 近4周制动/手术 (1.5分)</label>
+  <label class="checkbox-label"><input type="checkbox" id="wells-dvt-hx" onchange="autoCalc('wellspe')"> 既往 DVT/PE (1.5分)</label>
+  <label class="checkbox-label"><input type="checkbox" id="wells-hemo" onchange="autoCalc('wellspe')"> 咯血 (1分)</label>
+  <label class="checkbox-label"><input type="checkbox" id="wells-mal" onchange="autoCalc('wellspe')"> 恶性肿瘤 (1分)</label>
+  <div class="result-box" id="wells-res">
+    <div class="result-main"><span id="wells-main"></span><button class="copy-btn" onclick="copyResult('wellspe')">复制</button></div>
+    <div class="result-detail" id="wells-detail"></div>
+    <div class="result-ref">Wells PS, et al. Thromb Haemost 2000;83:416-420。</div>
+  </div>
+</div>
+
+<div class="card" data-keywords="has-bled 出血 房颤 抗凝" data-id="hasbled">
+  <div class="card-header">
+    <div class="card-title">HAS-BLED 出血风险</div>
+    <button class="fav-btn" data-id="hasbled" onclick="toggleFav('hasbled')">☆</button>
+  </div>
+  <label class="checkbox-label"><input type="checkbox" id="hb-htn" onchange="autoCalc('hasbled')"> 高血压未控制 (1分)</label>
+  <label class="checkbox-label"><input type="checkbox" id="hb-renal" onchange="autoCalc('hasbled')"> 肾/肝功能异常 (1-2分)</label>
+  <label class="checkbox-label"><input type="checkbox" id="hb-stroke" onchange="autoCalc('hasbled')"> 卒中史 (1分)</label>
+  <label class="checkbox-label"><input type="checkbox" id="hb-bleed" onchange="autoCalc('hasbled')"> 出血史/倾向 (1分)</label>
+  <label class="checkbox-label"><input type="checkbox" id="hb-labile" onchange="autoCalc('hasbled')"> INR 波动/Labile (1分)</label>
+  <label class="checkbox-label"><input type="checkbox" id="hb-elderly" onchange="autoCalc('hasbled')"> 年龄>65岁 (1分)</label>
+  <label class="checkbox-label"><input type="checkbox" id="hb-drug" onchange="autoCalc('hasbled')"> 联用抗血小板/NSAIDs (1分)</label>
+  <div class="result-box" id="hb-res">
+    <div class="result-main"><span id="hb-main"></span><button class="copy-btn" onclick="copyResult('hasbled')">复制</button></div>
+    <div class="result-detail" id="hb-detail"></div>
+    <div class="result-ref">Pisters R, et al. Chest 2010;138:1093-1100。</div>
+  </div>
+</div>
+
+</section>
+
+<!-- ==================== OBGYN ==================== -->
+<section class="module" id="mod-obgyn">
+<div class="section-title">妇产儿科</div>
+
+<div class="card" data-keywords="预产期 孕周 lmp" data-id="edd">
+  <div class="card-header">
+    <div class="card-title">预产期计算器</div>
+    <button class="fav-btn" data-id="edd" onclick="toggleFav('edd')">☆</button>
+  </div>
+  <div class="form-group"><label>末次月经日期</label><input type="date" id="edd-lmp" onchange="autoCalc('edd')"></div>
+  <div class="result-box" id="edd-res">
+    <div class="result-main"><span id="edd-main"></span><button class="copy-btn" onclick="copyResult('edd')">复制</button></div>
+    <div class="result-detail" id="edd-detail"></div>
+    <div class="result-ref">Naegele 法则: 末次月经 + 1年 - 3月 + 7日。</div>
+  </div>
+</div>
+
+<div class="card" data-keywords="胎儿体重 宫高 腹围 hadlock" data-id="fetalweight">
+  <div class="card-header">
+    <div class="card-title">胎儿体重估算</div>
+    <button class="fav-btn" data-id="fetalweight" onclick="toggleFav('fetalweight')">☆</button>
+  </div>
+  <div class="form-row">
+    <div class="form-group"><label>宫高 (cm)</label><input type="number" id="fw-h" placeholder="cm" step="0.1" oninput="autoCalc('fetalweight')"></div>
+    <div class="form-group"><label>腹围 (cm)</label><input type="number" id="fw-ac" placeholder="cm" step="0.1" oninput="autoCalc('fetalweight')"></div>
+  </div>
+  <div class="result-box" id="fw-res">
+    <div class="result-main"><span id="fw-main"></span><button class="copy-btn" onclick="copyResult('fetalweight')">复制</button></div>
+    <div class="result-detail" id="fw-detail"></div>
+    <div class="result-ref">Hadlock FP, et al. Radiology 1985。Johnson 简化公式。</div>
+  </div>
+</div>
+
+<div class="card" data-keywords="apgar 新生儿 评分" data-id="apgar">
+  <div class="card-header">
+    <div class="card-title">Apgar 评分</div>
+    <button class="fav-btn" data-id="apgar" onclick="toggleFav('apgar')">☆</button>
+  </div>
+  <div class="form-group"><label>肤色</label>
+    <div class="score-group">
+      <button class="score-btn" onclick="setApgar('color',0,this)">0 苍白</button>
+      <button class="score-btn" onclick="setApgar('color',1,this)">1 肢端青紫</button>
+      <button class="score-btn" onclick="setApgar('color',2,this)">2 红润</button>
+    </div>
+  </div>
+  <div class="form-group"><label>心率</label>
+    <div class="score-group">
+      <button class="score-btn" onclick="setApgar('hr',0,this)">0 无</button>
+      <button class="score-btn" onclick="setApgar('hr',1,this)">1 &lt;100</button>
+      <button class="score-btn" onclick="setApgar('hr',2,this)">2 &gt;100</button>
+    </div>
+  </div>
+  <div class="form-group"><label>反射</label>
+    <div class="score-group">
+      <button class="score-btn" onclick="setApgar('reflex',0,this)">0 无反应</button>
+      <button class="score-btn" onclick="setApgar('reflex',1,this)">1 痛苦</button>
+      <button class="score-btn" onclick="setApgar('reflex',2,this)">2 咳嗽/喷嚏</button>
+    </div>
+  </div>
+  <div class="form-group"><label>肌张力</label>
+    <div class="score-group">
+      <button class="score-btn" onclick="setApgar('tone',0,this)">0 松软</button>
+      <button class="score-btn" onclick="setApgar('tone',1,this)">1 肢体屈曲</button>
+      <button class="score-btn" onclick="setApgar('tone',2,this)">2 活跃</button>
+    </div>
+  </div>
+  <div class="form-group"><label>呼吸</label>
+    <div class="score-group">
+      <button class="score-btn" onclick="setApgar('resp',0,this)">0 无</button>
+      <button class="score-btn" onclick="setApgar('resp',1,this)">1 慢/不规则</button>
+      <button class="score-btn" onclick="setApgar('resp',2,this)">2 哭声好</button>
+    </div>
+  </div>
+  <button class="btn btn-primary" onclick="calcApgar()">计算 Apgar</button>
+  <div class="result-box" id="apgar-res">
+    <div class="result-main"><span id="apgar-main"></span><button class="copy-btn" onclick="copyResult('apgar')">复制</button></div>
+    <div class="result-detail" id="apgar-detail"></div>
+    <div class="result-ref">Apgar V. Curr Res Anesth Analg 1953;32:260-267。</div>
+  </div>
+</div>
+
+<div class="card" data-keywords="儿科 药物 剂量 mg/kg" data-id="pedsdose">
+  <div class="card-header">
+    <div class="card-title">儿科药物剂量</div>
+    <button class="fav-btn" data-id="pedsdose" onclick="toggleFav('pedsdose')">☆</button>
+  </div>
+  <div class="form-row">
+    <div class="form-group"><label>体重</label><input type="number" id="peds-wt" placeholder="kg" step="0.1" oninput="autoCalc('pedsdose')"></div>
+    <div class="form-group"><label>剂量 mg/kg</label><input type="number" id="peds-dose" placeholder="mg/kg" step="0.01" oninput="autoCalc('pedsdose')"></div>
+  </div>
+  <div class="form-group"><label>每日最大量 mg (可选)</label><input type="number" id="peds-max" placeholder="mg" oninput="autoCalc('pedsdose')"></div>
+  <div class="warning-banner warning-danger" id="peds-warn"></div>
+  <div class="result-box" id="peds-res">
+    <div class="result-main"><span id="peds-main"></span><button class="copy-btn" onclick="copyResult('pedsdose')">复制</button></div>
+    <div class="result-detail" id="peds-detail"></div>
+    <div class="result-ref">请核对药物说明书极量。本工具仅作参考。</div>
+  </div>
+</div>
+
+</section>
+
+<!-- ==================== FAVORITES ==================== -->
+<section class="module" id="mod-favorites">
+<div class="section-title">我的收藏</div>
+<div id="favorites-container">
+  <div class="empty-state">点击各计算器右上角的 ☆ 收藏常用工具<br>收藏后将显示在这里，方便快速访问</div>
+</div>
+</section>
+
+</main>
+
+<!-- ==================== OVERLAYS ==================== -->
+<div class="overlay" id="overlay" onclick="toggleHistory()"></div>
+<div class="history-panel" id="history-panel">
+  <div class="history-header">
+    <span style="font-weight:600;">最近计算</span>
+    <button class="btn btn-secondary btn-sm" onclick="clearHistory()">清空</button>
+  </div>
+  <div class="history-list" id="history-list">
+    <div class="empty-state">暂无记录</div>
+  </div>
+</div>
+<button class="history-btn" onclick="toggleHistory()">🕐</button>
+
+<div class="disclaimer-overlay" id="disclaimer">
+  <div class="disclaimer-box">
+    <h3>⚠️ 免责声明</h3>
+    <p>本工具仅供<strong>医学专业人员</strong>参考，计算结果不能替代临床判断。所有医学决策应结合患者具体情况、实验室检查及专业指南。</p>
+    <p>作者不对因使用本工具而产生的任何后果负责。紧急情况下请遵循所在医疗机构的规范流程。</p>
+    <button class="btn btn-primary" onclick="acceptDisclaimer()" style="margin-top:8px;">我已了解，开始使用</button>
+  </div>
+</div>
+
+<footer>
+  <p>医学计算助手 · 离线 PWA v1.0</p>
+  <p style="margin-top:4px;">公式仅供参考，请以临床指南为准</p>
+</footer>
+
+<script>
+/* ============ CORE UTILITIES ============ */
+const $ = id => document.getElementById(id);
+const round = (n, d=1) => n == null || isNaN(n) ? '' : Math.round(n * 10**d) / 10**d;
+const fmt = (n, d=1) => n == null || isNaN(n) ? '' : n.toFixed(d);
+
+function showRes(id) { const el = $(id); if(el) el.classList.add('show'); }
+function hideRes(id) { const el = $(id); if(el) el.classList.remove('show'); }
+function showWarn(id, msg) { const el = $(id); if(!el) return; el.textContent = '⚠️ ' + msg; el.classList.add('show'); }
+function hideWarn(id) { const el = $(id); if(el) { el.textContent = ''; el.classList.remove('show'); } }
+function setRes(mainId, detailId, mainText, detailText) {
+  const m = $(mainId), d = $(detailId);
+  if(m) m.innerHTML = mainText;
+  if(d) d.innerHTML = detailText;
+}
+
+function debounce(fn, ms=400) {
+  let t;
+  return (...args) => { clearTimeout(t); t = setTimeout(() => fn(...args), ms); };
+}
+
+// Per-calculator debounce timers
+const calcTimers = {};
+function autoCalc(id) {
+  if(!calcTimers[id]) calcTimers[id] = debounce(() => {
+    const fn = CALC[id];
+    if(fn) fn();
+  }, 350);
+  calcTimers[id]();
+}
+
+function getVal(id, def=null) {
+  const el = $(id);
+  if(!el) return def;
+  const v = parseFloat(el.value);
+  return isNaN(v) ? def : v;
+}
+function getRadio(name) {
+  const el = document.querySelector(`input[name="${name}"]:checked`);
+  return el ? el.value : null;
+}
+function getSel(id) { const el = $(id); return el ? el.value : null; }
+function getCheck(id) { const el = $(id); return el ? el.checked : false; }
+
+/* ============ STATE & STORAGE ============ */
+const STORE = {
+  get(k, def) { try { return JSON.parse(localStorage.getItem(k)) ?? def; } catch { return def; } },
+  set(k, v) { localStorage.setItem(k, JSON.stringify(v)); }
+};
+
+let favorites = STORE.get('medcalc_fav', []);
+let history = STORE.get('medcalc_hist', []);
+let gcsScores = { e: 4, v: 5, m: 6 };
+let apgarScores = { color: 2, hr: 2, reflex: 2, tone: 2, resp: 2 };
+
+/* ============ TAB SWITCHING ============ */
+function switchTab(mod) {
+  document.querySelectorAll('.module').forEach(m => m.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  const target = $('mod-' + mod);
+  if(target) target.classList.add('active');
+  const tab = document.querySelector(`.nav-tab[data-module="${mod}"]`);
+  if(tab) tab.classList.add('active');
+  if(mod === 'favorites') renderFavorites();
+  window.scrollTo(0, 0);
+}
+
+/* ============ SEARCH ============ */
+const searchIndex = [];
+document.querySelectorAll('.card[data-keywords]').forEach(card => {
+  const title = card.querySelector('.card-title')?.textContent || '';
+  const kw = card.dataset.keywords || '';
+  const id = card.dataset.id;
+  searchIndex.push({ title, kw: kw.toLowerCase(), id, card });
+});
+
+function handleSearch(q) {
+  const res = $('search-results');
+  if(!q.trim()) { res.classList.remove('show'); return; }
+  const qq = q.toLowerCase();
+  const matches = searchIndex.filter(s => s.kw.includes(qq) || s.title.toLowerCase().includes(qq)).slice(0, 8);
+  if(!matches.length) { res.innerHTML = '<div class="search-item">无结果</div>'; }
+  else {
+    res.innerHTML = matches.map(m => `<div class="search-item" onclick="gotoCalc('${m.id}')">${m.title}<br><small>${m.kw}</small></div>`).join('');
+  }
+  res.classList.add('show');
+}
+
+function gotoCalc(id) {
+  $('search-results').classList.remove('show');
+  $('search-input').value = '';
+  const card = document.querySelector(`.card[data-id="${id}"]`);
+  if(!card) return;
+  const mod = card.closest('.module');
+  if(mod) {
+    const modId = mod.id.replace('mod-', '');
+    switchTab(modId);
+    setTimeout(() => card.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100);
+  }
+}
+
+/* ============ FAVORITES ============ */
+function toggleFav(id) {
+  const idx = favorites.indexOf(id);
+  if(idx >= 0) favorites.splice(idx, 1);
+  else favorites.push(id);
+  STORE.set('medcalc_fav', favorites);
+  document.querySelectorAll(`.fav-btn[data-id="${id}"]`).forEach(b => {
+    b.classList.toggle('active', idx < 0);
+    b.textContent = idx < 0 ? '★' : '☆';
+  });
+}
+
+function updateFavButtons() {
+  document.querySelectorAll('.fav-btn').forEach(b => {
+    const id = b.dataset.id;
+    const active = favorites.includes(id);
+    b.classList.toggle('active', active);
+    b.textContent = active ? '★' : '☆';
+  });
+}
+
+function renderFavorites() {
+  const container = $('favorites-container');
+  if(!favorites.length) {
+    container.innerHTML = '<div class="empty-state">点击各计算器右上角的 ☆ 收藏常用工具<br>收藏后将显示在这里，方便快速访问</div>';
+    return;
+  }
+  container.innerHTML = '';
+  favorites.forEach(id => {
+    const src = document.querySelector(`.card[data-id="${id}"]`);
+    if(!src) return;
+    const clone = src.cloneNode(true);
+    clone.id = '';
+    const favBtn = clone.querySelector('.fav-btn');
+    if(favBtn) {
+      favBtn.classList.add('active');
+      favBtn.textContent = '★';
+    }
+    container.appendChild(clone);
+  });
+  // Re-attach event handlers for cloned elements
+  container.querySelectorAll('input, select').forEach(el => {
+    const origId = el.id;
+    if(!origId) return;
+    // The clone keeps same IDs, so handlers referencing IDs still work
+    const onattr = el.getAttribute('oninput') || el.getAttribute('onchange');
+    if(onattr) {
+      // Already cloned; event attributes are strings that eval, they still work
+    }
+  });
+}
+
+/* ============ HISTORY ============ */
+let lastHist = {};
+function addHistory(title, text) {
+  const key = title + text;
+  const now = Date.now();
+  if(lastHist.key === key && (now - lastHist.t) < 300000) return; // 5min dedup
+  lastHist = { key, t: now };
+  history.unshift({ title, text, time: new Date().toLocaleString('zh-CN', {month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'}) });
+  if(history.length > 20) history = history.slice(0, 20);
+  STORE.set('medcalc_hist', history);
+  renderHistory();
+}
+
+function renderHistory() {
+  const list = $('history-list');
+  if(!history.length) { list.innerHTML = '<div class="empty-state">暂无记录</div>'; return; }
+  list.innerHTML = history.map(h => `<div class="history-item" onclick="navigator.clipboard?.writeText('${h.title}: ${h.text.replace(/'/g, "\\'")}')">
+    <div class="h-title">${h.title}</div>
+    <div>${h.text}</div>
+    <div class="h-time">${h.time}</div>
+  </div>`).join('');
+}
+
+function clearHistory() { history = []; STORE.set('medcalc_hist', history); renderHistory(); }
+function toggleHistory() {
+  $('history-panel').classList.toggle('open');
+  $('overlay').classList.toggle('show');
+}
+
+/* ============ COPY RESULT ============ */
+async function copyResult(id) {
+  const card = document.querySelector(`.card[data-id="${id}"]`);
+  if(!card) return;
+  const main = card.querySelector('.result-main span')?.textContent || '';
+  const detail = card.querySelector('.result-detail')?.textContent || '';
+  const text = `${main} ${detail}`;
+  try {
+    await navigator.clipboard.writeText(text);
+    // visual feedback
+    const btn = card.querySelector('.copy-btn');
+    if(btn) { const old = btn.textContent; btn.textContent = '已复制'; setTimeout(() => btn.textContent = old, 1200); }
+  } catch(e) {}
+}
+
+/* ============ THEME ============ */
+function toggleTheme() {
+  const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+  document.documentElement.setAttribute('data-theme', isDark ? 'light' : 'dark');
+  STORE.set('medcalc_dark', !isDark);
+}
+function loadTheme() {
+  if(STORE.get('medcalc_dark', false)) document.documentElement.setAttribute('data-theme', 'dark');
+}
+
+/* ============ DISCLAIMER ============ */
+function acceptDisclaimer() {
+  $('disclaimer').style.display = 'none';
+  STORE.set('medcalc_disclaimer', true);
+}
+function checkDisclaimer() {
+  if(!STORE.get('medcalc_disclaimer', false)) $('disclaimer').style.display = 'flex';
+  else $('disclaimer').style.display = 'none';
+}
+
+/* ============ AUTO CALC ROUTER ============ */
+function autoCalc(id) {
+  debouncedCalc(id);
+}
+const debouncedCalc = debounce((id) => {
+  const fn = CALC[id];
+  if(fn) fn();
+}, 350);
+
+/* ============ CALCULATION ENGINE ============ */
+const CALC = {
+  egfr() {
+    const cr = getVal('egfr-cr'), age = getVal('egfr-age');
+    if(!cr || !age) { hideRes('egfr-res'); return; }
+    const sex = getRadio('egfr-sex');
+    const scr = cr / 88.4; // μmol/L → mg/dL
+    let gfr;
+    const k = sex === 'female' ? 0.7 : 0.9;
+    const alpha = sex === 'female' ? -0.241 : -0.302;
+    const beta = -1.200;
+    const sexFac = sex === 'female' ? 1.012 : 1;
+    if(scr <= k) gfr = 142 * Math.pow(scr/k, alpha) * Math.pow(0.9938, age) * sexFac;
+    else gfr = 142 * Math.pow(scr/k, beta) * Math.pow(0.9938, age) * sexFac;
+    gfr = Math.round(gfr);
+    let stage = gfr >= 90 ? 'G1 (正常/高)' : gfr >= 60 ? 'G2 (轻度下降)' : gfr >= 45 ? 'G3a (轻-中度)' : gfr >= 30 ? 'G3b (中-重度)' : gfr >= 15 ? 'G4 (重度)' : 'G5 (肾衰竭)';
+    setRes('egfr-main', 'egfr-detail', `eGFR = ${gfr} mL/min/1.73m²`, `CKD 分期: ${stage}`);
+    showRes('egfr-res');
+    if(gfr < 15) showWarn('egfr-warn', 'eGFR < 15，肾衰竭期，需肾脏替代治疗评估');
+    else if(gfr < 30) showWarn('egfr-warn', 'eGFR < 30，重度肾功能下降');
+    else hideWarn('egfr-warn');
+    addHistory('eGFR', `eGFR ${gfr} (${stage})`);
+  },
+
+  cg() {
+    const age = getVal('cg-age'), wt = getVal('cg-weight'), cr = getVal('cg-cr');
+    if(!age || !wt || !cr) { hideRes('cg-res'); return; }
+    const sex = getSel('cg-sex');
+    let weight = wt;
+    if(getCheck('cg-ibw')) {
+      const h = 170; // approximate; better would be height input
+      const ibw = sex === 'female' ? 45.5 + 0.91*(h-152.4) : 50 + 0.91*(h-152.4);
+      weight = Math.min(wt, ibw);
+    }
+    const crMg = cr / 88.4;
+    let crcl = ((140 - age) * weight) / (72 * crMg);
+    if(sex === 'female') crcl *= 0.85;
+    crcl = round(crcl, 1);
+    let detail = `CrCl ≈ ${crcl} mL/min`;
+    if(getCheck('cg-ibw')) detail += '<br>已使用去脂体重校正';
+    setRes('cg-main', 'cg-detail', `CrCl = ${crcl} mL/min`, detail);
+    showRes('cg-res');
+    addHistory('Cockcroft-Gault', `CrCl ${crcl}`);
+  },
+
+  schwartz() {
+    const h = getVal('sch-h'), cr = getVal('sch-cr');
+    if(!h || !cr) { hideRes('sch-res'); return; }
+    const egfr = round(36.5 * h / cr, 1);
+    setRes('sch-main', 'sch-detail', `eGFR = ${egfr} mL/min/1.73m²`, 'Schwartz 公式 (经典系数)');
+    showRes('sch-res');
+    addHistory('Schwartz', `eGFR ${egfr}`);
+  },
+
+  nadeficit() {
+    const na = getVal('na-na'), wt = getVal('na-wt');
+    if(!na || !wt) { hideRes('na-res'); return; }
+    const factor = parseFloat(getRadio('na-sex'));
+    const deficit = round((140 - na) * wt * factor, 0);
+    const rate = round(deficit / 72, 0); // over 3 days
+    setRes('na-main', 'na-detail', `缺钠量 ≈ ${deficit} mmol`, `按 72h 纠正: 约 ${rate} mmol/h<br>注意: 纠正速度不宜 > 0.5 mmol/L/h`);
+    showRes('na-res');
+    addHistory('钠缺失', `${deficit} mmol`);
+  },
+
+  kdeficit() {
+    const k = getVal('k-k'), wt = getVal('k-wt');
+    if(k == null || !wt) { hideRes('k-res'); return; }
+    const deficit = round((3.5 - k) / 0.3 * 100, 0);
+    const maxRate = Math.min(round(wt * 0.5, 0), 20);
+    setRes('k-main', 'k-detail', `缺钾 ≈ ${deficit} mmol`, `安全补钾上限: ${maxRate} mmol/h (外周)`);
+    showRes('k-res');
+    if(k < 2.5) showWarn('k-warn', '严重低钾血症！需心电监护，中心静脉高浓度补钾');
+    else if(k < 3.0) showWarn('k-warn', '中重度低钾，建议静脉补钾');
+    else hideWarn('k-warn');
+    addHistory('补钾', `${deficit} mmol`);
+  },
+
+  correctedca() {
+    const ca = getVal('ca-ca'), alb = getVal('ca-alb');
+    if(!ca || !alb) { hideRes('ca-res'); return; }
+    const corrected = round(ca + 0.02 * (40 - alb), 2);
+    setRes('ca-main', 'ca-detail', `校正钙 = ${corrected} mmol/L`, `实测 ${ca} + 0.02×(40-${alb})`);
+    showRes('ca-res');
+    addHistory('校正钙', `${corrected} mmol/L`);
+  },
+
+  ag() {
+    const na = getVal('ag-na'), cl = getVal('ag-cl'), hco3 = getVal('ag-hco3');
+    if(!na || !cl || !hco3) { hideRes('ag-res'); return; }
+    const ag = round(na - (cl + hco3), 1);
+    let interp = ag > 12 ? '升高 ⬆️ 提示高AG代谢性酸中毒' : ag >= 8 ? '正常范围' : '降低 ⬇️ 低白蛋白血症可能';
+    setRes('ag-main', 'ag-detail', `AG = ${ag} mmol/L`, interp);
+    showRes('ag-res');
+    addHistory('AG', `${ag} mmol/L`);
+  },
+
+  osmgap() {
+    const na = getVal('osm-na'), gluc = getVal('osm-gluc'), bun = getVal('osm-bun'), meas = getVal('osm-meas');
+    if(!na || !gluc || !bun || !meas) { hideRes('osm-res'); return; }
+    const calc = 2*na + gluc + bun;
+    const gap = round(meas - calc, 1);
+    setRes('osm-main', 'osm-detail', `渗透压间隙 = ${gap} mOsm/kg`, `计算渗透压 = ${round(calc,1)} mOsm/kg`);
+    showRes('osm-res');
+    if(gap > 10) showWarn('osm-warn', `间隙 ${gap}，提示外源性溶质(乙醇、甲醇、乙二醇等)`);
+    else hideWarn('osm-warn');
+    addHistory('渗透压间隙', `${gap}`);
+  },
+
+  bmi() {
+    const h = getVal('bmi-h'), wt = getVal('bmi-wt');
+    if(!h || !wt) { hideRes('bmi-res'); return; }
+    const bmi = round(wt / Math.pow(h/100, 2), 1);
+    let grade = bmi < 18.5 ? '偏瘦' : bmi < 24 ? '正常' : bmi < 28 ? '超重' : '肥胖';
+    const idealLow = round(18.5 * Math.pow(h/100, 2), 1);
+    const idealHigh = round(23.9 * Math.pow(h/100, 2), 1);
+    setRes('bmi-main', 'bmi-detail', `BMI = ${bmi} kg/m²`, `分级: ${grade}<br>理想体重范围: ${idealLow}-${idealHigh} kg`);
+    showRes('bmi-res');
+    addHistory('BMI', `${bmi} (${grade})`);
+  },
+
+  bsa() {
+    const h = getVal('bsa-h'), wt = getVal('bsa-wt');
+    if(!h || !wt) { hideRes('bsa-res'); return; }
+    const duBois = round(0.007184 * Math.pow(h, 0.725) * Math.pow(wt, 0.725), 2);
+    const mosteller = round(Math.sqrt(h * wt / 3600), 2);
+    setRes('bsa-main', 'bsa-detail', `Du Bois: ${duBois} m² | Mosteller: ${mosteller} m²`, '');
+    showRes('bsa-res');
+    addHistory('BSA', `DuBois ${duBois}, Mosteller ${mosteller}`);
+  },
+
+  bmr() {
+    const age = getVal('bmr-age'), wt = getVal('bmr-wt'), h = getVal('bmr-h');
+    if(!age || !wt || !h) { hideRes('bmr-res'); return; }
+    const sex = getSel('bmr-sex');
+    const act = parseFloat(getSel('bmr-act'));
+    let hb, msj;
+    if(sex === 'male') {
+      hb = 88.362 + 13.397*wt + 4.799*h - 5.677*age;
+      msj = 10*wt + 6.25*h - 5*age + 5;
+    } else {
+      hb = 447.593 + 9.247*wt + 3.098*h - 4.330*age;
+      msj = 10*wt + 6.25*h - 5*age - 161;
+    }
+    const tdee = round(msj * act, 0);
+    setRes('bmr-main', 'bmr-detail', `TDEE ≈ ${tdee} kcal/d`, `Harris-Benedict BMR: ${round(hb,0)} kcal<br>Mifflin-St Jeor BMR: ${round(msj,0)} kcal<br>活动系数: ×${act}`);
+    showRes('bmr-res');
+    addHistory('TDEE', `${tdee} kcal/d`);
+  },
+
+  whr() {
+    const waist = getVal('wh-waist'), hip = getVal('wh-hip'), h = getVal('wh-h');
+    if(!waist || !hip) { hideRes('wh-res'); return; }
+    const whr = round(waist / hip, 2);
+    let detail = `腰臀比 = ${whr}`;
+    if(h) { const whht = round(waist / h, 2); detail += `<br>腰高比 = ${whht} ${whht > 0.5 ? '⚠️ >0.5 中心性肥胖' : ''}`; }
+    setRes('wh-main', 'wh-detail', `WHR = ${whr}`, detail);
+    showRes('wh-res');
+    addHistory('WHR', `${whr}`);
+  },
+
+  pnenergy() {
+    const wt = getVal('pn-wt');
+    if(!wt) { hideRes('pn-en-res'); return; }
+    const kcalKg = parseFloat(getSel('pn-stress'));
+    const total = round(wt * kcalKg, 0);
+    setRes('pn-en-main', 'pn-en-detail', `目标热量 = ${total} kcal/d`, `${kcalKg} kcal/kg × ${wt} kg`);
+    showRes('pn-en-res');
+    addHistory('PN能量', `${total} kcal`);
+  },
+
+  pnmacro() {
+    const kcal = getVal('pn-total-kcal');
+    if(!kcal) { hideRes('pn-macro-res'); return; }
+    const cp = getVal('pn-carb-pct') || 60, fp = getVal('pn-fat-pct') || 25, pp = getVal('pn-prot-pct') || 15;
+    if(cp + fp + pp !== 100) { showWarn('pn-macro-warn', `供能比之和 = ${cp+fp+pp}%，应为100%`); }
+    else hideWarn('pn-macro-warn');
+    const carbG = round(kcal * cp/100 / 3.4, 1);
+    const fatG = round(kcal * fp/100 / 10, 1);
+    const protG = round(kcal * pp/100 / 4, 1);
+    const glucVol = round(carbG / 0.5, 0);
+    const fatVol = round(fatG / 0.2, 0);
+    const aaVol = round(protG / 0.085, 0);
+    setRes('pn-macro-main', 'pn-macro-detail',
+      `糖 ${carbG}g | 脂 ${fatG}g | 蛋白 ${protG}g`,
+      `50%GS: ${glucVol}mL<br>20%脂肪乳: ${fatVol}mL<br>8.5%氨基酸: ${aaVol}mL`);
+    showRes('pn-macro-res');
+    addHistory('PN宏量', `糖${carbG}g 脂${fatG}g 蛋白${protG}g`);
+  },
+
+  glucoserate() {
+    const gluc = getVal('gr-gluc'), wt = getVal('gr-wt');
+    if(!gluc || !wt) { hideRes('gr-res'); return; }
+    const rate = round((gluc * 1000) / (wt * 1440), 2);
+    setRes('gr-main', 'gr-detail', `输注速率 = ${rate} mg/kg/min`, `${gluc}g/d ÷ ${wt}kg ÷ 1440min`);
+    showRes('gr-res');
+    if(rate > 5) showWarn('gr-warn', `速率 ${rate} > 5 mg/kg/min，建议中心静脉或降低糖量`);
+    else if(rate > 4) showWarn('gr-warn', `速率 ${rate} 接近上限，注意监测血糖`);
+    else hideWarn('gr-warn');
+    addHistory('糖速率', `${rate} mg/kg/min`);
+  },
+
+  tnratio() {
+    const npc = getVal('tn-npc'), aa = getVal('tn-aa');
+    if(!npc || !aa) { hideRes('tn-res'); return; }
+    const nitrogen = aa * 0.16;
+    const ratio = round(npc / nitrogen, 0);
+    const interp = ratio >= 100 && ratio <= 150 ? '✅ 理想范围' : ratio < 100 ? '⚠️ 热氮比偏低，增加非蛋白热量' : '⚠️ 热氮比偏高，增加氨基酸';
+    setRes('tn-main', 'tn-detail', `热氮比 = ${ratio}:1`, `氮量 = ${round(nitrogen,1)}g<br>${interp}`);
+    showRes('tn-res');
+    addHistory('热氮比', `${ratio}:1`);
+  },
+
+  pnosm() {
+    const g = getVal('pnvol-gluc')||0, f = getVal('pnvol-fat')||0, a = getVal('pnvol-aa')||0, o = getVal('pnvol-other')||0;
+    if(!g && !f && !a) { hideRes('pnosm-res'); return; }
+    const totalVol = g + f + a + o;
+    const osm = round((g*2500 + f*350 + a*800 + o*300) / totalVol, 0);
+    setRes('pnosm-main', 'pnosm-detail', `总液量 ${totalVol}mL | 渗透压 ≈ ${osm} mOsm/L`, '');
+    showRes('pnosm-res');
+    if(osm > 900) showWarn('pnosm-warn', `渗透压 ${osm} > 900，必须经中心静脉输注`);
+    else if(osm > 600) showWarn('pnosm-warn', `渗透压 ${osm}，建议中心静脉`);
+    else hideWarn('pnosm-warn');
+    addHistory('PN渗透压', `${osm} mOsm/L`);
+  },
+
+  mainadult() {
+    const wt = getVal('main-adult-wt');
+    if(!wt) { hideRes('main-adult-res'); return; }
+    let mlh;
+    if(wt <= 10) mlh = wt * 4;
+    else if(wt <= 20) mlh = 40 + (wt-10)*2;
+    else mlh = 60 + (wt-20)*1;
+    const mld = mlh * 24;
+    setRes('main-adult-main', 'main-adult-detail', `${round(mlh,0)} mL/h`, `每日总量 ≈ ${round(mld,0)} mL`);
+    showRes('main-adult-res');
+    addHistory('成人维持液', `${round(mlh,0)} mL/h`);
+  },
+
+  mainchild() {
+    const wt = getVal('main-child-wt');
+    if(!wt) { hideRes('main-child-res'); return; }
+    let mlh;
+    if(wt <= 10) mlh = wt * 4;
+    else if(wt <= 20) mlh = 40 + (wt-10)*2;
+    else mlh = 60 + (wt-20)*1;
+    const mld = mlh * 24;
+    setRes('main-child-main', 'main-child-detail', `${round(mlh,0)} mL/h`, `每日总量 ≈ ${round(mld,0)} mL`);
+    showRes('main-child-res');
+    if(mld > 2400) showWarn('main-child-warn', '每日总量 > 2400 mL，注意监测');
+    else hideWarn('main-child-warn');
+    addHistory('儿童维持液', `${round(mlh,0)} mL/h`);
+  },
+
+  dehydration() {
+    const wt = getVal('dehyd-wt'), na = getVal('dehyd-na'), target = getVal('dehyd-target') || 140;
+    if(!wt || !na) { hideRes('dehyd-res'); return; }
+    const deficit = round(wt * 0.6 * (na/target - 1), 2);
+    setRes('dehyd-main', 'dehyd-detail', `缺水量 ≈ ${deficit} L`, `纠正速度: 血钠下降 ≤ 0.5 mmol/L/h`);
+    showRes('dehyd-res');
+    addHistory('脱水纠正', `${deficit} L`);
+  },
+
+  parkland() {
+    const wt = getVal('burn-wt'), tbsa = getVal('burn-tbsa'), hrs = getVal('burn-hours')||0;
+    if(!wt || !tbsa) { hideRes('burn-res'); return; }
+    const total = 4 * wt * tbsa;
+    const first8h = total / 2;
+    const remaining = total / 2;
+    const elapsed = Math.min(hrs, 8);
+    const remaining8h = Math.max(0, 8 - hrs);
+    const rate8h = remaining8h > 0 ? round(first8h / 8, 0) : 0;
+    const rate16h = round(remaining / 16, 0);
+    let detail = `24h总量: ${total} mL<br>前8h: ${first8h} mL (${rate8h} mL/h)<br>后16h: ${remaining} mL (${rate16h} mL/h)`;
+    if(hrs > 0) detail += `<br>已受伤 ${hrs}h`;
+    setRes('burn-main', 'burn-detail', `Parkland 公式`, detail);
+    showRes('burn-res');
+    addHistory('Parkland', `24h ${total} mL`);
+  },
+
+  dka() {
+    const wt = getVal('dka-wt'), deg = parseFloat(getSel('dka-degree'));
+    if(!wt) { hideRes('dka-res'); return; }
+    const total = round(wt * deg * 1000, 0);
+    const phase1 = round(wt * 20, 0);
+    setRes('dka-main', 'dka-detail', `估算缺液量 ≈ ${total} mL`, `第1小时: ${phase1} mL (15-20mL/kg)<br>后续根据血压/尿量调整`);
+    showRes('dka-res');
+    addHistory('DKA补液', `${total} mL`);
+  },
+
+  insulintdd() {
+    const type = parseInt(getSel('ins-type')), wt = getVal('ins-wt');
+    if(!wt) { hideRes('ins-tdd-res'); return; }
+    const low = type === 1 ? 0.3 : 0.2;
+    const high = type === 1 ? 0.6 : 0.4;
+    const tddLow = round(wt * low, 0);
+    const tddHigh = round(wt * high, 0);
+    setRes('ins-tdd-main', 'ins-tdd-detail', `TDD: ${tddLow}-${tddHigh} U/d`, `基础胰岛素: ${round(tddLow/2,0)}-${round(tddHigh/2,0)} U<br>餐时胰岛素: ${round(tddLow/2,0)}-${round(tddHigh/2,0)} U`);
+    showRes('ins-tdd-res');
+    addHistory('胰岛素TDD', `${tddLow}-${tddHigh} U`);
+  },
+
+  isf() {
+    const tdd = getVal('isf-tdd');
+    if(!tdd) { hideRes('isf-res'); return; }
+    const isfMg = round(1800/tdd, 0);
+    const isfMmol = round(100/tdd, 1);
+    setRes('isf-main', 'isf-detail', `ISF = ${isfMmol} mmol/L per U`, `mg/dL 体系: ${isfMg} mg/dL per U<br>1U 速效胰岛素约降低 ${isfMmol} mmol/L`);
+    showRes('isf-res');
+    addHistory('ISF', `${isfMmol} mmol/L/U`);
+  },
+
+  icr() {
+    const tdd = getVal('icr-tdd');
+    if(!tdd) { hideRes('icr-res'); return; }
+    const icrMg = round(500/tdd, 0);
+    const icrMmol = round(28/tdd, 1);
+    setRes('icr-main', 'icr-detail', `ICR = ${icrMmol} g 碳水/U`, `mg/dL 体系: ${icrMg} g/U<br>1U 约覆盖 ${icrMmol}g 碳水化合物`);
+    showRes('icr-res');
+    addHistory('ICR', `${icrMmol} g/U`);
+  },
+
+  ivinsulin() {
+    const wt = getVal('ivins-wt');
+    if(!wt) { hideRes('ivins-res'); return; }
+    const low = round(wt * 0.02, 2);
+    const high = round(wt * 0.05, 2);
+    setRes('ivins-main', 'ivins-detail', `起始泵速: ${low}-${high} U/h`, `体重 ${wt}kg × 0.02-0.05 U/kg/h`);
+    showRes('ivins-res');
+    addHistory('IV胰岛素', `${low}-${high} U/h`);
+  },
+
+  pninsulin() {
+    const gluc = getVal('pnins-gluc');
+    if(!gluc) { hideRes('pnins-res'); return; }
+    const units = round(gluc / 10, 1);
+    setRes('pnins-main', 'pnins-detail', `建议加胰岛素 ${units} U`, `${gluc}g 葡萄糖 ÷ 10g/U`);
+    showRes('pnins-res');
+    addHistory('PN胰岛素', `${units} U`);
+  },
+
+  dilution() {
+    const c1 = getVal('dil-c1'), c2 = getVal('dil-c2'), v2 = getVal('dil-v2'), v1act = getVal('dil-v1-act');
+    if(!c1 || !c2) { hideRes('dil-res'); return; }
+    if(v2) {
+      const v1 = round(c2 * v2 / c1, 2);
+      setRes('dil-main', 'dil-detail', `应移取 V₁ = ${v1} mL`, `取 ${v1}mL 原液，定容至 ${v2}mL`);
+      showRes('dil-res');
+    } else if(v1act) {
+      const v2act = round(c1 * v1act / c2, 2);
+      setRes('dil-main', 'dil-detail', `实际定容 V₂ = ${v2act} mL`, `移取 ${v1act}mL 原液，定容至 ${v2act}mL`);
+      showRes('dil-res');
+    } else { hideRes('dil-res'); }
+  },
+
+  solution() {
+    const mass = getVal('sol-mass'), vol = getVal('sol-vol');
+    if(!mass || !vol) { hideRes('sol-res'); return; }
+    const conc = round(mass / vol, 2);
+    setRes('sol-main', 'sol-detail', `浓度 = ${conc} mg/mL`, `${mass}mg / ${vol}mL`);
+    showRes('sol-res');
+  },
+
+  dopamine() {
+    const wt = getVal('dopa-wt');
+    if(!wt) { hideRes('dopa-res'); return; }
+    const dose = round(wt * 3, 1);
+    setRes('dopa-main', 'dopa-detail', `配法: ${dose}mg + NS 至 50mL`, `1mL/h = 1μg/kg/min<br>5mL/h = 5μg/kg/min<br>10mL/h = 10μg/kg/min`);
+    showRes('dopa-res');
+    addHistory('多巴胺', `${dose}mg/50mL`);
+  },
+
+  kclconc() {
+    const type = getSel('kcl-type');
+    const amt = getVal('kcl-amt');
+    const total = getVal('kcl-total');
+    if(!amt || !total) { hideRes('kcl-res'); return; }
+    const mgKcl = type === 'ml' ? amt * 100 : amt; // 10% KCl = 100mg/mL
+    const concPct = round(mgKcl / total * 100, 2);
+    const concMmol = round(mgKcl / 74.55 / total * 1000, 1); // KCl MW ~74.55
+    setRes('kcl-main', 'kcl-detail', `钾浓度 = ${concPct}% (${concMmol} mmol/L)`, `${mgKcl}mg KCl / ${total}mL`);
+    showRes('kcl-res');
+    if(concPct > 0.3) showWarn('kcl-warn', `浓度 ${concPct}% > 0.3%，外周静脉禁用！必须中心静脉`);
+    else if(concPct > 0.2) showWarn('kcl-warn', `浓度 ${concPct}% 较高，建议中心静脉`);
+    else hideWarn('kcl-warn');
+    addHistory('KCl浓度', `${concPct}%`);
+  },
+
+  edd() {
+    const lmp = $('edd-lmp')?.value;
+    if(!lmp) { hideRes('edd-res'); return; }
+    const lmpDate = new Date(lmp);
+    const eddDate = new Date(lmpDate); eddDate.setDate(eddDate.getDate() + 280);
+    const today = new Date();
+    const diff = Math.floor((today - lmpDate) / (1000*60*60*24));
+    const weeks = Math.floor(diff / 7);
+    const days = diff % 7;
+    setRes('edd-main', 'edd-detail', `预产期: ${eddDate.toLocaleDateString('zh-CN')}`, `当前孕周: ${weeks}周${days}天`);
+    showRes('edd-res');
+    addHistory('预产期', `${eddDate.toLocaleDateString('zh-CN')}`);
+  },
+
+  fetalweight() {
+    const h = getVal('fw-h'), ac = getVal('fw-ac');
+    if(!h || !ac) { hideRes('fw-res'); return; }
+    // Johnson-Toshack formula adjusted with AC
+    let est = (h - 11) * 155;
+    est = est * (1 + (ac - 30) * 0.015); // AC adjustment
+    est = round(Math.max(est, 100), 0);
+    setRes('fw-main', 'fw-detail', `估算体重 ≈ ${est} g`, 'Johnson 公式修正版。仅供参考，实际以超声为准');
+    showRes('fw-res');
+  },
+
+  pedsdose() {
+    const wt = getVal('peds-wt'), dose = getVal('peds-dose'), max = getVal('peds-max');
+    if(!wt || !dose) { hideRes('peds-res'); return; }
+    let total = round(wt * dose, 2);
+    let detail = `总剂量 = ${total} mg`;
+    if(max && total > max) {
+      total = max;
+      detail += `<br>⚠️ 超过极量 ${max}mg，已按极量限制`;
+      showWarn('peds-warn', `计算剂量 ${round(wt*dose,2)}mg > 极量 ${max}mg！`);
+    } else {
+      hideWarn('peds-warn');
+    }
+    setRes('peds-main', 'peds-detail', `总剂量 = ${total} mg`, detail);
+    showRes('peds-res');
+  },
+
+  childpugh() {
+    const bili = getVal('cp-bili'), alb = getVal('cp-alb'), inr = getVal('cp-inr');
+    if(!bili || !alb || !inr) { hideRes('cp-res'); return; }
+    let score = 0;
+    score += bili < 34 ? 1 : bili < 50 ? 2 : 3;
+    score += alb > 35 ? 1 : alb > 28 ? 2 : 3;
+    score += inr < 1.7 ? 1 : inr < 2.3 ? 2 : 3;
+    score += parseInt(getSel('cp-ascites'));
+    score += parseInt(getSel('cp-enceph'));
+    let grade = score <= 6 ? 'A级 (轻度)' : score <= 9 ? 'B级 (中度)' : 'C级 (重度)';
+    setRes('cp-main', 'cp-detail', `${score} 分 - ${grade}`, `1年生存率: A级~100%, B级~80%, C级~45%`);
+    showRes('cp-res');
+    addHistory('Child-Pugh', `${score}分 ${grade}`);
+  },
+
+  wellspe() {
+    let score = 0;
+    if(getCheck('wells-dvt')) score += 3;
+    if(getCheck('wells-pe')) score += 3;
+    if(getCheck('wells-hr')) score += 1.5;
+    if(getCheck('wells-imm')) score += 1.5;
+    if(getCheck('wells-dvt-hx')) score += 1.5;
+    if(getCheck('wells-hemo')) score += 1;
+    if(getCheck('wells-mal')) score += 1;
+    score = round(score, 1);
+    let interp = score <= 4 ? 'PE可能性低 (≤4分: 考虑D-二聚体)' : score <= 6 ? 'PE可能性中等' : 'PE可能性高 (≥6.5分: 建议CTPA)';
+    setRes('wells-main', 'wells-detail', `${score} 分`, interp);
+    showRes('wells-res');
+  },
+
+  hasbled() {
+    let score = 0;
+    if(getCheck('hb-htn')) score += 1;
+    if(getCheck('hb-renal')) score += 2;
+    if(getCheck('hb-stroke')) score += 1;
+    if(getCheck('hb-bleed')) score += 1;
+    if(getCheck('hb-labile')) score += 1;
+    if(getCheck('hb-elderly')) score += 1;
+    if(getCheck('hb-drug')) score += 1;
+    let risk = score >= 3 ? '出血风险高' : '出血风险低-中';
+    setRes('hb-main', 'hb-detail', `${score} 分 - ${risk}`, `年大出血率: 0分=1%, 3分=3.7%, ≥5分=12.5%`);
+    showRes('hb-res');
+  }
+};
+
+/* ============ SCORE HANDLERS ============ */
+function setGCS(part, val, btn) {
+  gcsScores[part] = val;
+  btn.parentElement.querySelectorAll('.score-btn').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+}
+
+function calcGCS() {
+  const total = gcsScores.e + gcsScores.v + gcsScores.m;
+  let interp = total >= 13 ? '轻度意识障碍' : total >= 9 ? '中度意识障碍' : '重度昏迷';
+  setRes('gcs-main', 'gcs-detail', `GCS = ${total} (E${gcsScores.e}V${gcsScores.v}M${gcsScores.m})`, interp);
+  showRes('gcs-res');
+  addHistory('GCS', `E${gcsScores.e}V${gcsScores.v}M${gcsScores.m} = ${total}`);
+}
+
+function setApgar(part, val, btn) {
+  apgarScores[part] = val;
+  btn.parentElement.querySelectorAll('.score-btn').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+}
+
+function calcApgar() {
+  const total = apgarScores.color + apgarScores.hr + apgarScores.reflex + apgarScores.tone + apgarScores.resp;
+  let interp = total >= 7 ? '正常' : total >= 4 ? '轻度窒息' : '重度窒息';
+  setRes('apgar-main', 'apgar-detail', `Apgar = ${total}/10`, interp);
+  showRes('apgar-res');
+}
+
+/* ============ SPECIAL HANDLERS ============ */
+function toggleKclInput() {
+  const type = getSel('kcl-type');
+  $('kcl-input-label').textContent = type === 'ml' ? '10% KCl 体积 (mL)' : 'KCl 质量 (mg)';
+  $('kcl-amt').placeholder = type === 'ml' ? 'mL' : 'mg';
+}
+
+function calcInsulinPrep() {
+  $('insprep-main').innerHTML = '50U 胰岛素 + 49.5mL NS';
+  $('insprep-detail').innerHTML = '浓度 = 1 U/mL<br>常用泵速: 起始 0.1 U/kg/h，根据血糖调整';
+  $('insprep-res').classList.add('show');
+}
+
+/* ============ CONVERTERS ============ */
+function convGluc(from) {
+  if(from === 'mmol') { const v = getVal('conv-gluc-mmol'); $('conv-gluc-mg').value = v ? round(v*18.02,0) : ''; }
+  else { const v = getVal('conv-gluc-mg'); $('conv-gluc-mmol').value = v ? round(v/18.02,1) : ''; }
+}
+function convCr(from) {
+  if(from === 'umol') { const v = getVal('conv-cr-umol'); $('conv-cr-mg').value = v ? round(v/88.4,2) : ''; }
+  else { const v = getVal('conv-cr-mg'); $('conv-cr-umol').value = v ? round(v*88.4,1) : ''; }
+}
+function convCa(from) {
+  if(from === 'mmol') { const v = getVal('conv-ca-mmol'); $('conv-ca-mg').value = v ? round(v*4.008,1) : ''; }
+  else { const v = getVal('conv-ca-mg'); $('conv-ca-mmol').value = v ? round(v/4.008,2) : ''; }
+}
+function convMg(from) {
+  if(from === 'mmol') {
+    const v = getVal('conv-mg-mmol');
+    $('conv-mg-mg').value = v ? round(v*2.43,1) : '';
+  } else {
+    const v = getVal('conv-mg-mg');
+    $('conv-mg-mmol').value = v ? round(v/2.43,2) : '';
+  }
+}
+function convBili(from) {
+  if(from === 'umol') { const v = getVal('conv-bili-umol'); $('conv-bili-mg').value = v ? round(v/17.1,1) : ''; }
+  else { const v = getVal('conv-bili-mg'); $('conv-bili-umol').value = v ? round(v*17.1,1) : ''; }
+}
+function convChol(from) {
+  if(from === 'mmol') { const v = getVal('conv-chol-mmol'); $('conv-chol-mg').value = v ? round(v*38.67,0) : ''; }
+  else { const v = getVal('conv-chol-mg'); $('conv-chol-mmol').value = v ? round(v/38.67,2) : ''; }
+}
+function convTG(from) {
+  if(from === 'mmol') { const v = getVal('conv-tg-mmol'); $('conv-tg-mg').value = v ? round(v*88.57,0) : ''; }
+  else { const v = getVal('conv-tg-mg'); $('conv-tg-mmol').value = v ? round(v/88.57,2) : ''; }
+}
+function convPres(from) {
+  let mmhg;
+  if(from === 'mmhg') mmhg = getVal('conv-pres-mmhg');
+  else if(from === 'kpa') mmhg = getVal('conv-pres-kpa') / 0.1333;
+  else mmhg = getVal('conv-pres-cmh2o') / 1.36;
+  if(mmhg != null) {
+    $('conv-pres-mmhg').value = round(mmhg, 0);
+    $('conv-pres-kpa').value = round(mmhg * 0.1333, 2);
+    $('conv-pres-cmh2o').value = round(mmhg * 1.36, 1);
+  }
+}
+function convTemp(from) {
+  if(from === 'c') { const v = getVal('conv-temp-c'); $('conv-temp-f').value = v != null ? round(v*9/5+32,1) : ''; }
+  else { const v = getVal('conv-temp-f'); $('conv-temp-c').value = v != null ? round((v-32)*5/9,1) : ''; }
+}
+
+/* ============ SERVICE WORKER ============ */
+const swCode = `
+const CACHE = 'medcalc-v1';
+const ASSETS = ['./'];
+self.addEventListener('install', e => {
+  e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS)).then(() => self.skipWaiting()));
+});
+self.addEventListener('activate', e => {
+  e.waitUntil(self.clients.claim());
+});
+self.addEventListener('fetch', e => {
+  e.respondWith(caches.match(e.request).then(r => r || fetch(e.request)));
+});
+`;
+
+if('serviceWorker' in navigator) {
+  const blob = new Blob([swCode], {type: 'application/javascript'});
+  const swUrl = URL.createObjectURL(blob);
+  navigator.serviceWorker.register(swUrl).catch(() => {});
+}
+
+/* ============ INIT ============ */
+function init() {
+  loadTheme();
+  checkDisclaimer();
+  updateFavButtons();
+  renderHistory();
+  // Hide search results on outside click
+  document.addEventListener('click', e => {
+    if(!e.target.closest('.search-box')) $('search-results').classList.remove('show');
+  });
+}
+init();
+</script>
+</body>
+</html>
