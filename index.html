@@ -359,186 +359,23 @@ footer {
   </div>
 </header>
 
-<nav class="nav-tabs">
-  <button class="nav-tab active" data-module="kidney" onclick="switchTab('kidney')">肾脏</button>
-  <button class="nav-tab" data-module="nutrition" onclick="switchTab('nutrition')">营养</button>
-  <button class="nav-tab" data-module="pn" onclick="switchTab('pn')">PN</button>
-  <button class="nav-tab" data-module="fluid" onclick="switchTab('fluid')">补液</button>
-  <button class="nav-tab" data-module="insulin" onclick="switchTab('insulin')">胰岛素</button>
-  <button class="nav-tab" data-module="prep" onclick="switchTab('prep')">配制</button>
-  <button class="nav-tab" data-module="convert" onclick="switchTab('convert')">换算</button>
-  <button class="nav-tab" data-module="scores" onclick="switchTab('scores')">评分</button>
-  <button class="nav-tab" data-module="obgyn" onclick="switchTab('obgyn')">妇产儿</button>
-  <button class="nav-tab" data-module="favorites" onclick="switchTab('favorites')">⭐收藏</button>
+<nav class="nav-tabs" id="navTabs">
+  <button class="nav-tab active" data-module="nutrition" onclick="switchTab('nutrition')" draggable="true">🥗 营养</button>
+  <button class="nav-tab" data-module="pn" onclick="switchTab('pn')" draggable="true">💉 PN</button>
+  <button class="nav-tab" data-module="fluid" onclick="switchTab('fluid')" draggable="true">💧 补液</button>
+  <button class="nav-tab" data-module="kidney" onclick="switchTab('kidney')" draggable="true">🫘 肾脏</button>
+  <button class="nav-tab" data-module="insulin" onclick="switchTab('insulin')" draggable="true">💊 胰岛素</button>
+  <button class="nav-tab" data-module="prep" onclick="switchTab('prep')" draggable="true">🧪 配置</button>
+  <button class="nav-tab" data-module="convert" onclick="switchTab('convert')" draggable="true">🔄 换算</button>
+  <button class="nav-tab" data-module="scores" onclick="switchTab('scores')" draggable="true">📊 评分</button>
+  <button class="nav-tab" data-module="obgyn" onclick="switchTab('obgyn')" draggable="true">👶 妇产儿</button>
+  <button class="nav-tab" data-module="favorites" onclick="switchTab('favorites')" draggable="false">⭐ 收藏</button>
 </nav>
 
 <main>
 
-<!-- ==================== KIDNEY ==================== -->
-<section class="module active" id="mod-kidney">
-<div class="section-title">肾功能与电解质</div>
-
-<div class="card" data-keywords="egfr gfr 肾 肌酐 滤过率" data-id="egfr">
-  <div class="card-header">
-    <div class="card-title">eGFR (CKD-EPI 2021)</div>
-    <button class="fav-btn" data-id="egfr" onclick="toggleFav('egfr')">☆</button>
-  </div>
-  <div class="form-row">
-    <div class="form-group"><label>肌酐</label><input type="number" id="egfr-cr" placeholder="μmol/L" step="0.1" oninput="autoCalc('egfr')"></div>
-    <div class="form-group"><label>年龄</label><input type="number" id="egfr-age" placeholder="岁" min="1" max="120" oninput="autoCalc('egfr')"></div>
-  </div>
-  <div class="form-group">
-    <label>性别</label>
-    <div class="radio-group">
-      <label><input type="radio" name="egfr-sex" value="male" checked onchange="autoCalc('egfr')"> 男</label>
-      <label><input type="radio" name="egfr-sex" value="female" onchange="autoCalc('egfr')"> 女</label>
-    </div>
-  </div>
-  <div class="warning-banner warning-danger" id="egfr-warn"></div>
-  <div class="result-box" id="egfr-res">
-    <div class="result-main"><span id="egfr-main"></span><button class="copy-btn" onclick="copyResult('egfr')">复制</button></div>
-    <div class="result-detail" id="egfr-detail"></div>
-    <div class="result-ref">CKD-EPI 2021 (race-free). Inker LA, et al. N Engl J Med 2021.</div>
-  </div>
-</div>
-
-<div class="card" data-keywords="cockcroft gault cg crcl 肌酐清除率" data-id="cg">
-  <div class="card-header">
-    <div class="card-title">Cockcroft-Gault CrCl</div>
-    <button class="fav-btn" data-id="cg" onclick="toggleFav('cg')">☆</button>
-  </div>
-  <div class="form-row">
-    <div class="form-group"><label>年龄</label><input type="number" id="cg-age" placeholder="岁" oninput="autoCalc('cg')"></div>
-    <div class="form-group"><label>体重</label><input type="number" id="cg-weight" placeholder="kg" step="0.1" oninput="autoCalc('cg')"></div>
-  </div>
-  <div class="form-row">
-    <div class="form-group"><label>肌酐</label><input type="number" id="cg-cr" placeholder="μmol/L" step="0.1" oninput="autoCalc('cg')"></div>
-    <div class="form-group"><label>性别</label>
-      <select id="cg-sex" onchange="autoCalc('cg')"><option value="male">男</option><option value="female">女</option></select>
-    </div>
-  </div>
-  <label class="checkbox-label"><input type="checkbox" id="cg-ibw" onchange="autoCalc('cg')"> 使用去脂体重 (IBW，肥胖患者)</label>
-  <div class="result-box" id="cg-res">
-    <div class="result-main"><span id="cg-main"></span><button class="copy-btn" onclick="copyResult('cg')">复制</button></div>
-    <div class="result-detail" id="cg-detail"></div>
-    <div class="result-ref">Cockcroft DW, Gault MH. Nephron 1976;16:31-41.</div>
-  </div>
-</div>
-
-<div class="card" data-keywords="schwartz 儿童 肾 egfr" data-id="schwartz">
-  <div class="card-header">
-    <div class="card-title">儿童 Schwartz eGFR</div>
-    <button class="fav-btn" data-id="schwartz" onclick="toggleFav('schwartz')">☆</button>
-  </div>
-  <div class="form-row">
-    <div class="form-group"><label>身高</label><input type="number" id="sch-h" placeholder="cm" oninput="autoCalc('schwartz')"></div>
-    <div class="form-group"><label>肌酐</label><input type="number" id="sch-cr" placeholder="μmol/L" step="0.1" oninput="autoCalc('schwartz')"></div>
-  </div>
-  <div class="result-box" id="sch-res">
-    <div class="result-main"><span id="sch-main"></span><button class="copy-btn" onclick="copyResult('schwartz')">复制</button></div>
-    <div class="result-detail" id="sch-detail"></div>
-    <div class="result-ref">Schwartz GJ, et al. J Am Soc Nephrol 2009;20:629-637. 系数0.413。</div>
-  </div>
-</div>
-
-<div class="card" data-keywords="钠缺失 低钠 补钠" data-id="nadeficit">
-  <div class="card-header">
-    <div class="card-title">钠缺失量</div>
-    <button class="fav-btn" data-id="nadeficit" onclick="toggleFav('nadeficit')">☆</button>
-  </div>
-  <div class="form-row">
-    <div class="form-group"><label>血钠</label><input type="number" id="na-na" placeholder="mmol/L" step="0.1" oninput="autoCalc('nadeficit')"></div>
-    <div class="form-group"><label>体重</label><input type="number" id="na-wt" placeholder="kg" step="0.1" oninput="autoCalc('nadeficit')"></div>
-  </div>
-  <div class="form-group">
-    <label>性别</label>
-    <div class="radio-group">
-      <label><input type="radio" name="na-sex" value="0.6" checked onchange="autoCalc('nadeficit')"> 男 (×0.6)</label>
-      <label><input type="radio" name="na-sex" value="0.5" onchange="autoCalc('nadeficit')"> 女 (×0.5)</label>
-    </div>
-  </div>
-  <div class="result-box" id="na-res">
-    <div class="result-main"><span id="na-main"></span><button class="copy-btn" onclick="copyResult('nadeficit')">复制</button></div>
-    <div class="result-detail" id="na-detail"></div>
-    <div class="result-ref">Adrogué HJ, Madias NE. N Engl J Med 2000;342:1581-1589.</div>
-  </div>
-</div>
-
-<div class="card" data-keywords="补钾 钾缺失 低钾" data-id="kdeficit">
-  <div class="card-header">
-    <div class="card-title">补钾计算</div>
-    <button class="fav-btn" data-id="kdeficit" onclick="toggleFav('kdeficit')">☆</button>
-  </div>
-  <div class="form-row">
-    <div class="form-group"><label>血钾</label><input type="number" id="k-k" placeholder="mmol/L" step="0.01" oninput="autoCalc('kdeficit')"></div>
-    <div class="form-group"><label>体重</label><input type="number" id="k-wt" placeholder="kg" step="0.1" oninput="autoCalc('kdeficit')"></div>
-  </div>
-  <div class="warning-banner warning-danger" id="k-warn"></div>
-  <div class="result-box" id="k-res">
-    <div class="result-main"><span id="k-main"></span><button class="copy-btn" onclick="copyResult('kdeficit')">复制</button></div>
-    <div class="result-detail" id="k-detail"></div>
-    <div class="result-ref">经验估计: 血钾每降低0.3 mmol/L ≈ 缺钾100 mmol。</div>
-  </div>
-</div>
-
-<div class="card" data-keywords="校正钙 白蛋白 钙" data-id="correctedca">
-  <div class="card-header">
-    <div class="card-title">校正钙</div>
-    <button class="fav-btn" data-id="correctedca" onclick="toggleFav('correctedca')">☆</button>
-  </div>
-  <div class="form-row">
-    <div class="form-group"><label>实测钙</label><input type="number" id="ca-ca" placeholder="mmol/L" step="0.01" oninput="autoCalc('correctedca')"></div>
-    <div class="form-group"><label>白蛋白</label><input type="number" id="ca-alb" placeholder="g/L" step="0.1" oninput="autoCalc('correctedca')"></div>
-  </div>
-  <div class="result-box" id="ca-res">
-    <div class="result-main"><span id="ca-main"></span><button class="copy-btn" onclick="copyResult('correctedca')">复制</button></div>
-    <div class="result-detail" id="ca-detail"></div>
-    <div class="result-ref">Payne RB, et al. Br Med J 1973. 校正钙 = 实测钙 + 0.02×(40-白蛋白)。</div>
-  </div>
-</div>
-
-<div class="card" data-keywords="阴离子间隙 ag 代谢性酸中毒" data-id="ag">
-  <div class="card-header">
-    <div class="card-title">阴离子间隙 AG</div>
-    <button class="fav-btn" data-id="ag" onclick="toggleFav('ag')">☆</button>
-  </div>
-  <div class="form-row">
-    <div class="form-group"><label>Na⁺</label><input type="number" id="ag-na" placeholder="mmol/L" oninput="autoCalc('ag')"></div>
-    <div class="form-group"><label>Cl⁻</label><input type="number" id="ag-cl" placeholder="mmol/L" oninput="autoCalc('ag')"></div>
-  </div>
-  <div class="form-group"><label>HCO₃⁻</label><input type="number" id="ag-hco3" placeholder="mmol/L" oninput="autoCalc('ag')"></div>
-  <div class="result-box" id="ag-res">
-    <div class="result-main"><span id="ag-main"></span><button class="copy-btn" onclick="copyResult('ag')">复制</button></div>
-    <div class="result-detail" id="ag-detail"></div>
-    <div class="result-ref">Emmett M, Narins RG. Medicine 1977;56:38-54. 正常 AG 8-12。</div>
-  </div>
-</div>
-
-<div class="card" data-keywords="渗透压 间隙 中毒" data-id="osmgap">
-  <div class="card-header">
-    <div class="card-title">渗透压间隙</div>
-    <button class="fav-btn" data-id="osmgap" onclick="toggleFav('osmgap')">☆</button>
-  </div>
-  <div class="form-row">
-    <div class="form-group"><label>Na⁺</label><input type="number" id="osm-na" placeholder="mmol/L" oninput="autoCalc('osmgap')"></div>
-    <div class="form-group"><label>葡萄糖</label><input type="number" id="osm-gluc" placeholder="mmol/L" step="0.1" oninput="autoCalc('osmgap')"></div>
-  </div>
-  <div class="form-row">
-    <div class="form-group"><label>尿素氮</label><input type="number" id="osm-bun" placeholder="mmol/L" step="0.1" oninput="autoCalc('osmgap')"></div>
-    <div class="form-group"><label>实测渗透压</label><input type="number" id="osm-meas" placeholder="mOsm/kg" step="0.1" oninput="autoCalc('osmgap')"></div>
-  </div>
-  <div class="warning-banner warning-danger" id="osm-warn"></div>
-  <div class="result-box" id="osm-res">
-    <div class="result-main"><span id="osm-main"></span><button class="copy-btn" onclick="copyResult('osmgap')">复制</button></div>
-    <div class="result-detail" id="osm-detail"></div>
-    <div class="result-ref">计算渗透压 = 2×Na + 葡萄糖 + 尿素氮。Gap >10 提示外源性溶质(乙醇、甲醇等)。</div>
-  </div>
-</div>
-
-</section>
-
 <!-- ==================== NUTRITION ==================== -->
-<section class="module" id="mod-nutrition">
+<section class="module active" id="mod-nutrition">
 <div class="section-title">营养与代谢</div>
 
 <div class="card" data-keywords="bmi 体重指数 肥胖 理想体重" data-id="bmi">
@@ -624,6 +461,30 @@ footer {
 <!-- ==================== PN ==================== -->
 <section class="module" id="mod-pn">
 <div class="section-title">静脉营养</div>
+
+<div class="card" data-keywords="pn 蛋白 蛋白质 目标" data-id="pnprotein">
+  <div class="card-header">
+    <div class="card-title">目标蛋白质</div>
+    <button class="fav-btn" data-id="pnprotein" onclick="toggleFav('pnprotein')">☆</button>
+  </div>
+  <div class="form-row">
+    <div class="form-group"><label>体重</label><input type="number" id="pnprot-wt" placeholder="kg" step="0.1" oninput="autoCalc('pnprotein')"></div>
+    <div class="form-group"><label>临床状态</label>
+      <select id="pnprot-cond" onchange="autoCalc('pnprotein')">
+        <option value="1.0">正常维护 (1.0 g/kg)</option>
+        <option value="1.2">轻-中度应激 (1.2 g/kg)</option>
+        <option value="1.5" selected>中-重度应激 (1.5 g/kg)</option>
+        <option value="2.0">重症/烧伤 (2.0 g/kg)</option>
+        <option value="2.0">肥胖 (2.0 g/kg IBW)</option>
+      </select>
+    </div>
+  </div>
+  <div class="result-box" id="pnprot-res">
+    <div class="result-main"><span id="pnprot-main"></span><button class="copy-btn" onclick="copyResult('pnprotein')">复制</button></div>
+    <div class="result-detail" id="pnprot-detail"></div>
+    <div class="result-ref">ASPEN/ESPEN: 氮(g)=蛋白(g)×0.16；热氮比理想100-150:1</div>
+  </div>
+</div>
 
 <div class="card" data-keywords="pn 肠外营养 能量 热量" data-id="pnenergy">
   <div class="card-header">
@@ -808,6 +669,169 @@ footer {
     <div class="result-main"><span id="dka-main"></span><button class="copy-btn" onclick="copyResult('dka')">复制</button></div>
     <div class="result-detail" id="dka-detail"></div>
     <div class="result-ref">ADA Standards of Care 2024。先快后慢，第1h 15-20mL/kg，注意监测血钠血糖。</div>
+  </div>
+</div>
+
+</section>
+
+<!-- ==================== KIDNEY ==================== -->
+<section class="module" id="mod-kidney">
+<div class="section-title">肾功能与电解质</div>
+
+<div class="card" data-keywords="egfr gfr 肾 肌酐 滤过率" data-id="egfr">
+  <div class="card-header">
+    <div class="card-title">eGFR (CKD-EPI 2021)</div>
+    <button class="fav-btn" data-id="egfr" onclick="toggleFav('egfr')">☆</button>
+  </div>
+  <div class="form-row">
+    <div class="form-group"><label>肌酐</label><input type="number" id="egfr-cr" placeholder="μmol/L" step="0.1" oninput="autoCalc('egfr')"></div>
+    <div class="form-group"><label>年龄</label><input type="number" id="egfr-age" placeholder="岁" min="1" max="120" oninput="autoCalc('egfr')"></div>
+  </div>
+  <div class="form-group">
+    <label>性别</label>
+    <div class="radio-group">
+      <label><input type="radio" name="egfr-sex" value="male" checked onchange="autoCalc('egfr')"> 男</label>
+      <label><input type="radio" name="egfr-sex" value="female" onchange="autoCalc('egfr')"> 女</label>
+    </div>
+  </div>
+  <div class="warning-banner warning-danger" id="egfr-warn"></div>
+  <div class="result-box" id="egfr-res">
+    <div class="result-main"><span id="egfr-main"></span><button class="copy-btn" onclick="copyResult('egfr')">复制</button></div>
+    <div class="result-detail" id="egfr-detail"></div>
+    <div class="result-ref">CKD-EPI 2021 (race-free). Inker LA, et al. N Engl J Med 2021.</div>
+  </div>
+</div>
+
+<div class="card" data-keywords="cockcroft gault cg crcl 肌酐清除率" data-id="cg">
+  <div class="card-header">
+    <div class="card-title">Cockcroft-Gault CrCl</div>
+    <button class="fav-btn" data-id="cg" onclick="toggleFav('cg')">☆</button>
+  </div>
+  <div class="form-row">
+    <div class="form-group"><label>年龄</label><input type="number" id="cg-age" placeholder="岁" oninput="autoCalc('cg')"></div>
+    <div class="form-group"><label>体重</label><input type="number" id="cg-weight" placeholder="kg" step="0.1" oninput="autoCalc('cg')"></div>
+  </div>
+  <div class="form-row">
+    <div class="form-group"><label>肌酐</label><input type="number" id="cg-cr" placeholder="μmol/L" step="0.1" oninput="autoCalc('cg')"></div>
+    <div class="form-group"><label>性别</label>
+      <select id="cg-sex" onchange="autoCalc('cg')"><option value="male">男</option><option value="female">女</option></select>
+    </div>
+  </div>
+  <label class="checkbox-label"><input type="checkbox" id="cg-ibw" onchange="autoCalc('cg')"> 使用去脂体重 (IBW，肥胖患者)</label>
+  <div class="result-box" id="cg-res">
+    <div class="result-main"><span id="cg-main"></span><button class="copy-btn" onclick="copyResult('cg')">复制</button></div>
+    <div class="result-detail" id="cg-detail"></div>
+    <div class="result-ref">Cockcroft DW, Gault MH. Nephron 1976;16:31-41.</div>
+  </div>
+</div>
+
+<div class="card" data-keywords="schwartz 儿童 肾 egfr" data-id="schwartz">
+  <div class="card-header">
+    <div class="card-title">儿童 Schwartz eGFR</div>
+    <button class="fav-btn" data-id="schwartz" onclick="toggleFav('schwartz')">☆</button>
+  </div>
+  <div class="form-row">
+    <div class="form-group"><label>身高</label><input type="number" id="sch-h" placeholder="cm" oninput="autoCalc('schwartz')"></div>
+    <div class="form-group"><label>肌酐</label><input type="number" id="sch-cr" placeholder="μmol/L" step="0.1" oninput="autoCalc('schwartz')"></div>
+  </div>
+  <div class="result-box" id="sch-res">
+    <div class="result-main"><span id="sch-main"></span><button class="copy-btn" onclick="copyResult('schwartz')">复制</button></div>
+    <div class="result-detail" id="sch-detail"></div>
+    <div class="result-ref">Schwartz GJ, et al. J Am Soc Nephrol 2009;20:629-637. 系数0.413。</div>
+  </div>
+</div>
+
+<div class="card" data-keywords="钠缺失 低钠 补钠" data-id="nadeficit">
+  <div class="card-header">
+    <div class="card-title">钠缺失量</div>
+    <button class="fav-btn" data-id="nadeficit" onclick="toggleFav('nadeficit')">☆</button>
+  </div>
+  <div class="form-row">
+    <div class="form-group"><label>血钠</label><input type="number" id="na-na" placeholder="mmol/L" step="0.1" oninput="autoCalc('nadeficit')"></div>
+    <div class="form-group"><label>体重</label><input type="number" id="na-wt" placeholder="kg" step="0.1" oninput="autoCalc('nadeficit')"></div>
+  </div>
+  <div class="form-group">
+    <label>性别</label>
+    <div class="radio-group">
+      <label><input type="radio" name="na-sex" value="0.6" checked onchange="autoCalc('nadeficit')"> 男 (×0.6)</label>
+      <label><input type="radio" name="na-sex" value="0.5" onchange="autoCalc('nadeficit')"> 女 (×0.5)</label>
+    </div>
+  </div>
+  <div class="result-box" id="na-res">
+    <div class="result-main"><span id="na-main"></span><button class="copy-btn" onclick="copyResult('nadeficit')">复制</button></div>
+    <div class="result-detail" id="na-detail"></div>
+    <div class="result-ref">Adrogué HJ, Madias NE. N Engl J Med 2000;342:1581-1589.</div>
+  </div>
+</div>
+
+<div class="card" data-keywords="补钾 钾缺失 低钾" data-id="kdeficit">
+  <div class="card-header">
+    <div class="card-title">补钾计算</div>
+    <button class="fav-btn" data-id="kdeficit" onclick="toggleFav('kdeficit')">☆</button>
+  </div>
+  <div class="form-row">
+    <div class="form-group"><label>血钾</label><input type="number" id="k-k" placeholder="mmol/L" step="0.01" oninput="autoCalc('kdeficit')"></div>
+    <div class="form-group"><label>体重</label><input type="number" id="k-wt" placeholder="kg" step="0.1" oninput="autoCalc('kdeficit')"></div>
+  </div>
+  <div class="warning-banner warning-danger" id="k-warn"></div>
+  <div class="result-box" id="k-res">
+    <div class="result-main"><span id="k-main"></span><button class="copy-btn" onclick="copyResult('kdeficit')">复制</button></div>
+    <div class="result-detail" id="k-detail"></div>
+    <div class="result-ref">经验估计: 血钾每降低0.3 mmol/L ≈ 缺钾100 mmol。</div>
+  </div>
+</div>
+
+<div class="card" data-keywords="校正钙 白蛋白 钙" data-id="correctedca">
+  <div class="card-header">
+    <div class="card-title">校正钙</div>
+    <button class="fav-btn" data-id="correctedca" onclick="toggleFav('correctedca')">☆</button>
+  </div>
+  <div class="form-row">
+    <div class="form-group"><label>实测钙</label><input type="number" id="ca-ca" placeholder="mmol/L" step="0.01" oninput="autoCalc('correctedca')"></div>
+    <div class="form-group"><label>白蛋白</label><input type="number" id="ca-alb" placeholder="g/L" step="0.1" oninput="autoCalc('correctedca')"></div>
+  </div>
+  <div class="result-box" id="ca-res">
+    <div class="result-main"><span id="ca-main"></span><button class="copy-btn" onclick="copyResult('correctedca')">复制</button></div>
+    <div class="result-detail" id="ca-detail"></div>
+    <div class="result-ref">Payne RB, et al. Br Med J 1973. 校正钙 = 实测钙 + 0.02×(40-白蛋白)。</div>
+  </div>
+</div>
+
+<div class="card" data-keywords="阴离子间隙 ag 代谢性酸中毒" data-id="ag">
+  <div class="card-header">
+    <div class="card-title">阴离子间隙 AG</div>
+    <button class="fav-btn" data-id="ag" onclick="toggleFav('ag')">☆</button>
+  </div>
+  <div class="form-row">
+    <div class="form-group"><label>Na⁺</label><input type="number" id="ag-na" placeholder="mmol/L" oninput="autoCalc('ag')"></div>
+    <div class="form-group"><label>Cl⁻</label><input type="number" id="ag-cl" placeholder="mmol/L" oninput="autoCalc('ag')"></div>
+  </div>
+  <div class="form-group"><label>HCO₃⁻</label><input type="number" id="ag-hco3" placeholder="mmol/L" oninput="autoCalc('ag')"></div>
+  <div class="result-box" id="ag-res">
+    <div class="result-main"><span id="ag-main"></span><button class="copy-btn" onclick="copyResult('ag')">复制</button></div>
+    <div class="result-detail" id="ag-detail"></div>
+    <div class="result-ref">Emmett M, Narins RG. Medicine 1977;56:38-54. 正常 AG 8-12。</div>
+  </div>
+</div>
+
+<div class="card" data-keywords="渗透压 间隙 中毒" data-id="osmgap">
+  <div class="card-header">
+    <div class="card-title">渗透压间隙</div>
+    <button class="fav-btn" data-id="osmgap" onclick="toggleFav('osmgap')">☆</button>
+  </div>
+  <div class="form-row">
+    <div class="form-group"><label>Na⁺</label><input type="number" id="osm-na" placeholder="mmol/L" oninput="autoCalc('osmgap')"></div>
+    <div class="form-group"><label>葡萄糖</label><input type="number" id="osm-gluc" placeholder="mmol/L" step="0.1" oninput="autoCalc('osmgap')"></div>
+  </div>
+  <div class="form-row">
+    <div class="form-group"><label>尿素氮</label><input type="number" id="osm-bun" placeholder="mmol/L" step="0.1" oninput="autoCalc('osmgap')"></div>
+    <div class="form-group"><label>实测渗透压</label><input type="number" id="osm-meas" placeholder="mOsm/kg" step="0.1" oninput="autoCalc('osmgap')"></div>
+  </div>
+  <div class="warning-banner warning-danger" id="osm-warn"></div>
+  <div class="result-box" id="osm-res">
+    <div class="result-main"><span id="osm-main"></span><button class="copy-btn" onclick="copyResult('osmgap')">复制</button></div>
+    <div class="result-detail" id="osm-detail"></div>
+    <div class="result-ref">计算渗透压 = 2×Na + 葡萄糖 + 尿素氮。Gap >10 提示外源性溶质(乙醇、甲醇等)。</div>
   </div>
 </div>
 
@@ -1339,16 +1363,6 @@ function debounce(fn, ms=400) {
   return (...args) => { clearTimeout(t); t = setTimeout(() => fn(...args), ms); };
 }
 
-// Per-calculator debounce timers
-const calcTimers = {};
-function autoCalc(id) {
-  if(!calcTimers[id]) calcTimers[id] = debounce(() => {
-    const fn = CALC[id];
-    if(fn) fn();
-  }, 350);
-  calcTimers[id]();
-}
-
 function getVal(id, def=null) {
   const el = $(id);
   if(!el) return def;
@@ -1384,6 +1398,90 @@ function switchTab(mod) {
   if(mod === 'favorites') renderFavorites();
   window.scrollTo(0, 0);
 }
+
+/* ============ DRAG REORDER ============ */
+(function() {
+  const nav = document.getElementById('navTabs');
+  if(!nav) return;
+  let dragSrc = null;
+
+  nav.addEventListener('dragstart', e => {
+    dragSrc = e.target.closest('.nav-tab');
+    if(!dragSrc || dragSrc.dataset.module === 'favorites') { e.preventDefault(); return; }
+    dragSrc.style.opacity = '0.4';
+    e.dataTransfer.effectAllowed = 'move';
+  });
+
+  nav.addEventListener('dragend', e => {
+    if(dragSrc) dragSrc.style.opacity = '1';
+    dragSrc = null;
+    nav.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('drag-over'));
+  });
+
+  nav.addEventListener('dragover', e => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+  });
+
+  nav.addEventListener('drop', e => {
+    e.preventDefault();
+    const target = e.target.closest('.nav-tab');
+    if(!dragSrc || !target || dragSrc === target) return;
+    if(target.dataset.module === 'favorites') return; // 收藏不可被覆盖
+
+    const tabs = [...nav.querySelectorAll('.nav-tab')];
+    const srcIdx = tabs.indexOf(dragSrc);
+    const tgtIdx = tabs.indexOf(target);
+    if(srcIdx < 0 || tgtIdx < 0) return;
+
+    // 移动 nav tab
+    if(srcIdx < tgtIdx) {
+      target.after(dragSrc);
+    } else {
+      target.before(dragSrc);
+    }
+
+    // 同步移动 section 顺序
+    const container = document.querySelector('main') || document.body;
+    const sections = [...container.querySelectorAll('section.module')];
+    const srcSec = sections.find(s => s.id === 'mod-' + dragSrc.dataset.module);
+    const tgtSec = sections.find(s => s.id === 'mod-' + target.dataset.module);
+    if(srcSec && tgtSec) {
+      if(srcIdx < tgtIdx) {
+        tgtSec.after(srcSec);
+      } else {
+        tgtSec.before(srcSec);
+      }
+    }
+
+    // 保存顺序到 localStorage
+    const order = [...nav.querySelectorAll('.nav-tab')].map(t => t.dataset.module);
+    STORE.set('medcalc_tab_order', order);
+  });
+
+  // 启动时恢复保存的顺序
+  const saved = STORE.get('medcalc_tab_order', null);
+  if(saved && Array.isArray(saved) && saved.length > 1) {
+    const container = document.querySelector('main') || document.body;
+    const sections = [...container.querySelectorAll('section.module')];
+    saved.forEach((mod, i) => {
+      const tab = nav.querySelector(`[data-module="${mod}"]`);
+      if(tab) nav.appendChild(tab);
+      const sec = sections.find(s => s.id === 'mod-' + mod);
+      if(sec) container.appendChild(sec);
+    });
+    // 恢复默认激活标签
+    const firstTab = saved[0];
+    if(firstTab && firstTab !== 'favorites') {
+      document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.module').forEach(m => m.classList.remove('active'));
+      const t = nav.querySelector(`[data-module="${firstTab}"]`);
+      const s = $('mod-' + firstTab);
+      if(t) t.classList.add('active');
+      if(s) s.classList.add('active');
+    }
+  }
+})();
 
 /* ============ SEARCH ============ */
 const searchIndex = [];
@@ -1703,6 +1801,19 @@ const CALC = {
     setRes('wh-main', 'wh-detail', `WHR = ${whr}`, detail);
     showRes('wh-res');
     addHistory('WHR', `${whr}`);
+  },
+
+  pnprotein() {
+    const wt = getVal('pnprot-wt');
+    if(!wt) { hideRes('pnprot-res'); return; }
+    const gKg = parseFloat(getSel('pnprot-cond'));
+    const protG = round(wt * gKg, 1);
+    const nitrogen = round(protG * 0.16, 1);
+    setRes('pnprot-main', 'pnprot-detail',
+      `目标蛋白质 = ${protG} g/d`,
+      `${gKg} g/kg × ${wt} kg | 氮量 ≈ ${nitrogen} g/d | 供能 ≈ ${round(protG*4,0)} kcal`);
+    showRes('pnprot-res');
+    addHistory('PN蛋白质', `${protG} g/d`);
   },
 
   pnenergy() {
