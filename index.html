@@ -4352,7 +4352,7 @@ function sendAIMessage() {
 
 function callAI(messages, onChunk, onDone, onError) {
   const url = STORE.get('medcalc_api_url', '');
-  const key = STORE.get('medcalc_api_key', '');
+  const key = sanitizeASCII(STORE.get('medcalc_api_key', ''));
   const model = STORE.get('medcalc_api_model', '');
   const mode = STORE.get('medcalc_api_mode', 'openai');
   if (!url || !key) { onError('请先配置 AI 服务'); return; }
@@ -4366,7 +4366,7 @@ function callAI(messages, onChunk, onDone, onError) {
   }
   fetch(url, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${key}` },
+    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + key },
     body: JSON.stringify(payload),
     signal: aiAbortController.signal
   }).then(response => {
@@ -4508,39 +4508,30 @@ function loadAISettings() {
   updateAIStatus();
 }
 
+function sanitizeASCII(str) { return (str || '').replace(/[^\x00-\xFF]/g, ''); }
+
 function testAIConnection() {
   const url = $('ai-url')?.value?.trim();
-  const key = $('ai-key')?.value?.trim();
+  const key = sanitizeASCII($('ai-key')?.value?.trim());
   const model = $('ai-model')?.value?.trim();
   const result = $('ai-test-result');
   if (!url || !key) { if (result) result.textContent = '请填写 URL 和 Key'; return; }
   if (result) result.textContent = '测试中...';
-  const payload = { model: model || 'deepseek-chat', messages: [{ role: 'user', content: '你好，请回复OK' }], stream: true };
+  const payload = { model: model || 'deepseek-chat', messages: [{ role: 'user', content: 'Reply OK' }], stream: false };
   const testController = new AbortController();
   const timeout = setTimeout(() => { testController.abort(); if (result) result.textContent = '连接超时'; }, 15000);
   fetch(url, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${key}` },
+    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + key },
     body: JSON.stringify(payload),
     signal: testController.signal
   }).then(response => {
     clearTimeout(timeout);
-    if (!response.ok) { if (result) result.textContent = `错误: HTTP ${response.status}`; return; }
-    const reader = response.body.getReader();
-    const decoder = new TextDecoder();
-    let gotContent = false;
-    const readChunk = () => {
-      reader.read().then(({ done, value }) => {
-        if (done) {
-          if (result) result.innerHTML = `<span style="color:var(--success)">连接成功${gotContent ? '，收到回复' : ''}</span>`;
-          return;
-        }
-        const text = decoder.decode(value, { stream: true });
-        if (text.includes('data:')) gotContent = true;
-        readChunk();
-      }).catch(() => { if (result) result.innerHTML = '<span style="color:var(--success)">连接成功</span>'; });
-    };
-    readChunk();
+    if (!response.ok) { response.text().then(t => { if (result) result.textContent = '错误: HTTP ' + response.status + ' ' + t.slice(0,100); }); return; }
+    response.json().then(data => {
+      const content = data?.choices?.[0]?.message?.content || '';
+      if (result) result.innerHTML = '<span style="color:var(--success)">连接成功！模型回复: ' + content.slice(0,50) + '</span>';
+    }).catch(() => { if (result) result.innerHTML = '<span style="color:var(--success)">连接成功</span>'; });
   }).catch(e => {
     clearTimeout(timeout);
     if (result) result.textContent = '连接失败: ' + (e.name === 'AbortError' ? '超时' : e.message);
