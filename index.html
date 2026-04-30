@@ -556,6 +556,20 @@ footer {
 .trend-card-values span { padding: 2px 6px; border-radius: 4px; background: var(--card); }
 .trend-card-values span.abnormal { background: var(--danger-bg); color: var(--danger); }
 
+/* AI Thinking Time */
+.ai-thinking-time { font-size: 0.72rem; color: var(--text-secondary); padding: 2px 0 4px; opacity: 0.7; }
+.ai-thinking-time .ai-think-icon { display: inline-block; width: 12px; height: 12px; border: 2px solid var(--primary); border-top-color: transparent; border-radius: 50%; animation: ai-spin 0.8s linear infinite; margin-right: 4px; vertical-align: middle; }
+@keyframes ai-spin { to { transform: rotate(360deg); } }
+
+/* Clinical Image Assistant */
+.clinical-img-upload { border: 2px dashed var(--border); border-radius: 8px; padding: 16px; text-align: center; cursor: pointer; transition: all 0.2s; margin-bottom: 8px; }
+.clinical-img-upload:hover { border-color: var(--primary); background: var(--primary-light); }
+.clinical-img-upload input { display: none; }
+.clinical-img-upload .upload-icon { font-size: 1.8rem; margin-bottom: 4px; }
+.clinical-img-upload .upload-text { font-size: 0.82rem; color: var(--text-secondary); }
+.clinical-img-preview { max-width: 100%; max-height: 200px; border-radius: 6px; margin: 8px 0; display: none; }
+.clinical-img-result { min-height: 60px; font-size: 0.82rem; line-height: 1.7; white-space: pre-wrap; background: var(--card); border-radius: 8px; padding: 10px; margin-top: 8px; }
+
 </style>
 </head>
 <body>
@@ -593,8 +607,8 @@ footer {
   <button class="nav-tab" data-module="scores" onclick="switchTab('scores')" draggable="true">📊 评分</button>
   <button class="nav-tab" data-module="abg" onclick="switchTab('abg')" draggable="true">🩸 血气</button>
   <button class="nav-tab" data-module="obgyn" onclick="switchTab('obgyn')" draggable="true">👶 妇产儿</button>
-  <button class="nav-tab" data-module="round" onclick="switchTab('round')" draggable="true">📋 查房</button>
   <button class="nav-tab" data-module="favorites" onclick="switchTab('favorites')" draggable="false">⭐ 收藏</button>
+  <button class="nav-tab" onclick="resetCurrentCalc()" style="margin-left:auto;flex-shrink:0" title="重置当前计算器">🔄 重置</button>
 </nav>
 
 <main>
@@ -1729,14 +1743,15 @@ footer {
   <button onclick="navDate(1)">▶</button>
 </div>
 
-<!-- ===== 子 Tab 导航（6 Tab） ===== -->
+<!-- ===== 子 Tab 导航（7 Tab） ===== -->
 <div class="sub-tabs" id="round-subtabs">
   <button class="sub-tab-btn active" onclick="switchRoundTab('r-vitals')">生命体征</button>
   <button class="sub-tab-btn" onclick="switchRoundTab('r-exam')">查体</button>
   <button class="sub-tab-btn" onclick="switchRoundTab('r-labs')">检验结果</button>
   <button class="sub-tab-btn" onclick="switchRoundTab('r-imaging')">检查结果</button>
   <button class="sub-tab-btn" onclick="switchRoundTab('r-treatment')">治疗</button>
-  <button class="sub-tab-btn" onclick="switchRoundTab('r-report')">报告+AI</button>
+  <button class="sub-tab-btn" onclick="switchRoundTab('r-report')">报告</button>
+  <button class="sub-tab-btn" onclick="switchRoundTab('r-ai')">AI助手</button>
 </div>
 
 <!-- ===== Tab 1: 生命体征 + 呼吸支持 + 出入量 ===== -->
@@ -1878,6 +1893,15 @@ footer {
 <div class="round-panel">
   <div class="card-title">检验结果</div>
 
+  <!-- 模式切换 -->
+  <div class="lab-mode-toggle">
+    <button class="active" onclick="switchLabsMode('struct',this)">结构化</button>
+    <button onclick="switchLabsMode('free',this)">自由文本</button>
+  </div>
+
+  <!-- 结构化录入 -->
+  <div id="labs-struct-mode">
+
   <!-- 粘贴解析区 -->
   <div class="lab-paste-area" style="margin-bottom:12px">
     <div class="section-label">📋 粘贴化验单文本（自动解析）</div>
@@ -1986,15 +2010,30 @@ footer {
   </div>
   <div id="lab-abnormal-display" style="margin-top:8px"></div>
 
-  <!-- AI 化验助手 -->
+  </div><!-- /labs-struct-mode -->
+
+  <!-- 自由文本 -->
+  <div id="labs-free-mode" style="display:none">
+    <div class="form-group"><textarea id="labs-free-text" rows="10" placeholder="直接输入化验结果，如：&#10;WBC 12.3×10⁹/L&#10;Hgb 85 g/L↓&#10;Cr 156 μmol/L↑&#10;乳酸 3.2 mmol/L↑"></textarea></div>
+  </div>
+
+  <!-- 临床识图助手 -->
   <div class="lab-ai-panel" id="lab-ai-panel">
-    <div class="section-label">🤖 AI 化验助手</div>
-    <button class="btn btn-secondary" onclick="askAILabAnalysis()" style="margin-bottom:8px">📋 分析当前化验</button>
-    <div id="lab-ai-result" style="min-height:60px;font-size:0.82rem;line-height:1.7;white-space:pre-wrap"></div>
-    <div style="display:flex;gap:6px;margin-top:8px">
-      <input type="text" id="lab-ai-input" placeholder="追问化验问题..." style="flex:1" onkeypress="if(event.key==='Enter')askAILabFollowup()">
-      <button class="btn btn-primary" onclick="askAILabFollowup()">发送</button>
+    <div class="section-label">📷 临床识图助手</div>
+    <div class="clinical-img-upload" id="img-upload-area" onclick="document.getElementById('img-file-input').click()">
+      <input type="file" id="img-file-input" accept="image/jpeg,image/png,image/webp" onchange="previewClinicalImage(this)">
+      <div class="upload-icon">📷</div>
+      <div class="upload-text">点击上传化验单/检查报告图片</div>
     </div>
+    <img id="img-preview" class="clinical-img-preview" alt="">
+    <div id="img-preview-remove" style="display:none;text-align:center;margin-bottom:8px">
+      <button class="btn btn-secondary" onclick="clearClinicalImage()" style="font-size:0.78rem">✕ 移除图片</button>
+    </div>
+    <div style="display:flex;gap:6px;margin-bottom:8px">
+      <input type="text" id="clinical-img-question" placeholder="描述需要分析的问题（可选）" style="flex:1" onkeypress="if(event.key==='Enter')analyzeClinicalImage()">
+      <button class="btn btn-primary" onclick="analyzeClinicalImage()">🔍 AI 分析</button>
+    </div>
+    <div class="clinical-img-result" id="clinical-img-result" style="display:none"></div>
   </div>
 </div>
 </div>
@@ -2100,46 +2139,6 @@ footer {
   <button class="btn btn-secondary" onclick="showTrend()" style="width:100%;margin-bottom:8px">📊 查看趋势</button>
   <div id="trend-display"></div>
 
-  <!-- AI 对话区 -->
-  <div class="ai-chat-wrap" id="ai-chat-wrap">
-    <div class="ai-chat-header">
-      <span>AI 临床助手</span>
-      <span class="ai-status" id="ai-status">未配置</span>
-    </div>
-    <div class="ai-chat-actions">
-      <button onclick="sendAllReports()" id="btn-ai-send" disabled>📋 发送全部患者报告</button>
-      <button onclick="refreshAIContext()" id="btn-ai-refresh" disabled>🔄 刷新上下文</button>
-      <button onclick="clearAIChat()" id="btn-ai-clear" disabled>🗑 清空对话</button>
-    </div>
-    <div class="ai-chat-body" id="ai-chat-body">
-      <div style="text-align:center;color:var(--text-secondary);font-size:0.82rem;padding:20px" id="ai-placeholder">配置 AI 服务后即可使用</div>
-    </div>
-    <div class="ai-chat-input">
-      <input type="text" id="ai-input" placeholder="追问..." onkeypress="if(event.key==='Enter')sendAIMessage()">
-      <button class="btn btn-primary" onclick="sendAIMessage()" id="btn-ai-ask" disabled>发送</button>
-    </div>
-  </div>
-
-  <!-- AI 设置 -->
-  <div class="ai-settings">
-    <div class="ai-settings-header" onclick="toggleAISettings()">AI 服务设置 ▼</div>
-    <div class="ai-settings-body" id="ai-settings-body">
-      <div class="ai-preset-btns">
-        <button onclick="setAIPreset('deepseek')" id="preset-deepseek">DeepSeek</button>
-        <button onclick="setAIPreset('minimax')" id="preset-minimax">MiniMax</button>
-        <button onclick="setAIPreset('custom')" id="preset-custom">自定义</button>
-      </div>
-      <div class="form-group"><label>API URL</label><input type="text" id="ai-url" placeholder="https://api.deepseek.com/chat/completions"></div>
-      <div class="form-group"><label>API Key</label><input type="password" id="ai-key" placeholder="sk-..."></div>
-      <div class="form-group"><label>模型名</label><input type="text" id="ai-model" placeholder="deepseek-chat"></div>
-      <div style="display:flex;gap:8px;margin-bottom:10px">
-        <button class="btn btn-secondary" onclick="testAIConnection()" style="flex:1">测试连接</button>
-        <button class="btn btn-primary" onclick="saveAISettings()" style="flex:1">保存设置</button>
-      </div>
-      <div id="ai-test-result" style="font-size:0.78rem;margin-bottom:8px"></div>
-    </div>
-  </div>
-
   <!-- 明日计划 -->
   <div class="section-label" style="margin-top:12px">明日计划</div>
   <div class="form-group"><textarea id="pt-plan" rows="2" placeholder="生成报告后填写明日计划"></textarea></div>
@@ -2152,6 +2151,50 @@ footer {
     <button class="btn btn-secondary" onclick="exportAllPatients()" style="flex:1">📤 导出全部</button>
     <button class="btn btn-secondary" onclick="backupAllPatients()" style="flex:1">📤 备份</button>
     <button class="btn btn-secondary" onclick="restorePatients()" style="flex:1">📥 恢复</button>
+  </div>
+</div>
+</div>
+
+<!-- ===== Tab 7: AI助手 ===== -->
+<div class="sub-tab-content" id="r-ai">
+<div class="round-panel">
+  <div class="card-title">AI 临床助手</div>
+
+  <div class="ai-chat-wrap">
+    <div class="ai-chat-header">
+      <span>AI 临床助手</span>
+      <span class="ai-status" id="ai-status-r">未配置</span>
+    </div>
+    <div class="ai-chat-actions">
+      <button class="ai-feature" onclick="sendAllReports()">📋 分析全部患者</button>
+      <button class="ai-feature" onclick="refreshAIContext()">🔄 刷新</button>
+      <button onclick="clearAIChat()">🗑 清空</button>
+      <button onclick="stopAI()">⏹ 停止</button>
+    </div>
+    <div class="ai-chat-body" id="ai-chat-body"></div>
+    <div class="ai-chat-input">
+      <input type="text" id="ai-input" placeholder="追问临床问题..." onkeypress="if(event.key==='Enter')sendAIMessage()">
+      <button class="btn btn-primary" onclick="sendAIMessage()">发送</button>
+    </div>
+  </div>
+
+  <div class="ai-settings" style="margin-top:12px">
+    <div class="ai-settings-header" onclick="toggleAISettings()">⚙️ AI 服务设置 <span>▼</span></div>
+    <div class="ai-settings-body" id="ai-settings-body">
+      <div class="ai-preset-btns" style="display:flex;gap:6px;margin-bottom:8px">
+        <button class="btn btn-secondary" id="preset-deepseek" onclick="setAIPreset('deepseek')">DeepSeek</button>
+        <button class="btn btn-secondary" id="preset-minimax" onclick="setAIPreset('minimax')">MiniMax</button>
+        <button class="btn btn-secondary" id="preset-custom" onclick="setAIPreset('custom')">自定义</button>
+      </div>
+      <div class="form-group"><label>API URL</label><input type="text" id="ai-url" placeholder="https://api.deepseek.com/chat/completions"></div>
+      <div class="form-group"><label>API Key</label><input type="password" id="ai-key" placeholder="sk-..."></div>
+      <div class="form-group"><label>模型</label><input type="text" id="ai-model" placeholder="deepseek-chat"></div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <button class="btn btn-primary" onclick="saveAISettings()">保存设置</button>
+        <button class="btn btn-secondary" onclick="testAIConnection()">测试连接</button>
+        <span id="ai-test-result" style="font-size:0.82rem"></span>
+      </div>
+    </div>
   </div>
 </div>
 </div>
@@ -2266,7 +2309,7 @@ function switchTab(mod) {
 
   nav.addEventListener('dragstart', e => {
     dragSrc = e.target.closest('.nav-tab');
-    if(!dragSrc || dragSrc.dataset.module === 'favorites') { e.preventDefault(); return; }
+    if(!dragSrc || !dragSrc.dataset.module || dragSrc.dataset.module === 'favorites') { e.preventDefault(); return; }
     dragSrc.style.opacity = '0.4';
     e.dataTransfer.effectAllowed = 'move';
   });
@@ -2286,7 +2329,7 @@ function switchTab(mod) {
     e.preventDefault();
     const target = e.target.closest('.nav-tab');
     if(!dragSrc || !target || dragSrc === target) return;
-    if(target.dataset.module === 'favorites') return; // 收藏不可被覆盖
+    if(!target.dataset.module || target.dataset.module === 'favorites') return; // 重置/收藏不可被覆盖
 
     const tabs = [...nav.querySelectorAll('.nav-tab')];
     const srcIdx = tabs.indexOf(dragSrc);
@@ -3454,8 +3497,11 @@ let patients = STORE.get(patientsKey, []);
 let currentPatientId = null;
 let currentDate = new Date().toISOString().slice(0, 10);
 let currentMedMode = 'struct';
+let currentLabsMode = 'struct';
 let aiChatHistory = STORE.get('medcalc_ai_conversations', []);
 let aiAbortController = null;
+let _aiStartTime = 0;
+let _aiFirstContent = true;
 
 // ---------- ICD-10 常见诊断库 ----------
 const ICD_DB = [
@@ -3705,7 +3751,7 @@ function switchRoundTab(tabId) {
   const target = document.getElementById(tabId);
   if (target) target.classList.add('active');
   const btns = document.querySelectorAll('#round-subtabs .sub-tab-btn');
-  const idx = ['r-vitals', 'r-exam', 'r-labs', 'r-imaging', 'r-treatment', 'r-report'].indexOf(tabId);
+  const idx = ['r-vitals', 'r-exam', 'r-labs', 'r-imaging', 'r-treatment', 'r-report', 'r-ai'].indexOf(tabId);
   if (idx >= 0 && btns[idx]) btns[idx].classList.add('active');
   STORE.set('medcalc_round_tab', tabId);
 }
@@ -3766,14 +3812,7 @@ function saveVitalsIO() {
 
   savePatients();
   updatePatientInfo();
-
-  const bal = rec.io.balance;
-  const balEl = $('io-balance-display');
-  if (balEl) {
-    balEl.style.display = 'block';
-    balEl.textContent = `平衡: ${bal > 0 ? '+' : ''}${bal} mL`;
-    balEl.className = 'io-balance ' + (bal > 500 ? 'positive' : bal < -500 ? 'negative' : 'zero');
-  }
+  updateIOBalance();
 
   const alerts = [];
   const v = rec.vitals;
@@ -3839,6 +3878,12 @@ function loadRecord(date) {
   if (rec.labs) {
     Object.entries(rec.labs).forEach(([k, v]) => { const el = $('lab-' + k); if (el && v != null) el.value = v; });
   }
+  if (rec.labsMode === 'free') {
+    switchLabsMode('free');
+    setFormVal('labs-free-text', rec.labsFreeText || '');
+  } else {
+    switchLabsMode('struct');
+  }
   setFormVal('pt-imaging', rec.imaging);
   setFormVal('pt-func-exam', rec.funcExam);
   setFormVal('pt-exam', rec.exam);
@@ -3868,6 +3913,8 @@ function clearAllForms() {
   const abnormEl = $('lab-abnormal-display'); if (abnormEl) abnormEl.innerHTML = '';
   const critEl = $('inline-crit-display'); if (critEl) critEl.innerHTML = '';
   ['pt-imaging','pt-func-exam','pt-exam','pt-notes','pt-tx-changes','pt-plan'].forEach(id => { const el = $(id); if (el) el.value = ''; });
+  setFormVal('labs-free-text', '');
+  switchLabsMode('struct');
 }
 
 function setFormVal(id, val) {
@@ -3909,27 +3956,33 @@ function saveLabs() {
   let rec = p.records[currentDate];
   if (!rec) { rec = {}; p.records[currentDate] = rec; }
 
-  rec.abg = {
-    ph: getVal('lab-abg-ph'), pco2: getVal('lab-abg-pco2'), pao2: getVal('lab-abg-pao2'),
-    fio2: getVal('lab-abg-fio2'), hco3: getVal('lab-abg-hco3'), lac: getVal('lab-abg-lac'),
-    k: getVal('lab-abg-k'), na: getVal('lab-abg-na'), cl: getVal('lab-abg-cl'), glu: getVal('lab-abg-glu')
-  };
-  rec.labs = {
-    wbc: getVal('lab-wbc'), hgb: getVal('lab-hgb'), plt: getVal('lab-plt'), neut: getVal('lab-neut'),
-    cr: getVal('lab-cr'), bun: getVal('lab-bun'), alt: getVal('lab-alt'), ast: getVal('lab-ast'),
-    tbili: getVal('lab-tbili'), dbili: getVal('lab-dbili'), ibili: getVal('lab-ibili'),
-    alb: getVal('lab-alb'), inr: getVal('lab-inr'), aptt: getVal('lab-aptt'),
-    ddimer: getVal('lab-ddimer'), bnp: getVal('lab-bnp'), pct: getVal('lab-pct'),
-    il6: getVal('lab-il6'), crp: getVal('lab-crp'),
-    ckmb: getVal('lab-ckmb'), tropi: getVal('lab-tropi'),
-    k: getVal('lab-k'), na: getVal('lab-na'), ca: getVal('lab-ca'), mg: getVal('lab-mg'),
-    ldh: getVal('lab-ldh'), hbalc: getVal('lab-hbalc')
-  };
+  rec.labsMode = currentLabsMode;
+
+  if (currentLabsMode === 'free') {
+    rec.labsFreeText = $('labs-free-text')?.value || '';
+  } else {
+    rec.abg = {
+      ph: getVal('lab-abg-ph'), pco2: getVal('lab-abg-pco2'), pao2: getVal('lab-abg-pao2'),
+      fio2: getVal('lab-abg-fio2'), hco3: getVal('lab-abg-hco3'), lac: getVal('lab-abg-lac'),
+      k: getVal('lab-abg-k'), na: getVal('lab-abg-na'), cl: getVal('lab-abg-cl'), glu: getVal('lab-abg-glu')
+    };
+    rec.labs = {
+      wbc: getVal('lab-wbc'), hgb: getVal('lab-hgb'), plt: getVal('lab-plt'), neut: getVal('lab-neut'),
+      cr: getVal('lab-cr'), bun: getVal('lab-bun'), alt: getVal('lab-alt'), ast: getVal('lab-ast'),
+      tbili: getVal('lab-tbili'), dbili: getVal('lab-dbili'), ibili: getVal('lab-ibili'),
+      alb: getVal('lab-alb'), inr: getVal('lab-inr'), aptt: getVal('lab-aptt'),
+      ddimer: getVal('lab-ddimer'), bnp: getVal('lab-bnp'), pct: getVal('lab-pct'),
+      il6: getVal('lab-il6'), crp: getVal('lab-crp'),
+      ckmb: getVal('lab-ckmb'), tropi: getVal('lab-tropi'),
+      k: getVal('lab-k'), na: getVal('lab-na'), ca: getVal('lab-ca'), mg: getVal('lab-mg'),
+      ldh: getVal('lab-ldh'), hbalc: getVal('lab-hbalc')
+    };
+    highlightAbnormal();
+    checkCritInline({ ...rec.labs, ...rec.abg });
+  }
 
   savePatients();
   updatePatientInfo();
-  highlightAbnormal();
-  checkCritInline({ ...rec.labs, ...rec.abg });
   addHistory('化验+血气', new Date().toLocaleString('zh-CN', { hour: '2-digit', minute: '2-digit' }));
   showToast('化验已保存');
   autoCalculateResults();
@@ -4071,6 +4124,18 @@ function switchMedMode(mode, btn) {
   if (btn) btn.classList.add('active');
   const structEl = $('med-struct-mode');
   const freeEl = $('med-free-mode');
+  if (structEl) structEl.style.display = mode === 'struct' ? 'block' : 'none';
+  if (freeEl) freeEl.style.display = mode === 'free' ? 'block' : 'none';
+}
+
+function switchLabsMode(mode, btn) {
+  currentLabsMode = mode;
+  const btns = document.querySelectorAll('.lab-mode-toggle button');
+  btns.forEach(b => b.classList.remove('active'));
+  if (btn) { btn.classList.add('active'); }
+  else if (btns[mode === 'struct' ? 0 : 1]) { btns[mode === 'struct' ? 0 : 1].classList.add('active'); }
+  const structEl = $('labs-struct-mode');
+  const freeEl = $('labs-free-mode');
   if (structEl) structEl.style.display = mode === 'struct' ? 'block' : 'none';
   if (freeEl) freeEl.style.display = mode === 'free' ? 'block' : 'none';
 }
@@ -4258,6 +4323,8 @@ function genReport() {
       if (labs.bnp != null) items.push(`BNP ${labs.bnp}`);
       if (labs.tropi != null) items.push(`cTnI ${labs.tropi}`);
       if (items.length > 0) text += `化验：${items.join('，')}\n`;
+    } else if (rec && rec.labsFreeText) {
+      text += `化验：\n${rec.labsFreeText}\n`;
     }
     if (rec && rec.imaging) text += `影像：${rec.imaging}\n`;
     if (rec && rec.funcExam) text += `功能检查：${rec.funcExam}\n`;
@@ -4475,12 +4542,27 @@ function callAI(messages, onChunk, onDone, onError) {
   if (!url || !key) { onError('请先配置 AI 服务'); return; }
   if (aiAbortController) { try { aiAbortController.abort(); } catch(e) {} }
   aiAbortController = new AbortController();
+  _aiStartTime = Date.now();
+  _aiFirstContent = true;
   let payload;
   if (mode === 'openai') {
     payload = { model: model || 'deepseek-chat', messages, stream: true };
   } else {
     payload = { model: model || '', messages, stream: true };
   }
+  const wrappedOnChunk = (content) => {
+    if (_aiFirstContent) {
+      _aiFirstContent = false;
+      const elapsed = ((Date.now() - _aiStartTime) / 1000).toFixed(1);
+      const msgs = STORE.get('medcalc_ai_conversations', aiChatHistory);
+      if (msgs.length > 0 && msgs[msgs.length - 1].role === 'assistant' && !msgs[msgs.length - 1].thinkingTime) {
+        msgs[msgs.length - 1].thinkingTime = elapsed;
+        STORE.set('medcalc_ai_conversations', msgs);
+        aiChatHistory = msgs;
+      }
+    }
+    onChunk(content);
+  };
   fetch(url, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + key },
@@ -4506,7 +4588,7 @@ function callAI(messages, onChunk, onDone, onError) {
             try {
               const json = JSON.parse(trimmed.slice(6));
               const content = extractByPath(json, 'choices[0].delta.content');
-              if (content) onChunk(content);
+              if (content) wrappedOnChunk(content);
             } catch (e) {}
           }
           readChunk();
@@ -4516,7 +4598,7 @@ function callAI(messages, onChunk, onDone, onError) {
     } else {
       response.json().then(json => {
         const content = extractByPath(json, 'choices[0].message.content') || extractByPath(json, 'choices[0].delta.content');
-        if (content) { onChunk(content); onDone(); }
+        if (content) { wrappedOnChunk(content); onDone(); }
         else onError('无法解析 AI 响应');
       }).catch(e => onError(e.message));
     }
@@ -4547,7 +4629,27 @@ function clearAIChat() {
   renderAIChat();
 }
 
+function stopAI() {
+  if (aiAbortController) { try { aiAbortController.abort(); } catch(e) {} aiAbortController = null; }
+  if (_clinicalImgAbortController) { try { _clinicalImgAbortController.abort(); } catch(e) {} _clinicalImgAbortController = null; }
+  showToast('AI 请求已停止');
+}
+
+let _aiRenderTimer = null;
+let _aiRenderDirty = false;
 function renderAIChat() {
+  const now = Date.now();
+  if (_aiRenderTimer && now - _aiRenderTimer < 500) { _aiRenderDirty = true; return; }
+  _aiRenderTimer = now;
+  _aiRenderDirty = false;
+  _doRenderAIChat();
+  if (!_aiRenderThrottleBound) {
+    _aiRenderThrottleBound = true;
+    setInterval(() => { if (_aiRenderDirty) { _aiRenderDirty = false; _aiRenderTimer = Date.now(); _doRenderAIChat(); } }, 500);
+  }
+}
+let _aiRenderThrottleBound = false;
+function _doRenderAIChat() {
   const body = $('ai-chat-body');
   if (!body) return;
   if (aiChatHistory.length === 0) {
@@ -4556,7 +4658,7 @@ function renderAIChat() {
   }
   const placeholder = body.querySelector('#ai-placeholder');
   if (placeholder) placeholder.remove();
-  body.innerHTML = aiChatHistory.map(m => {
+  body.innerHTML = aiChatHistory.map((m, i) => {
     const roleClass = m.role === 'user' ? 'ai-msg-user' : 'ai-msg-assistant';
     let content = m.content;
     content = content.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
@@ -4565,7 +4667,16 @@ function renderAIChat() {
     content = content.replace(/\*\*(.+?)\*\*/g, '<b>$1</b>');
     content = content.replace(/^- (.+)$/gm, '&bull; $1');
     content = content.replace(/\n/g, '<br>');
-    return `<div class="ai-msg ${roleClass}">${content}</div>`;
+    let thinkHtml = '';
+    if (m.role === 'assistant') {
+      const isLast = i === aiChatHistory.length - 1;
+      if (m.thinkingTime) {
+        thinkHtml = `<div class="ai-thinking-time">已深度思考 · ${m.thinkingTime}s</div>`;
+      } else if (isLast && !m.content) {
+        thinkHtml = `<div class="ai-thinking-time"><span class="ai-think-icon"></span>思考中...</div>`;
+      }
+    }
+    return thinkHtml + `<div class="ai-msg ${roleClass}">${content}</div>`;
   }).join('');
   body.scrollTop = body.scrollHeight;
 }
@@ -4659,15 +4770,14 @@ function updateAIStatus() {
   const url = STORE.get('medcalc_api_url', '');
   const key = STORE.get('medcalc_api_key', '');
   const configured = !!(url && key);
-  const statusEl = $('ai-status');
-  if (statusEl) {
-    statusEl.textContent = configured ? '已配置' : '未配置';
-    statusEl.style.color = configured ? 'var(--success)' : 'var(--text-secondary)';
-  }
-  ['btn-ai-send', 'btn-ai-refresh', 'btn-ai-clear', 'btn-ai-ask'].forEach(id => {
+  ['ai-status', 'ai-status-r'].forEach(id => {
     const el = $(id);
-    if (el) el.disabled = !configured;
+    if (el) {
+      el.textContent = configured ? '已配置' : '未配置';
+      el.style.color = configured ? 'var(--success)' : 'var(--text-secondary)';
+    }
   });
+  document.querySelectorAll('.ai-feature').forEach(el => { el.disabled = !configured; });
 }
 
 // ---------- Calculator Integration ----------
@@ -5010,6 +5120,101 @@ function appendLabAIMessage(role, content) {
   if (labAIHistory.length > 20) labAIHistory = labAIHistory.slice(-20);
 }
 
+// ---------- Clinical Image Assistant ----------
+let _clinicalImgBase64 = null;
+let _clinicalImgAbortController = null;
+
+function previewClinicalImage(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    _clinicalImgBase64 = e.target.result;
+    const preview = $('img-preview');
+    const removeBtn = $('img-preview-remove');
+    if (preview) { preview.src = _clinicalImgBase64; preview.style.display = 'block'; }
+    if (removeBtn) removeBtn.style.display = 'block';
+  };
+  reader.readAsDataURL(file);
+}
+
+function clearClinicalImage() {
+  _clinicalImgBase64 = null;
+  const preview = $('img-preview');
+  const removeBtn = $('img-preview-remove');
+  const fileInput = $('img-file-input');
+  if (preview) { preview.src = ''; preview.style.display = 'none'; }
+  if (removeBtn) removeBtn.style.display = 'none';
+  if (fileInput) fileInput.value = '';
+}
+
+function analyzeClinicalImage() {
+  const url = STORE.get('medcalc_api_url', '');
+  const key = sanitizeASCII(STORE.get('medcalc_api_key', ''));
+  const model = STORE.get('medcalc_api_model', '');
+  if (!url || !key) return alert('请先在 AI 助手页面配置 AI 服务');
+  if (!_clinicalImgBase64) return alert('请先上传图片');
+
+  const question = $('clinical-img-question')?.value?.trim() || '请分析这张化验单/检查报告图片，指出：1.危急值 2.异常指标及临床意义 3.综合分析 4.建议';
+  const resultEl = $('clinical-img-result');
+  if (resultEl) { resultEl.style.display = 'block'; resultEl.textContent = 'AI 分析中...'; }
+
+  if (_clinicalImgAbortController) { try { _clinicalImgAbortController.abort(); } catch(e) {} }
+  _clinicalImgAbortController = new AbortController();
+
+  const messages = [{
+    role: 'user',
+    content: [
+      { type: 'text', text: question },
+      { type: 'image_url', image_url: { url: _clinicalImgBase64 } }
+    ]
+  }];
+
+  const payload = { model: model || 'deepseek-chat', messages, stream: true };
+  fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + key },
+    body: JSON.stringify(payload),
+    signal: _clinicalImgAbortController.signal
+  }).then(response => {
+    if (!response.ok) { response.text().then(t => { if (resultEl) resultEl.textContent = `请求失败 HTTP ${response.status}: ${t.slice(0, 200)}`; }); return; }
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = '', reply = '';
+    const readChunk = () => {
+      reader.read().then(({ done, value }) => {
+        if (done) return;
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split('\n');
+        buffer = lines.pop() || '';
+        for (const line of lines) {
+          const trimmed = line.trim();
+          if (!trimmed || trimmed === 'data: [DONE]') continue;
+          if (!trimmed.startsWith('data: ')) continue;
+          try {
+            const json = JSON.parse(trimmed.slice(6));
+            const content = extractByPath(json, 'choices[0].delta.content');
+            if (content) { reply += content; if (resultEl) resultEl.textContent = reply; }
+          } catch (e) {}
+        }
+        readChunk();
+      }).catch(e => { if (e.name !== 'AbortError' && resultEl) resultEl.textContent = '请求失败：' + e.message; });
+    };
+    readChunk();
+  }).catch(e => { if (e.name !== 'AbortError' && resultEl) resultEl.textContent = '请求失败：' + e.message; });
+}
+
+// ---------- Calculator Reset ----------
+function resetCurrentCalc() {
+  const activeSection = document.querySelector('#calculator-mode .module.active');
+  if (!activeSection) return;
+  activeSection.querySelectorAll('input[type="text"], input[type="number"], textarea').forEach(el => { el.value = ''; });
+  activeSection.querySelectorAll('select').forEach(el => { el.selectedIndex = 0; });
+  activeSection.querySelectorAll('input[type="checkbox"]').forEach(el => { el.checked = false; });
+  activeSection.querySelectorAll('.result, .warn-box, [id$="-result"]').forEach(el => { el.textContent = ''; });
+  showToast('当前计算器已重置');
+}
+
 /* ============ INIT ============ */
 function init() {
   loadTheme();
@@ -5029,7 +5234,7 @@ function init() {
   // 记住上次的子tab（6 Tab）
   const savedTab = STORE.get('medcalc_round_tab', 'r-vitals');
   switchRoundTab(savedTab);
-  const tabIds = ['r-vitals', 'r-exam', 'r-labs', 'r-imaging', 'r-treatment', 'r-report'];
+  const tabIds = ['r-vitals', 'r-exam', 'r-labs', 'r-imaging', 'r-treatment', 'r-report', 'r-ai'];
   document.querySelectorAll('#round-subtabs .sub-tab-btn').forEach((btn, i) => {
     btn.addEventListener('click', () => {
       STORE.set('medcalc_round_tab', tabIds[i]);
