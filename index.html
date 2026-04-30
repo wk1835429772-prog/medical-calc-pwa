@@ -343,21 +343,42 @@ footer {
 /* Hidden for search filtering */
 .card.hidden { display: none; }
 
-/* ============ Patient Manager (mod-round) ============ */
-.pt-bar {
-  background: var(--card); border-radius: var(--radius); padding: 12px;
-  box-shadow: var(--shadow); margin-bottom: 12px; position: sticky; top: 0; z-index: 10;
-}
-.pt-bar-top { display: flex; gap: 8px; align-items: center; margin-bottom: 8px; flex-wrap: wrap; }
-.pt-bar-top select { flex: 1; min-width: 0; padding: 8px 10px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); color: var(--text); font-size: 0.9rem; }
-.pt-bar-top .btn { white-space: nowrap; padding: 8px 12px; font-size: 0.82rem; }
-.pt-info { display: flex; gap: 12px; flex-wrap: wrap; font-size: 0.78rem; color: var(--text-secondary); line-height: 1.8; }
-.pt-info span { background: var(--bg); padding: 2px 8px; border-radius: 6px; }
-.pt-status { display: inline-block; padding: 2px 8px; border-radius: 6px; font-weight: 600; font-size: 0.75rem; }
-.pt-status.stable { background: var(--success-bg); color: var(--success); }
-.pt-status.watch { background: var(--warning-bg); color: var(--warning); }
-.pt-status.critical { background: var(--danger-bg); color: var(--danger); }
+/* ============ Patient Manager V2 (mod-round) ============ */
+.pt-bar { background: var(--card); border-radius: var(--radius); padding: 10px 12px; box-shadow: var(--shadow); margin-bottom: 8px; }
+.pt-bar-top { display: flex; gap: 6px; align-items: center; flex-wrap: nowrap; }
+.pt-bar-top select { flex: 1; min-width: 0; padding: 7px 10px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); color: var(--text); font-size: 0.85rem; }
+.pt-bar-top .btn { white-space: nowrap; padding: 7px 10px; font-size: 0.78rem; }
+.pt-info-strip { display: flex; gap: 8px; flex-wrap: wrap; font-size: 0.75rem; color: var(--text-secondary); padding: 6px 0 0; line-height: 1.6; }
+.pt-info-strip span { background: var(--bg); padding: 1px 6px; border-radius: 4px; }
 
+/* Patient Info Card (edit form) */
+.pt-card { background: var(--card); border-radius: var(--radius); padding: 14px; box-shadow: var(--shadow); margin-bottom: 8px; display: none; }
+.pt-card.show { display: block; }
+.pt-card .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px; }
+.pt-card .form-row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 8px; }
+.pt-card .form-group { margin-bottom: 6px; }
+.pt-card .form-group label { display: block; font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 2px; font-weight: 500; }
+.pt-card .form-group input, .pt-card .form-group select, .pt-card .form-group textarea {
+  width: 100%; padding: 7px 9px; border: 1px solid var(--border); border-radius: 7px;
+  background: var(--bg); color: var(--text); font-size: 0.85rem;
+}
+.pt-card .form-group input:focus, .pt-card .form-group select:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 2px rgba(0,119,182,0.12); }
+.sex-btns { display: flex; gap: 6px; }
+.sex-btns button { flex: 1; padding: 7px; border: 1px solid var(--border); background: var(--bg); color: var(--text); border-radius: 7px; font-size: 0.85rem; cursor: pointer; transition: all 0.15s; }
+.sex-btns button.active { background: var(--primary); color: white; border-color: var(--primary); }
+.icd-search-wrap { position: relative; }
+.icd-dropdown { position: absolute; top: 100%; left: 0; right: 0; background: var(--card); border: 1px solid var(--border); border-radius: 8px; max-height: 180px; overflow-y: auto; z-index: 20; box-shadow: var(--shadow); display: none; }
+.icd-dropdown.show { display: block; }
+.icd-item { padding: 6px 10px; font-size: 0.8rem; cursor: pointer; border-bottom: 1px solid var(--border); }
+.icd-item:hover { background: var(--primary-light); }
+
+/* Date Navigation */
+.date-nav { display: flex; align-items: center; justify-content: center; gap: 12px; background: var(--card); border-radius: var(--radius); padding: 8px 12px; box-shadow: var(--shadow); margin-bottom: 8px; font-size: 0.85rem; }
+.date-nav button { background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 4px 10px; cursor: pointer; font-size: 0.85rem; color: var(--text); }
+.date-nav .date-label { font-weight: 600; min-width: 140px; text-align: center; }
+.date-nav .day-count { font-size: 0.72rem; color: var(--text-secondary); }
+
+/* Sub-tabs V2 */
 .sub-tabs { display: flex; gap: 0; overflow-x: auto; -webkit-overflow-scrolling: touch; background: var(--card); border-radius: var(--radius) var(--radius) 0 0; box-shadow: var(--shadow); scrollbar-width: none; margin-bottom: 0; }
 .sub-tabs::-webkit-scrollbar { display: none; }
 .sub-tab-btn { flex-shrink: 0; padding: 10px 14px; border: none; background: transparent; color: var(--text-secondary); font-size: 0.82rem; font-weight: 500; cursor: pointer; border-bottom: 2px solid transparent; transition: all 0.2s; white-space: nowrap; }
@@ -365,12 +386,13 @@ footer {
 .sub-tab-content { display: none; }
 .sub-tab-content.active { display: block; }
 
+/* Round Panel */
 .round-panel { background: var(--card); border-radius: 0 0 var(--radius) var(--radius); padding: 16px; box-shadow: var(--shadow); margin-bottom: 16px; min-height: 200px; }
 .round-panel .card-title { font-size: 1rem; font-weight: 600; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
 .round-panel .card-title .badge { font-size: 0.7rem; padding: 2px 6px; border-radius: 4px; font-weight: 500; }
-
 .round-panel .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px; }
 .round-panel .form-row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 8px; }
+.round-panel .form-row-4 { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 6px; margin-bottom: 8px; }
 .round-panel .form-group { margin-bottom: 8px; }
 .round-panel .form-group label { display: block; font-size: 0.78rem; color: var(--text-secondary); margin-bottom: 3px; font-weight: 500; }
 .round-panel .form-group input, .round-panel .form-group select, .round-panel .form-group textarea {
@@ -381,27 +403,33 @@ footer {
 .round-panel .form-group input:focus, .round-panel .form-group select:focus, .round-panel .form-group textarea:focus {
   outline: none; border-color: var(--primary); box-shadow: 0 0 0 2px rgba(0,119,182,0.15);
 }
-.round-panel .form-group input.has-prev::placeholder { color: var(--primary); opacity: 0.6; font-style: italic; }
 
 .section-label { font-size: 0.82rem; font-weight: 600; color: var(--primary); margin: 12px 0 6px; padding-bottom: 4px; border-bottom: 1px solid var(--border); }
 
+/* Special Status */
 .special-status-group { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
 .special-status-group label { display: flex; align-items: center; gap: 4px; font-size: 0.78rem; padding: 4px 8px; border: 1px solid var(--border); border-radius: 6px; cursor: pointer; background: var(--bg); transition: all 0.2s; }
 .special-status-group label:has(input:checked) { background: var(--primary-light); border-color: var(--primary); color: var(--primary); }
 .special-status-group input { display: none; }
 
+/* IO Balance */
 .io-balance { font-size: 1.1rem; font-weight: 700; text-align: center; padding: 8px; border-radius: 8px; margin-top: 8px; }
 .io-balance.positive { background: var(--warning-bg); color: var(--warning); }
 .io-balance.negative { background: var(--primary-light); color: var(--primary); }
 .io-balance.zero { background: var(--success-bg); color: var(--success); }
 
+/* Abnormal Lab Highlights */
 .abnormal-high { background: #fff0f0 !important; border-color: var(--danger) !important; }
 .abnormal-warn { background: #fff8e1 !important; border-color: var(--warning) !important; }
+.crit-inline { font-size: 0.72rem; color: var(--danger); font-weight: 600; margin-top: 2px; display: none; }
+.crit-inline.show { display: block; }
 
+/* Medications */
 .med-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px; }
 .med-item { display: flex; align-items: center; gap: 8px; padding: 8px 10px; background: var(--bg); border-radius: 8px; font-size: 0.85rem; }
 .med-item .med-name { font-weight: 600; flex: 1; }
 .med-item .med-dose { color: var(--text-secondary); font-size: 0.8rem; }
+.med-item .med-freq { color: var(--text-secondary); font-size: 0.8rem; }
 .med-item .med-days { font-size: 0.72rem; color: var(--text-secondary); background: var(--card); padding: 2px 6px; border-radius: 4px; }
 .med-item .med-cat { font-size: 0.7rem; padding: 2px 6px; border-radius: 4px; font-weight: 500; }
 .med-cat.抗生素 { background: #ffebee; color: #c62828; }
@@ -410,29 +438,77 @@ footer {
 .med-cat.雾化 { background: #e8f5e9; color: #2e7d32; }
 .med-cat.营养 { background: #f3e5f5; color: #7b1fa2; }
 .med-item button { background: none; border: none; color: var(--danger); cursor: pointer; font-size: 1.1rem; padding: 2px; }
+.med-mode-toggle { display: flex; gap: 0; margin-bottom: 10px; }
+.med-mode-toggle button { flex: 1; padding: 6px; border: 1px solid var(--border); background: var(--bg); color: var(--text); font-size: 0.8rem; cursor: pointer; transition: all 0.15s; }
+.med-mode-toggle button:first-child { border-radius: 6px 0 0 6px; }
+.med-mode-toggle button:last-child { border-radius: 0 6px 6px 0; }
+.med-mode-toggle button.active { background: var(--primary); color: white; border-color: var(--primary); }
 
+/* Renal Alert */
 .renal-alert { background: var(--danger-bg); border: 1px solid var(--danger); border-radius: 8px; padding: 10px; margin-bottom: 12px; font-size: 0.82rem; }
 .renal-alert-title { font-weight: 700; color: var(--danger); margin-bottom: 4px; }
 .renal-alert-item { margin: 4px 0; }
 
-.report-mode-btns { display: flex; gap: 6px; margin-bottom: 12px; flex-wrap: wrap; }
-.report-mode-btns button { flex: 1; min-width: 80px; padding: 8px 6px; border: 1px solid var(--border); background: var(--bg); color: var(--text); border-radius: 8px; font-size: 0.78rem; cursor: pointer; transition: all 0.2s; }
-.report-mode-btns button.active { background: var(--primary); color: white; border-color: var(--primary); }
-
+/* Report */
 .report-preview { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 12px; font-size: 0.82rem; white-space: pre-wrap; line-height: 1.8; max-height: 400px; overflow-y: auto; margin-bottom: 12px; font-family: inherit; }
-
 .trend-table { width: 100%; border-collapse: collapse; font-size: 0.75rem; margin-bottom: 8px; }
 .trend-table th, .trend-table td { padding: 4px 6px; text-align: center; border-bottom: 1px solid var(--border); }
 .trend-table th { background: var(--bg); font-weight: 600; color: var(--text-secondary); }
 .trend-table tr:hover { background: var(--primary-light); }
-
 .trend-alert { padding: 8px 10px; border-radius: 8px; margin: 4px 0; font-size: 0.82rem; }
 .trend-alert.warn { background: var(--warning-bg); color: #e65100; }
 .trend-alert.danger { background: var(--danger-bg); color: var(--danger); }
 
+/* AI Chat */
+.ai-chat-wrap { background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow); margin-top: 12px; overflow: hidden; }
+.ai-chat-header { display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; background: var(--primary); color: white; font-weight: 600; font-size: 0.9rem; }
+.ai-chat-header .ai-status { font-size: 0.72rem; font-weight: 400; opacity: 0.8; }
+.ai-chat-actions { display: flex; gap: 6px; padding: 8px 12px; border-bottom: 1px solid var(--border); flex-wrap: wrap; }
+.ai-chat-actions button { padding: 6px 10px; border: 1px solid var(--border); background: var(--bg); color: var(--text); border-radius: 6px; font-size: 0.78rem; cursor: pointer; }
+.ai-chat-actions button:disabled { opacity: 0.4; cursor: not-allowed; }
+.ai-chat-actions button.ai-feature:disabled { opacity: 0.4; }
+.ai-chat-body { padding: 12px; max-height: 500px; overflow-y: auto; }
+.ai-msg { margin-bottom: 12px; }
+.ai-msg .ai-msg-role { font-size: 0.75rem; font-weight: 600; margin-bottom: 4px; }
+.ai-msg .ai-msg-role.user { color: var(--primary); }
+.ai-msg .ai-msg-role.assistant { color: var(--success); }
+.ai-msg .ai-msg-content { background: var(--bg); padding: 10px; border-radius: 8px; font-size: 0.82rem; white-space: pre-wrap; line-height: 1.7; }
+.ai-msg .ai-msg-content.markdown-body h1,.ai-msg .ai-msg-content.markdown-body h2,.ai-msg .ai-msg-content.markdown-body h3 { margin: 8px 0 4px; font-size: 0.9rem; }
+.ai-msg .ai-msg-content.markdown-body ul,.ai-msg .ai-msg-content.markdown-body ol { padding-left: 18px; margin: 4px 0; }
+.ai-msg .ai-msg-content.markdown-body code { background: var(--border); padding: 1px 4px; border-radius: 3px; font-size: 0.78rem; }
+.ai-chat-input { display: flex; gap: 6px; padding: 8px 12px; border-top: 1px solid var(--border); }
+.ai-chat-input input { flex: 1; padding: 8px 10px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); color: var(--text); font-size: 0.85rem; }
+.ai-chat-input input:focus { outline: none; border-color: var(--primary); }
+.ai-typing { display: inline-block; animation: blink 1s infinite; }
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+/* AI Settings */
+.ai-settings { background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow); margin-top: 12px; }
+.ai-settings-header { display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; cursor: pointer; font-weight: 600; font-size: 0.9rem; }
+.ai-settings-body { padding: 0 12px 12px; display: none; }
+.ai-settings-body.show { display: block; }
+.ai-preset-btns { display: flex; gap: 4px; margin-bottom: 10px; flex-wrap: wrap; }
+.ai-preset-btns button { padding: 4px 8px; border: 1px solid var(--border); background: var(--bg); color: var(--text); border-radius: 5px; font-size: 0.75rem; cursor: pointer; }
+.ai-preset-btns button.active { background: var(--primary); color: white; border-color: var(--primary); }
+.ai-adv { display: none; }
+.ai-adv.show { display: block; }
+
+/* Lab paste */
+.lab-paste-area textarea { width: 100%; min-height: 80px; font-family: monospace; font-size: 0.82rem; }
+
+/* Backup */
 .backup-banner { background: var(--warning-bg); color: #e65100; padding: 8px 12px; border-radius: 8px; margin-bottom: 12px; font-size: 0.82rem; display: flex; justify-content: space-between; align-items: center; }
 
-.lab-paste-area textarea { width: 100%; min-height: 80px; font-family: monospace; font-size: 0.82rem; }
+/* Sticky save bar */
+.save-bar { position: sticky; bottom: 0; background: var(--card); padding: 10px 16px; border-top: 1px solid var(--border); box-shadow: 0 -2px 8px rgba(0,0,0,0.06); z-index: 5; margin: 0 -16px -16px; border-radius: 0 0 var(--radius) var(--radius); }
+
+/* Resp support dynamic fields */
+.resp-fields { display: none; }
+.resp-fields.show { display: block; }
+
+/* RASS */
+.rass-wrap { display: none; }
+.rass-wrap.show { display: block; }
 </style>
 </head>
 <body>
@@ -555,30 +631,6 @@ footer {
 <section class="module" id="mod-pn">
 <div class="section-title">静脉营养</div>
 
-<div class="card" data-keywords="pn 蛋白 蛋白质 目标" data-id="pnprotein">
-  <div class="card-header">
-    <div class="card-title">目标蛋白质</div>
-    <button class="fav-btn" data-id="pnprotein" onclick="toggleFav('pnprotein')">☆</button>
-  </div>
-  <div class="form-row">
-    <div class="form-group"><label>体重</label><input type="number" id="pnprot-wt" placeholder="kg" step="0.1" oninput="autoCalc('pnprotein')"></div>
-    <div class="form-group"><label>临床状态</label>
-      <select id="pnprot-cond" onchange="autoCalc('pnprotein')">
-        <option value="1.0">正常维护 (1.0 g/kg)</option>
-        <option value="1.2">轻-中度应激 (1.2 g/kg)</option>
-        <option value="1.5" selected>中-重度应激 (1.5 g/kg)</option>
-        <option value="2.0">重症/烧伤 (2.0 g/kg)</option>
-        <option value="2.0">肥胖 (2.0 g/kg IBW)</option>
-      </select>
-    </div>
-  </div>
-  <div class="result-box" id="pnprot-res">
-    <div class="result-main"><span id="pnprot-main"></span><button class="copy-btn" onclick="copyResult('pnprotein')">复制</button></div>
-    <div class="result-detail" id="pnprot-detail"></div>
-    <div class="result-ref">ASPEN/ESPEN: 氮(g)=蛋白(g)×0.16；热氮比理想100-150:1</div>
-  </div>
-</div>
-
 <div class="card" data-keywords="pn 肠外营养 能量 热量" data-id="pnenergy">
   <div class="card-header">
     <div class="card-title">总能量目标</div>
@@ -600,6 +652,30 @@ footer {
     <div class="result-main"><span id="pn-en-main"></span><button class="copy-btn" onclick="copyResult('pnenergy')">复制</button></div>
     <div class="result-detail" id="pn-en-detail"></div>
     <div class="result-ref">ASPEN/SCCM Guidelines. JPEN 2016;40:159-211.</div>
+  </div>
+</div>
+
+<div class="card" data-keywords="pn 蛋白 蛋白质 目标" data-id="pnprotein">
+  <div class="card-header">
+    <div class="card-title">目标蛋白质</div>
+    <button class="fav-btn" data-id="pnprotein" onclick="toggleFav('pnprotein')">☆</button>
+  </div>
+  <div class="form-row">
+    <div class="form-group"><label>体重</label><input type="number" id="pnprot-wt" placeholder="kg" step="0.1" oninput="autoCalc('pnprotein')"></div>
+    <div class="form-group"><label>临床状态</label>
+      <select id="pnprot-cond" onchange="autoCalc('pnprotein')">
+        <option value="1.0">正常维护 (1.0 g/kg)</option>
+        <option value="1.2">轻-中度应激 (1.2 g/kg)</option>
+        <option value="1.5" selected>中-重度应激 (1.5 g/kg)</option>
+        <option value="2.0">重症/烧伤 (2.0 g/kg)</option>
+        <option value="2.0">肥胖 (2.0 g/kg IBW)</option>
+      </select>
+    </div>
+  </div>
+  <div class="result-box" id="pnprot-res">
+    <div class="result-main"><span id="pnprot-main"></span><button class="copy-btn" onclick="copyResult('pnprotein')">复制</button></div>
+    <div class="result-detail" id="pnprot-detail"></div>
+    <div class="result-ref">ASPEN/ESPEN: 氮(g)=蛋白(g)×0.16；热氮比理想100-150:1</div>
   </div>
 </div>
 
@@ -1526,44 +1602,85 @@ footer {
 
 </section>
 
-<!-- ==================== ROUND ==================== -->
+<!-- ==================== ROUND V2 ==================== -->
 <section class="module" id="mod-round">
 <div class="section-title">临床患者管理</div>
 
-<!-- ===== 患者管理栏 ===== -->
+<!-- ===== 患者管理栏（紧凑） ===== -->
 <div class="pt-bar" id="pt-bar">
   <div class="pt-bar-top">
     <select id="pt-select" onchange="switchPatient(this.value)">
       <option value="">-- 选择患者 --</option>
     </select>
-    <button class="btn btn-primary" onclick="addPatient()">+ 新增</button>
-    <button class="btn btn-secondary" onclick="editPatient()">编辑</button>
-    <button class="btn btn-secondary" onclick="deletePatient()" style="color:var(--danger)">删除</button>
-    <button class="btn btn-secondary" onclick="backupAllPatients()" title="备份数据">📤</button>
-    <button class="btn btn-secondary" onclick="restorePatients()" title="恢复数据">📥</button>
+    <button class="btn btn-primary" onclick="showPtCard('new')">+ 新建</button>
+    <button class="btn btn-secondary" onclick="showPtCard('edit')">编辑</button>
+    <button class="btn btn-secondary" onclick="deletePatient()" style="color:var(--danger)">🗑</button>
   </div>
-  <div class="pt-info" id="pt-info" style="display:none">
+  <div class="pt-info-strip" id="pt-info-strip" style="display:none">
     <span id="pt-info-diag"></span>
     <span id="pt-info-days"></span>
     <span id="pt-info-meds"></span>
-    <span id="pt-info-status" class="pt-status stable">稳定</span>
   </div>
+</div>
+
+<!-- ===== 患者信息卡 ===== -->
+<div class="pt-card" id="pt-card">
+  <div class="card-title" id="pt-card-title">新建患者</div>
+  <input type="hidden" id="pt-card-id">
+  <div class="form-row">
+    <div class="form-group"><label>姓名</label><input type="text" id="ptc-name" placeholder="患者姓名"></div>
+    <div class="form-group"><label>床号</label><input type="text" id="ptc-bed" placeholder="如：ICU-3"></div>
+  </div>
+  <div class="form-row-3">
+    <div class="form-group"><label>年龄</label><input type="number" id="ptc-age" min="0" max="150" inputmode="decimal"></div>
+    <div class="form-group"><label>身高 (cm)</label><input type="number" id="ptc-height" min="50" max="250" inputmode="decimal"></div>
+    <div class="form-group"><label>体重 (kg)</label><input type="number" id="ptc-weight" min="1" max="300" step="0.1" inputmode="decimal"></div>
+  </div>
+  <div class="form-group"><label>性别</label>
+    <div class="sex-btns">
+      <button type="button" onclick="selectSex('M',this)" id="sex-m">男</button>
+      <button type="button" onclick="selectSex('F',this)" id="sex-f">女</button>
+    </div>
+  </div>
+  <div class="form-row">
+    <div class="form-group"><label>入院日期</label><input type="date" id="ptc-admit"></div>
+    <div class="form-group"><label>手术日期（可选）</label><input type="date" id="ptc-surgery"></div>
+  </div>
+  <div class="form-group"><label>入院诊断</label>
+    <div class="icd-search-wrap">
+      <input type="text" id="ptc-diag" placeholder="输入关键词搜索ICD-10或自由输入" oninput="searchICD(this.value)" onfocus="searchICD(this.value)" autocomplete="off">
+      <div class="icd-dropdown" id="icd-dropdown"></div>
+    </div>
+  </div>
+  <div class="form-group"><label>既往史</label><textarea id="ptc-pmh" rows="2" placeholder="如：高血压10年，糖尿病5年"></textarea></div>
+  <div style="display:flex;gap:8px;margin-top:8px">
+    <button class="btn btn-primary" onclick="savePatientCard()" style="flex:1">保存</button>
+    <button class="btn btn-secondary" onclick="hidePtCard()">取消</button>
+  </div>
+</div>
+
+<!-- ===== 日期导航 ===== -->
+<div class="date-nav" id="date-nav" style="display:none">
+  <button onclick="navDate(-1)">◀</button>
+  <div>
+    <div class="date-label" id="date-nav-label">2026-04-30</div>
+    <div class="day-count" id="date-nav-days"></div>
+  </div>
+  <button onclick="navDate(1)">▶</button>
 </div>
 
 <!-- ===== 子 Tab 导航 ===== -->
 <div class="sub-tabs" id="round-subtabs">
   <button class="sub-tab-btn active" onclick="switchRoundTab('r-vitals')">生命体征</button>
-  <button class="sub-tab-btn" onclick="switchRoundTab('r-labs')">化验</button>
-  <button class="sub-tab-btn" onclick="switchRoundTab('r-meds')">用药</button>
-  <button class="sub-tab-btn" onclick="switchRoundTab('r-imaging')">影像</button>
-  <button class="sub-tab-btn" onclick="switchRoundTab('r-report')">报告</button>
-  <button class="sub-tab-btn" onclick="switchRoundTab('r-critval')">危急值</button>
+  <button class="sub-tab-btn" onclick="switchRoundTab('r-labs')">化验检查</button>
+  <button class="sub-tab-btn" onclick="switchRoundTab('r-treatment')">治疗</button>
+  <button class="sub-tab-btn" onclick="switchRoundTab('r-report')">查房报告</button>
 </div>
 
-<!-- ===== Tab 1: 生命体征 + 出入量 ===== -->
+<!-- ===== Tab 1: 生命体征 + 呼吸支持 + 出入量 ===== -->
 <div class="sub-tab-content active" id="r-vitals">
 <div class="round-panel">
-  <div class="card-title">生命体征 + 出入量 <span class="badge" style="background:var(--primary-light);color:var(--primary)">今日晨7:00</span></div>
+  <div class="card-title">生命体征 <span class="badge" style="background:var(--primary-light);color:var(--primary)" id="vitals-date-badge">今日</span></div>
 
   <div class="section-label">生命体征</div>
   <div class="form-row">
@@ -1582,87 +1699,120 @@ footer {
   <div class="section-label">意识 & 特殊状态</div>
   <div class="form-row">
     <div class="form-group"><label>意识状态</label>
-      <select id="pt-conscious">
+      <select id="pt-conscious" onchange="toggleRASS(this.value)">
         <option value="">请选择</option>
         <option value="清醒">清醒</option>
         <option value="嗜睡">嗜睡</option>
         <option value="昏睡">昏睡</option>
         <option value="昏迷">昏迷</option>
         <option value="谵妄">谵妄</option>
+        <option value="镇静镇痛">镇静镇痛</option>
       </select>
     </div>
     <div class="form-group"><label>GCS</label><input type="number" id="pt-gcs" min="3" max="15" inputmode="decimal"></div>
   </div>
+  <div class="rass-wrap" id="rass-wrap">
+    <div class="form-group"><label>RASS 评分 (-5 ~ +4)</label><input type="number" id="pt-rass" min="-5" max="4" inputmode="decimal"></div>
+  </div>
   <div class="special-status-group">
     <label><input type="checkbox" id="ss-trach"> 气管切开</label>
     <label><input type="checkbox" id="ss-intub"> 气管插管</label>
-    <label><input type="checkbox" id="ss-vent"> 机械通气</label>
     <label><input type="checkbox" id="ss-crrt"> CRRT</label>
     <label><input type="checkbox" id="ss-iabp"> IABP</label>
     <label><input type="checkbox" id="ss-ecmo"> ECMO</label>
   </div>
 
+  <div class="section-label">呼吸支持</div>
+  <div class="form-group"><label>支持方式</label>
+    <select id="pt-rs-type" onchange="toggleRespFields(this.value)">
+      <option value="none">无</option>
+      <option value="鼻导管">鼻导管</option>
+      <option value="面罩">面罩</option>
+      <option value="HFNC">HFNC</option>
+      <option value="无创通气">无创通气</option>
+      <option value="有创通气">有创通气</option>
+    </select>
+  </div>
+  <div class="resp-fields" id="resp-basic">
+    <div class="form-row">
+      <div class="form-group"><label>FiO₂ (%)</label><input type="number" id="pt-rs-fio2" min="21" max="100" inputmode="decimal"></div>
+      <div class="form-group"><label>流量 (L/min)</label><input type="number" id="pt-rs-flow" min="1" max="80" inputmode="decimal"></div>
+    </div>
+  </div>
+  <div class="resp-fields" id="resp-vent">
+    <div class="form-row">
+      <div class="form-group"><label>通气模式</label>
+        <select id="pt-rs-mode">
+          <option value="">请选择</option>
+          <option value="SIMV">SIMV</option>
+          <option value="PSV">PSV</option>
+          <option value="AC">AC</option>
+          <option value="CPAP">CPAP</option>
+          <option value="BiPAP">BiPAP</option>
+        </select>
+      </div>
+      <div class="form-group"><label>FiO₂ (%)</label><input type="number" id="pt-rs-vfio2" min="21" max="100" inputmode="decimal"></div>
+    </div>
+    <div class="form-row-3">
+      <div class="form-group"><label>PEEP (cmH₂O)</label><input type="number" id="pt-rs-peep" min="0" max="30" inputmode="decimal"></div>
+      <div class="form-group"><label>PIP (cmH₂O)</label><input type="number" id="pt-rs-pip" min="0" max="60" inputmode="decimal"></div>
+      <div class="form-group"><label>潮气量 (mL)</label><input type="number" id="pt-rs-tv" min="50" max="1500" inputmode="decimal"></div>
+    </div>
+  </div>
+
   <div class="section-label">出入量 (24h)</div>
   <div class="form-row">
-    <div class="form-group"><label>入量 (mL)</label><input type="number" id="pt-intake" min="0" inputmode="decimal"></div>
+    <div class="form-group"><label>总入量 (mL)</label><input type="number" id="pt-intake" min="0" inputmode="decimal"></div>
     <div class="form-group"><label>尿量 (mL)</label><input type="number" id="pt-urine" min="0" inputmode="decimal"></div>
+  </div>
+  <div class="form-row-3">
+    <div class="form-group"><label>引流量 (mL)</label><input type="number" id="pt-drain" min="0" inputmode="decimal"></div>
+    <div class="form-group"><label>其他出量 (mL)</label><input type="number" id="pt-other-out" min="0" inputmode="decimal" placeholder="大便估算等"></div>
+    <div class="form-group"><label>引流部位</label><input type="text" id="pt-drain-site" placeholder="腹腔/胸腔"></div>
   </div>
   <div class="form-row-3">
     <div class="form-group"><label>大便 (次)</label><input type="number" id="pt-stool-cnt" min="0" inputmode="decimal"></div>
     <div class="form-group"><label>性状</label>
       <select id="pt-stool-type">
         <option value="">-</option>
-        <option value="黄软">黄软</option>
-        <option value="稀便">稀便</option>
-        <option value="水样">水样</option>
-        <option value="血便">血便</option>
-        <option value="黑便">黑便</option>
-        <option value="柏油样">柏油样</option>
-        <option value="未解">未解</option>
+        <option value="黄软">黄软</option><option value="稀便">稀便</option><option value="水样">水样</option>
+        <option value="血便">血便</option><option value="黑便">黑便</option><option value="柏油样">柏油样</option><option value="未解">未解</option>
       </select>
     </div>
-    <div class="form-group"><label>引流 (mL)</label><input type="number" id="pt-drain" min="0" inputmode="decimal"></div>
-  </div>
-  <div class="form-row">
-    <div class="form-group"><label>引流部位</label><input type="text" id="pt-drain-site" placeholder="如：腹腔/胸腔"></div>
     <div class="form-group"><label>引流性质</label>
       <select id="pt-drain-type">
         <option value="">-</option>
-        <option value="淡血性">淡血性</option>
-        <option value="血性">血性</option>
-        <option value="淡黄色">淡黄色</option>
-        <option value="脓性">脓性</option>
-        <option value="乳糜样">乳糜样</option>
+        <option value="淡血性">淡血性</option><option value="血性">血性</option><option value="淡黄色">淡黄色</option>
+        <option value="脓性">脓性</option><option value="乳糜样">乳糜样</option>
       </select>
     </div>
   </div>
   <div id="io-balance-display" class="io-balance zero" style="display:none">平衡: 0 mL</div>
 
-  <div style="margin-top:12px;display:flex;gap:8px">
-    <button class="btn btn-primary" onclick="saveVitalsIO()" style="flex:1">保存生命体征</button>
+  <div class="save-bar">
+    <button class="btn btn-primary" onclick="saveVitalsIO()" style="width:100%">保存生命体征</button>
   </div>
-  <div class="warning-banner warning-danger" id="pt-vitals-warn"></div>
 </div>
 </div>
 
-<!-- ===== Tab 2: 化验 + 血气 ===== -->
+<!-- ===== Tab 2: 化验检查 ===== -->
 <div class="sub-tab-content" id="r-labs">
 <div class="round-panel">
-  <div class="card-title">化验 + 血气 <span class="badge" style="background:var(--warning-bg);color:var(--warning)">昨日数据</span></div>
+  <div class="card-title">化验检查</div>
 
   <!-- 粘贴解析区 -->
   <div class="lab-paste-area" style="margin-bottom:12px">
     <div class="section-label">📋 粘贴化验单文本（自动解析）</div>
-    <textarea id="lab-paste-input" placeholder="粘贴化验报告文本，如：&#10;白细胞 12.35×10^9/L&#10;血红蛋白 85 g/L&#10;肌酐 287 μmol/L" style="min-height:60px"></textarea>
+    <textarea id="lab-paste-input" placeholder="粘贴化验报告文本" style="min-height:60px"></textarea>
     <button class="btn btn-secondary" onclick="parseLabPaste()" style="margin-top:4px;width:100%">🔍 解析并填入</button>
     <div id="lab-paste-result" style="font-size:0.78rem;margin-top:4px;color:var(--text-secondary)"></div>
   </div>
 
   <!-- 血气 -->
-  <div class="section-label">血气分析</div>
+  <div class="section-label">血气分析 <button class="btn btn-secondary" onclick="importToABG()" style="font-size:0.72rem;padding:2px 6px;margin-left:8px">导入计算器</button></div>
   <div class="form-row">
-    <div class="form-group"><label>pH <small style="color:var(--text-secondary)">(7.35-7.45)</small></label><input type="number" id="lab-abg-ph" step="0.01" inputmode="decimal"></div>
-    <div class="form-group"><label>PaCO₂ <small style="color:var(--text-secondary)">(35-45)</small></label><input type="number" id="lab-abg-pco2" step="0.1" inputmode="decimal"></div>
+    <div class="form-group"><label>pH <small style="color:var(--text-secondary)">(7.35-7.45)</small></label><input type="number" id="lab-abg-ph" step="0.01" inputmode="decimal"><div class="crit-inline" id="ci-abg-ph"></div></div>
+    <div class="form-group"><label>PaCO₂ <small style="color:var(--text-secondary)">(35-45)</small></label><input type="number" id="lab-abg-pco2" step="0.1" inputmode="decimal"><div class="crit-inline" id="ci-abg-pco2"></div></div>
   </div>
   <div class="form-row">
     <div class="form-group"><label>PaO₂ <small style="color:var(--text-secondary)">(80-100)</small></label><input type="number" id="lab-abg-pao2" step="0.1" inputmode="decimal"></div>
@@ -1670,7 +1820,7 @@ footer {
   </div>
   <div class="form-row">
     <div class="form-group"><label>HCO₃⁻ <small style="color:var(--text-secondary)">(22-28)</small></label><input type="number" id="lab-abg-hco3" step="0.1" inputmode="decimal"></div>
-    <div class="form-group"><label>乳酸 <small style="color:var(--text-secondary)">(&lt;2.0)</small></label><input type="number" id="lab-abg-lac" step="0.1" inputmode="decimal"></div>
+    <div class="form-group"><label>乳酸 <small style="color:var(--text-secondary)">(&lt;2.0)</small></label><input type="number" id="lab-abg-lac" step="0.1" inputmode="decimal"><div class="crit-inline" id="ci-lac"></div></div>
   </div>
   <div class="form-row">
     <div class="form-group"><label>K⁺ <small style="color:var(--text-secondary)">(3.5-5.0)</small></label><input type="number" id="lab-abg-k" step="0.1" inputmode="decimal"></div>
@@ -1678,24 +1828,24 @@ footer {
   </div>
   <div class="form-row">
     <div class="form-group"><label>Cl⁻ <small style="color:var(--text-secondary)">(96-106)</small></label><input type="number" id="lab-abg-cl" step="0.1" inputmode="decimal"></div>
-    <div class="form-group"><label>血糖 <small style="color:var(--text-secondary)">(3.9-6.1)</small></label><input type="number" id="lab-abg-glu" step="0.1" inputmode="decimal"></div>
+    <div class="form-group"><label>血糖 <small style="color:var(--text-secondary)">(3.9-6.1)</small></label><input type="number" id="lab-abg-glu" step="0.1" inputmode="decimal"><div class="crit-inline" id="ci-glu"></div></div>
   </div>
 
   <!-- 血常规 -->
   <div class="section-label">血常规</div>
   <div class="form-row">
-    <div class="form-group"><label>WBC <small style="color:var(--text-secondary)">(4-10 ×10⁹/L)</small></label><input type="number" id="lab-wbc" step="0.01" inputmode="decimal"></div>
+    <div class="form-group"><label>WBC <small style="color:var(--text-secondary)">(4-10 ×10⁹/L)</small></label><input type="number" id="lab-wbc" step="0.01" inputmode="decimal"><div class="crit-inline" id="ci-wbc"></div></div>
     <div class="form-group"><label>Hb <small style="color:var(--text-secondary)">(120-160 g/L)</small></label><input type="number" id="lab-hgb" step="1" inputmode="decimal"></div>
   </div>
   <div class="form-row">
-    <div class="form-group"><label>PLT <small style="color:var(--text-secondary)">(125-350 ×10⁹/L)</small></label><input type="number" id="lab-plt" step="1" inputmode="decimal"></div>
+    <div class="form-group"><label>PLT <small style="color:var(--text-secondary)">(125-350 ×10⁹/L)</small></label><input type="number" id="lab-plt" step="1" inputmode="decimal"><div class="crit-inline" id="ci-plt"></div></div>
     <div class="form-group"><label>Neut% <small style="color:var(--text-secondary)">(50-70%)</small></label><input type="number" id="lab-neut" step="0.1" inputmode="decimal"></div>
   </div>
 
   <!-- 生化 -->
   <div class="section-label">生化</div>
   <div class="form-row">
-    <div class="form-group"><label>Cr <small style="color:var(--text-secondary)">(44-133 μmol/L)</small></label><input type="number" id="lab-cr" step="1" inputmode="decimal"></div>
+    <div class="form-group"><label>Cr <small style="color:var(--text-secondary)">(44-133 μmol/L)</small></label><input type="number" id="lab-cr" step="1" inputmode="decimal"><div class="crit-inline" id="ci-cr"></div></div>
     <div class="form-group"><label>BUN <small style="color:var(--text-secondary)">(2.9-8.2)</small></label><input type="number" id="lab-bun" step="0.1" inputmode="decimal"></div>
   </div>
   <div class="form-row">
@@ -1704,6 +1854,10 @@ footer {
   </div>
   <div class="form-row">
     <div class="form-group"><label>TBil <small style="color:var(--text-secondary)">(3.4-17.1 μmol/L)</small></label><input type="number" id="lab-tbili" step="0.1" inputmode="decimal"></div>
+    <div class="form-group"><label>DBil <small style="color:var(--text-secondary)">(0-6.8 μmol/L)</small></label><input type="number" id="lab-dbili" step="0.1" inputmode="decimal"></div>
+  </div>
+  <div class="form-row">
+    <div class="form-group"><label>IBil <small style="color:var(--text-secondary)">(1.7-10.2 μmol/L)</small></label><input type="number" id="lab-ibili" step="0.1" inputmode="decimal"></div>
     <div class="form-group"><label>Alb <small style="color:var(--text-secondary)">(35-55 g/L)</small></label><input type="number" id="lab-alb" step="0.1" inputmode="decimal"></div>
   </div>
 
@@ -1711,7 +1865,11 @@ footer {
   <div class="section-label">凝血</div>
   <div class="form-row">
     <div class="form-group"><label>INR <small style="color:var(--text-secondary)">(0.8-1.2)</small></label><input type="number" id="lab-inr" step="0.01" inputmode="decimal"></div>
+    <div class="form-group"><label>APTT <small style="color:var(--text-secondary)">(25-35s)</small></label><input type="number" id="lab-aptt" step="0.1" inputmode="decimal"></div>
+  </div>
+  <div class="form-row">
     <div class="form-group"><label>D-dimer <small style="color:var(--text-secondary)">(&lt;0.5 mg/L)</small></label><input type="number" id="lab-ddimer" step="0.01" inputmode="decimal"></div>
+    <div class="form-group"></div>
   </div>
 
   <!-- 感染/心肌 -->
@@ -1729,183 +1887,167 @@ footer {
     <div class="form-group"><label>cTnI <small style="color:var(--text-secondary)">(&lt;0.04 ng/mL)</small></label><input type="number" id="lab-tropi" step="0.01" inputmode="decimal"></div>
   </div>
 
-  <!-- 其他 -->
-  <div class="section-label">其他</div>
+  <!-- 电解质 -->
+  <div class="section-label">电解质 & 其他</div>
   <div class="form-row">
-    <div class="form-group"><label>K⁺ (血清) <small style="color:var(--text-secondary)">(3.5-5.0)</small></label><input type="number" id="lab-k" step="0.1" inputmode="decimal"></div>
-    <div class="form-group"><label>Na⁺ (血清) <small style="color:var(--text-secondary)">(135-145)</small></label><input type="number" id="lab-na" step="0.1" inputmode="decimal"></div>
+    <div class="form-group"><label>K⁺ <small style="color:var(--text-secondary)">(3.5-5.0 mmol/L)</small></label><input type="number" id="lab-k" step="0.1" inputmode="decimal"><div class="crit-inline" id="ci-k"></div></div>
+    <div class="form-group"><label>Na⁺ <small style="color:var(--text-secondary)">(135-145 mmol/L)</small></label><input type="number" id="lab-na" step="0.1" inputmode="decimal"><div class="crit-inline" id="ci-na"></div></div>
+  </div>
+  <div class="form-row">
+    <div class="form-group"><label>Ca²⁺ <small style="color:var(--text-secondary)">(2.1-2.7 mmol/L)</small></label><input type="number" id="lab-ca" step="0.01" inputmode="decimal"></div>
+    <div class="form-group"><label>Mg²⁺ <small style="color:var(--text-secondary)">(0.7-1.1 mmol/L)</small></label><input type="number" id="lab-mg" step="0.01" inputmode="decimal"></div>
   </div>
   <div class="form-row">
     <div class="form-group"><label>LDH <small style="color:var(--text-secondary)">(120-250 U/L)</small></label><input type="number" id="lab-ldh" step="1" inputmode="decimal"></div>
     <div class="form-group"><label>HbA1c <small style="color:var(--text-secondary)">(&lt;6.5%)</small></label><input type="number" id="lab-hbalc" step="0.1" inputmode="decimal"></div>
   </div>
 
-  <div style="margin-top:12px;display:flex;gap:8px">
-    <button class="btn btn-primary" onclick="saveLabs()" style="flex:1">保存化验</button>
+  <div class="save-bar">
+    <button class="btn btn-primary" onclick="saveLabs()" style="width:100%">保存化验</button>
   </div>
   <div id="lab-abnormal-display" style="margin-top:8px"></div>
 </div>
 </div>
 
-<!-- ===== Tab 3: 用药管理 ===== -->
-<div class="sub-tab-content" id="r-meds">
+<!-- ===== Tab 3: 治疗（用药+影像+查体+备注） ===== -->
+<div class="sub-tab-content" id="r-treatment">
 <div class="round-panel">
-  <div class="card-title">用药管理</div>
+  <div class="card-title">治疗方案</div>
 
-  <div id="renal-alert-box" class="renal-alert" style="display:none"></div>
-
-  <div class="med-list" id="med-list-display"></div>
-
-  <div class="section-label">添加药物</div>
-  <div class="form-row">
-    <div class="form-group"><label>药名</label><input type="text" id="med-name" placeholder="如：哌拉西林他唑巴坦"></div>
-    <div class="form-group"><label>剂量</label><input type="text" id="med-dose" placeholder="如：4.5g q8h"></div>
+  <!-- 用药模式切换 -->
+  <div class="med-mode-toggle">
+    <button class="active" onclick="switchMedMode('struct',this)">结构化</button>
+    <button onclick="switchMedMode('free',this)">自由文本</button>
   </div>
-  <div class="form-row-3">
-    <div class="form-group"><label>途径</label>
-      <select id="med-route">
-        <option value="iv">静脉</option>
-        <option value="po">口服</option>
-        <option value="ih">皮下</option>
-        <option value="neb">雾化</option>
-        <option value="other">其他</option>
-      </select>
+
+  <!-- 结构化用药 -->
+  <div id="med-struct-mode">
+    <div id="renal-alert-box" class="renal-alert" style="display:none"></div>
+    <div class="med-list" id="med-list-display"></div>
+    <div class="section-label">添加药物</div>
+    <div class="form-row">
+      <div class="form-group"><label>药名</label><input type="text" id="med-name" placeholder="如：哌拉西林他唑巴坦"></div>
+      <div class="form-group"><label>单次剂量</label><input type="text" id="med-dose" placeholder="如：4.5g"></div>
     </div>
-    <div class="form-group"><label>起始日</label><input type="date" id="med-start"></div>
-    <div class="form-group"><label>类别</label>
-      <select id="med-cat">
-        <option value="抗生素">抗生素</option>
-        <option value="利尿">利尿</option>
-        <option value="升压">升压</option>
-        <option value="雾化">雾化</option>
-        <option value="营养">营养</option>
-        <option value="其他">其他</option>
-      </select>
+    <div class="form-row-4">
+      <div class="form-group"><label>频率</label><input type="text" id="med-freq" placeholder="q8h"></div>
+      <div class="form-group"><label>途径</label>
+        <select id="med-route">
+          <option value="iv">静脉</option><option value="po">口服</option><option value="ih">皮下</option>
+          <option value="neb">雾化</option><option value="other">其他</option>
+        </select>
+      </div>
+      <div class="form-group"><label>起始日</label><input type="date" id="med-start"></div>
+      <div class="form-group"><label>类别</label>
+        <select id="med-cat">
+          <option value="抗生素">抗生素</option><option value="利尿">利尿</option><option value="升压">升压</option>
+          <option value="雾化">雾化</option><option value="营养">营养</option><option value="其他">其他</option>
+        </select>
+      </div>
     </div>
+    <button class="btn btn-secondary" onclick="addMed()" style="width:100%;margin-top:4px">+ 添加药物</button>
   </div>
-  <button class="btn btn-secondary" onclick="addMed()" style="width:100%;margin-top:4px">+ 添加药物</button>
 
-  <div style="margin-top:12px;display:flex;gap:8px">
-    <button class="btn btn-primary" onclick="saveMeds()" style="flex:1">保存用药方案</button>
-    <button class="btn btn-secondary" onclick="formatMedsForReport()" style="flex:1">一键格式化</button>
+  <!-- 自由文本用药 -->
+  <div id="med-free-mode" style="display:none">
+    <div class="form-group"><textarea id="med-free-text" rows="6" placeholder="直接输入用药方案，如：&#10;哌拉西林他唑巴坦 4.5g q8h iv&#10;呋塞米 20mg q12h iv&#10;去甲肾上腺素 0.1μg/kg/min"></textarea></div>
   </div>
-  <div id="meds-formatted" class="report-preview" style="display:none"></div>
-</div>
-</div>
 
-<!-- ===== Tab 4: 影像 + 备注 ===== -->
-<div class="sub-tab-content" id="r-imaging">
-<div class="round-panel">
-  <div class="card-title">影像 + 备注</div>
+  <div class="section-label">影像发现</div>
+  <div class="form-group"><textarea id="pt-imaging" placeholder="如：心超：EF 40-50%&#10;CT：双肺渗出"></textarea></div>
 
-  <div class="section-label">昨日影像发现</div>
-  <div class="form-group"><textarea id="pt-imaging" placeholder="如：心超：EF 40-50%，室壁运动减弱&#10;CT：双肺渗出，右侧胸腔积液"></textarea></div>
+  <div class="section-label">查体发现</div>
+  <div class="form-group"><textarea id="pt-exam" rows="2" placeholder="如：双肺呼吸音清，腹软，肠鸣音弱"></textarea></div>
 
   <div class="section-label">查房备注</div>
-  <div class="form-group"><textarea id="pt-notes" placeholder="伤口引流75ml，性状淡血性"></textarea></div>
+  <div class="form-group"><textarea id="pt-notes" rows="2" placeholder="主诉变化、特殊情况等"></textarea></div>
 
-  <div class="section-label">治疗方案变更</div>
-  <div class="form-group"><textarea id="pt-tx-changes" placeholder="如：今日加用左氧氟沙星 750mg qd"></textarea></div>
+  <div class="section-label">治疗变更</div>
+  <div class="form-group"><textarea id="pt-tx-changes" rows="2" placeholder="如：今日加用左氧氟沙星 750mg qd"></textarea></div>
 
-  <div class="section-label">明日计划</div>
-  <div class="form-group"><textarea id="pt-plan" placeholder="如：复查血气，评估拔管，继续抗感染"></textarea></div>
-
-  <button class="btn btn-primary" onclick="saveImagingNotes()" style="width:100%;margin-top:8px">保存影像和备注</button>
+  <div class="save-bar">
+    <button class="btn btn-primary" onclick="saveTreatment()" style="width:100%">保存治疗方案</button>
+  </div>
 </div>
 </div>
 
-<!-- ===== Tab 5: 报告生成 + 趋势 ===== -->
+<!-- ===== Tab 4: 查房报告 + AI ===== -->
 <div class="sub-tab-content" id="r-report">
 <div class="round-panel">
-  <div class="card-title">报告生成 + 趋势分析</div>
+  <div class="card-title">查房报告</div>
 
-  <div class="report-mode-btns">
-    <button class="active" onclick="switchReportMode('round',this)">查房报告</button>
-    <button onclick="switchReportMode('handoff',this)">交班记录</button>
-    <button onclick="switchReportMode('admit',this)">新入院</button>
-    <button onclick="switchReportMode('event',this)">病情变化</button>
+  <!-- 快捷工具 -->
+  <div class="section-label">快捷工具</div>
+  <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px">
+    <button class="btn btn-secondary" onclick="importToABG()" style="font-size:0.78rem">血气分析</button>
+    <button class="btn btn-secondary" onclick="importToNutrition()" style="font-size:0.78rem">营养目标</button>
+    <button class="btn btn-secondary" onclick="importToFluid()" style="font-size:0.78rem">补液计算</button>
   </div>
 
-  <div id="report-event-input" style="display:none">
-    <div class="form-group"><label>病情变化描述</label><textarea id="rpt-event-desc" placeholder="如：患者今晨突发呼吸困难，SpO₂下降至88%"></textarea></div>
-  </div>
-
-  <button class="btn btn-primary" onclick="genReport()" style="width:100%;margin-bottom:8px">📋 生成报告</button>
+  <!-- 报告生成 -->
+  <button class="btn btn-primary" onclick="genReport()" style="width:100%;margin-bottom:8px">📋 生成全部患者报告</button>
   <div id="report-preview" class="report-preview" style="display:none"></div>
-  <div style="display:flex;gap:8px;margin-bottom:12px">
-    <button class="btn btn-secondary" onclick="copyReport()" id="btn-copy-report" style="flex:1;display:none">📋 复制到剪贴板</button>
+  <div style="display:flex;gap:8px;margin-bottom:12px" id="report-btns" style="display:none">
+    <button class="btn btn-secondary" onclick="copyReport()" id="btn-copy-report" style="flex:1;display:none">📋 复制报告</button>
   </div>
 
+  <!-- 趋势分析 -->
   <div class="section-label">趋势分析</div>
   <button class="btn btn-secondary" onclick="showTrend()" style="width:100%;margin-bottom:8px">📊 查看趋势</button>
   <div id="trend-display"></div>
 
+  <!-- AI 对话区 -->
+  <div class="ai-chat-wrap" id="ai-chat-wrap">
+    <div class="ai-chat-header">
+      <span>AI 临床助手</span>
+      <span class="ai-status" id="ai-status">未配置</span>
+    </div>
+    <div class="ai-chat-actions">
+      <button onclick="sendAllReports()" id="btn-ai-send" disabled>📋 发送全部患者报告</button>
+      <button onclick="refreshAIContext()" id="btn-ai-refresh" disabled>🔄 刷新上下文</button>
+      <button onclick="clearAIChat()" id="btn-ai-clear" disabled>🗑 清空对话</button>
+    </div>
+    <div class="ai-chat-body" id="ai-chat-body">
+      <div style="text-align:center;color:var(--text-secondary);font-size:0.82rem;padding:20px" id="ai-placeholder">配置 AI 服务后即可使用</div>
+    </div>
+    <div class="ai-chat-input">
+      <input type="text" id="ai-input" placeholder="追问..." onkeypress="if(event.key==='Enter')sendAIMessage()">
+      <button class="btn btn-primary" onclick="sendAIMessage()" id="btn-ai-ask" disabled>发送</button>
+    </div>
+  </div>
+
+  <!-- AI 设置 -->
+  <div class="ai-settings">
+    <div class="ai-settings-header" onclick="toggleAISettings()">AI 服务设置 ▼</div>
+    <div class="ai-settings-body" id="ai-settings-body">
+      <div class="ai-preset-btns">
+        <button onclick="setAIPreset('deepseek')" id="preset-deepseek">DeepSeek</button>
+        <button onclick="setAIPreset('minimax')" id="preset-minimax">MiniMax</button>
+        <button onclick="setAIPreset('custom')" id="preset-custom">自定义</button>
+      </div>
+      <div class="form-group"><label>API URL</label><input type="text" id="ai-url" placeholder="https://api.deepseek.com/chat/completions"></div>
+      <div class="form-group"><label>API Key</label><input type="password" id="ai-key" placeholder="sk-..."></div>
+      <div class="form-group"><label>模型名</label><input type="text" id="ai-model" placeholder="deepseek-chat"></div>
+      <div style="display:flex;gap:8px;margin-bottom:10px">
+        <button class="btn btn-secondary" onclick="testAIConnection()" style="flex:1">测试连接</button>
+        <button class="btn btn-primary" onclick="saveAISettings()" style="flex:1">保存设置</button>
+      </div>
+      <div id="ai-test-result" style="font-size:0.78rem;margin-bottom:8px"></div>
+    </div>
+  </div>
+
+  <!-- 明日计划 -->
+  <div class="section-label" style="margin-top:12px">明日计划</div>
+  <div class="form-group"><textarea id="pt-plan" rows="2" placeholder="生成报告后填写明日计划"></textarea></div>
+  <button class="btn btn-secondary" onclick="savePlan()" style="width:100%;margin-bottom:12px">保存明日计划</button>
+
+  <!-- 数据管理 -->
   <div class="section-label">数据管理</div>
-  <div style="display:flex;gap:8px;flex-wrap:wrap">
-    <button class="btn btn-secondary" onclick="exportCurrentPatient()" style="flex:1">📤 导出当前患者</button>
+  <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px">
+    <button class="btn btn-secondary" onclick="exportCurrentPatient()" style="flex:1">📤 导出当前</button>
     <button class="btn btn-secondary" onclick="exportAllPatients()" style="flex:1">📤 导出全部</button>
-  </div>
-</div>
-</div>
-
-<!-- ===== Tab 6: 危急值评估 ===== -->
-<div class="sub-tab-content" id="r-critval">
-<div class="round-panel">
-  <div class="card-title">危急值评估</div>
-  <p style="font-size:0.78rem;color:var(--text-secondary);margin-bottom:12px">化验保存后自动触发检查，也可手动输入评估</p>
-
-  <div class="form-row">
-    <div class="form-group"><label>K⁺ (mmol/L)</label><input type="number" id="cv-k" placeholder="3.5-5.0" step="0.1" oninput="checkCritVal()" inputmode="decimal"></div>
-    <div class="form-group"><label>Na⁺ (mmol/L)</label><input type="number" id="cv-na" placeholder="135-145" step="0.1" oninput="checkCritVal()" inputmode="decimal"></div>
-  </div>
-  <div class="form-row">
-    <div class="form-group"><label>血糖 (mmol/L)</label><input type="number" id="cv-gluc" placeholder="3.9-6.1" step="0.1" oninput="checkCritVal()" inputmode="decimal"></div>
-    <div class="form-group"><label>Cr (μmol/L)</label><input type="number" id="cv-cr" placeholder="44-133" step="1" oninput="checkCritVal()" inputmode="decimal"></div>
-  </div>
-  <div class="form-row">
-    <div class="form-group"><label>PLT (×10⁹/L)</label><input type="number" id="cv-plt" placeholder="125-350" step="1" oninput="checkCritVal()" inputmode="decimal"></div>
-    <div class="form-group"><label>WBC (×10⁹/L)</label><input type="number" id="cv-wbc" placeholder="4-10" step="0.1" oninput="checkCritVal()" inputmode="decimal"></div>
-  </div>
-  <div class="form-row">
-    <div class="form-group"><label>乳酸 (mmol/L)</label><input type="number" id="cv-lac" placeholder="<2.0" step="0.1" oninput="checkCritVal()" inputmode="decimal"></div>
-    <div class="form-group"><label>pH</label><input type="number" id="cv-ph" placeholder="7.35-7.45" step="0.01" oninput="checkCritVal()" inputmode="decimal"></div>
-  </div>
-  <div class="warning-banner warning-danger" id="critval-warn"></div>
-  <div class="result-box" id="critval-res">
-    <div class="result-main"><span id="critval-main"></span></div>
-    <div class="result-detail" id="critval-detail"></div>
-  </div>
-
-  <!-- 保留原查房小结和检验复查功能 -->
-  <div class="section-label" style="margin-top:20px">快速查房小结</div>
-  <div class="form-group"><label>一般情况</label>
-    <select id="rn-general">
-      <option value="好">好</option><option value="一般" selected>一般</option><option value="较差">较差</option><option value="差">差</option>
-    </select>
-  </div>
-  <div class="form-group"><label>主诉变化</label><input type="text" id="rn-complaint" placeholder="如：诉腹胀较前减轻"></div>
-  <div class="form-group"><label>查体发现</label><input type="text" id="rn-exam" placeholder="如：双肺呼吸音清"></div>
-  <div class="form-group"><label>今日检验</label><input type="text" id="rn-labs" placeholder="如：WBC 12.3, Cr 156"></div>
-  <div class="form-group"><label>治疗方案</label><input type="text" id="rn-tx" placeholder="如：头孢曲松2g qd"></div>
-  <div class="form-group"><label>明日计划</label><input type="text" id="rn-plan" placeholder="如：复查血气"></div>
-  <button class="btn btn-secondary" onclick="genRoundNote()" style="width:100%">生成快速小结</button>
-  <div class="result-box" id="rn-res">
-    <div class="result-main"><span id="rn-main"></span><button class="copy-btn" onclick="copyText('rn-note-text')">复制</button></div>
-    <div class="result-detail" id="rn-detail"></div>
-  </div>
-
-  <div class="section-label" style="margin-top:16px">检验复查提醒</div>
-  <div class="form-group"><label>患者类型</label>
-    <select id="lr-type" onchange="genLabReminder()">
-      <option value="general">普通内科</option><option value="icu">ICU</option><option value="postop">术后</option>
-      <option value="dka">DKA/HHS</option><option value="ckd">CKD/透析</option><option value="sepsis">脓毒症</option>
-    </select>
-  </div>
-  <div class="form-group"><label>当前异常指标</label><input type="text" id="lr-abnormal" placeholder="如：K 6.2, Cr 320"></div>
-  <button class="btn btn-secondary" onclick="genLabReminder()" style="width:100%">生成复查计划</button>
-  <div class="result-box" id="lr-res">
-    <div class="result-main"><span id="lr-main"></span><button class="copy-btn" onclick="copyText('lr-note-text')">复制</button></div>
-    <div class="result-detail" id="lr-detail"></div>
+    <button class="btn btn-secondary" onclick="backupAllPatients()" style="flex:1">📤 备份</button>
+    <button class="btn btn-secondary" onclick="restorePatients()" style="flex:1">📥 恢复</button>
   </div>
 </div>
 </div>
@@ -3196,11 +3338,40 @@ if('serviceWorker' in navigator) {
   navigator.serviceWorker.register(swUrl).catch(() => {});
 }
 
-/* ============ CLINICAL TOOLS ============ */
+/* ============ CLINICAL TOOLS V2 ============ */
 const patientsKey = 'medcalc_patients';
 let patients = STORE.get(patientsKey, []);
 let currentPatientId = null;
-let currentReportMode = 'round';
+let currentDate = new Date().toISOString().slice(0, 10);
+let currentMedMode = 'struct';
+let aiChatHistory = STORE.get('medcalc_ai_conversations', []);
+
+// ---------- ICD-10 常见诊断库 ----------
+const ICD_DB = [
+  {code:'J18.0',name:'肺炎（病原体未特指）'},{code:'J15.9',name:'细菌性肺炎'},{code:'J96.0',name:'急性呼吸衰竭'},
+  {code:'J96.1',name:'慢性呼吸衰竭'},{code:'J80',name:'ARDS（急性呼吸窘迫综合征）'},{code:'I21.0',name:'急性心肌梗死（前壁）'},
+  {code:'I50.9',name:'心力衰竭'},{code:'I48',name:'心房颤动'},{code:'I63.9',name:'脑梗死'},
+  {code:'N17.9',name:'急性肾损伤'},{code:'N18.9',name:'慢性肾脏病'},{code:'K65.0',name:'急性腹膜炎'},
+  {code:'K80.2',name:'胆囊结石'},{code:'K85.9',name:'急性胰腺炎'},{code:'A41.9',name:'脓毒症'},
+  {code:'R57.9',name:'休克'},{code:'R40.2',name:'昏迷'},{code:'E11.9',name:'2型糖尿病'},
+  {code:'E87.1',name:'低钠血症'},{code:'E87.5',name:'高钾血症'},{code:'D69.6',name:'血小板减少'},
+  {code:'D65',name:'DIC（弥散性血管内凝血）'},{code:'I74.9',name:'动脉栓塞'},{code:'I26.9',name:'肺栓塞'},
+  {code:'J98.4',name:'胸腔积液'},{code:'K92.2',name:'消化道出血'},{code:'T81.0',name:'术后出血'},
+  {code:'T81.4',name:'术后感染'},{code:'N39.0',name:'尿路感染'},{code:'B96.1',name:'大肠杆菌感染'},
+  {code:'J13',name:'肺炎链球菌肺炎'},{code:'J15.1',name:'铜绿假单胞菌肺炎'},{code:'A09',name:'感染性腹泻'},
+  {code:'E86.0',name:'脱水'},{code:'E87.0',name:'高钠血症'},{code:'I47.2',name:'室性心动过速'},
+  {code:'I49.0',name:'室颤'},{code:'J95.8',name:'术后呼吸并发症'},{code:'K56.7',name:'肠梗阻'},
+  {code:'R57.0',name:'心源性休克'},{code:'R57.1',name:'低血容量性休克'},{code:'R57.8',name:'其他休克'},
+  {code:'S06.0',name:'脑震荡'},{code:'S06.2',name:'脑挫伤'},{code:'S27.1',name:'气胸'},
+  {code:'T79.4',name:'创伤性休克'},{code:'Z95.1',name:'冠脉搭桥术后'},{code:'Z95.5',name:'冠脉支架植入术后'},
+  {code:'M86.1',name:'急性骨髓炎'},{code:'L03.9',name:'蜂窝织炎'},{code:'G40.9',name:'癫痫'},
+  {code:'G93.1',name:'缺氧性脑损伤'},{code:'I61.9',name:'脑出血'},{code:'I62.0',name:'硬膜下出血'},
+  {code:'I62.1',name:'硬膜外出血'},{code:'J45.9',name:'哮喘'},{code:'J44.1',name:'COPD急性加重'},
+  {code:'E03.9',name:'甲状腺功能减退'},{code:'E05.9',name:'甲状腺功能亢进'},{code:'K70.9',name:'酒精性肝病'},
+  {code:'K72.9',name:'肝衰竭'},{code:'K76.6',name:'门脉高压'},{code:'B18.2',name:'慢性丙型肝炎'},
+  {code:'B16.9',name:'急性乙型肝炎'},{code:'N10',name:'急性肾盂肾炎'},{code:'O00.9',name:'异位妊娠'},
+  {code:'O14.9',name:'子痫前期'},{code:'P07.3',name:'早产儿'},{code:'Q21.1',name:'室间隔缺损'},
+];
 
 // ---------- 患者管理 ----------
 function loadPatients() {
@@ -3213,57 +3384,109 @@ function loadPatients() {
 
 function savePatients() { STORE.set(patientsKey, patients); }
 
+// ---------- Patient CRUD ----------
 function renderPatientSelect() {
   const sel = $('pt-select');
   if (!sel) return;
   const val = sel.value;
   sel.innerHTML = '<option value="">-- 选择患者 --</option>';
   patients.forEach(p => {
-    sel.innerHTML += `<option value="${p.id}" ${p.id === currentPatientId ? 'selected' : ''}>${p.name} - ${p.diagnosis || '未填'}</option>`;
+    sel.innerHTML += `<option value="${p.id}" ${p.id === currentPatientId ? 'selected' : ''}>${p.name}${p.bed ? ' (' + p.bed + ')' : ''} - ${p.diagnosis || '未填'}</option>`;
   });
   if (val) sel.value = val;
 }
 
-function addPatient() {
-  const name = prompt('患者简称/床号（如：12床、王某）：');
-  if (!name) return;
-  const age = prompt('年龄：');
-  const sex = prompt('性别（男/女）：') || '';
-  const diagnosis = prompt('入院诊断：') || '';
-  const admitDate = prompt('入院日期（YYYY-MM-DD）：') || new Date().toISOString().slice(0, 10);
-  const surgeryDate = prompt('手术日期（可选，留空跳过）：') || '';
-  const pmh = prompt('既往史（可选）：') || '';
-
-  const p = {
-    id: 'p_' + Date.now(),
-    name, age: parseInt(age) || 0, sex,
-    admitDate, surgeryDate, diagnosis, pmh,
-    notes: '', medications: [], records: []
-  };
-  patients.push(p);
-  savePatients();
-  renderPatientSelect();
-  switchPatient(p.id);
+function showPtCard(mode) {
+  const card = $('pt-card');
+  if (!card) return;
+  card.style.display = 'block';
+  $('pt-card-title').textContent = mode === 'new' ? '新建患者' : '编辑患者';
+  if (mode === 'new') {
+    $('pt-card-id').value = '';
+    ['ptc-name','ptc-bed','ptc-age','ptc-height','ptc-weight','ptc-admit','ptc-surgery','ptc-diag','ptc-pmh'].forEach(id => { const el = $(id); if (el) el.value = ''; });
+    document.querySelectorAll('.sex-btns button').forEach(b => b.classList.remove('active'));
+    const diagData = $('ptc-diag-data'); if (diagData) diagData.value = '';
+  } else {
+    if (!currentPatientId) { alert('请先选择患者'); card.style.display = 'none'; return; }
+    const p = patients.find(x => x.id === currentPatientId);
+    if (!p) return;
+    $('pt-card-id').value = p.id;
+    $('ptc-name').value = p.name || '';
+    $('ptc-bed').value = p.bed || '';
+    $('ptc-age').value = p.age || '';
+    $('ptc-height').value = p.height || '';
+    $('ptc-weight').value = p.weight || '';
+    $('ptc-admit').value = p.admitDate || '';
+    $('ptc-surgery').value = p.surgeryDate || '';
+    $('ptc-diag').value = p.diagnosis || '';
+    $('ptc-pmh').value = p.pmh || '';
+    selectSex(p.sex, null);
+  }
 }
 
-function editPatient() {
-  if (!currentPatientId) return alert('请先选择患者');
-  const p = patients.find(x => x.id === currentPatientId);
-  if (!p) return;
-  const name = prompt('简称/床号：', p.name);
-  if (name === null) return;
-  const age = prompt('年龄：', p.age);
-  const sex = prompt('性别：', p.sex);
-  const diagnosis = prompt('诊断：', p.diagnosis);
-  const admitDate = prompt('入院日期：', p.admitDate);
-  const surgeryDate = prompt('手术日期（可选）：', p.surgeryDate);
-  const pmh = prompt('既往史：', p.pmh);
-  p.name = name; p.age = parseInt(age) || p.age; p.sex = sex;
-  p.diagnosis = diagnosis; p.admitDate = admitDate;
-  p.surgeryDate = surgeryDate; p.pmh = pmh;
+function hidePtCard() {
+  const card = $('pt-card');
+  if (card) card.style.display = 'none';
+  const dd = $('icd-dropdown');
+  if (dd) dd.style.display = 'none';
+}
+
+function selectSex(sex, btn) {
+  document.querySelectorAll('.sex-btns button').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  else {
+    document.querySelectorAll('.sex-btns button').forEach(b => {
+      if ((sex === 'M' && b.id === 'sex-m') || (sex === 'F' && b.id === 'sex-f')) b.classList.add('active');
+    });
+  }
+  const dataEl = $('ptc-sex-data');
+  if (dataEl) dataEl.value = sex || '';
+}
+
+function savePatientCard() {
+  const name = $('ptc-name')?.value?.trim();
+  if (!name) return alert('请输入患者姓名');
+  const idVal = $('pt-card-id')?.value;
+  const sexEl = document.querySelector('.sex-btns button.active');
+  const sex = sexEl ? (sexEl.id === 'sex-m' ? '男' : '女') : '';
+  const diagInput = $('ptc-diag')?.value?.trim() || '';
+  const diagData = $('ptc-diag-data')?.value || '';
+  let diagnosis = diagInput, diagnosisCode = '';
+  if (diagData) {
+    const found = ICD_DB.find(d => d.code === diagData);
+    if (found) { diagnosis = found.name; diagnosisCode = found.code; }
+  }
+  if (idVal) {
+    const p = patients.find(x => x.id === idVal);
+    if (p) {
+      p.name = name; p.bed = $('ptc-bed')?.value?.trim() || '';
+      p.age = parseInt($('ptc-age')?.value) || 0;
+      p.height = parseFloat($('ptc-height')?.value) || 0;
+      p.weight = parseFloat($('ptc-weight')?.value) || 0;
+      p.sex = sex; p.admitDate = $('ptc-admit')?.value || '';
+      p.surgeryDate = $('ptc-surgery')?.value || '';
+      p.diagnosis = diagnosis; p.diagnosisCode = diagnosisCode;
+      p.pmh = $('ptc-pmh')?.value?.trim() || '';
+    }
+  } else {
+    patients.push({
+      id: 'p_' + Date.now(), name,
+      bed: $('ptc-bed')?.value?.trim() || '',
+      age: parseInt($('ptc-age')?.value) || 0,
+      height: parseFloat($('ptc-height')?.value) || 0,
+      weight: parseFloat($('ptc-weight')?.value) || 0,
+      sex, admitDate: $('ptc-admit')?.value || '',
+      surgeryDate: $('ptc-surgery')?.value || '',
+      diagnosis, diagnosisCode,
+      pmh: $('ptc-pmh')?.value?.trim() || '',
+      medications: [], medFreeText: '', records: {}
+    });
+  }
   savePatients();
+  hidePtCard();
   renderPatientSelect();
-  updatePatientInfo();
+  if (idVal) { updatePatientInfo(); renderMedList(); }
+  else if (patients.length > 0) switchPatient(patients[patients.length - 1].id);
 }
 
 function deletePatient() {
@@ -3273,63 +3496,128 @@ function deletePatient() {
   savePatients();
   currentPatientId = null;
   renderPatientSelect();
-  $('pt-info').style.display = 'none';
+  const strip = $('pt-info-strip');
+  if (strip) strip.style.display = 'none';
+  const nav = $('date-nav');
+  if (nav) nav.style.display = 'none';
+  clearAllForms();
   if (patients.length > 0) switchPatient(patients[0].id);
 }
 
 function switchPatient(id) {
   currentPatientId = id;
   const p = patients.find(x => x.id === id);
-  if (!p) { $('pt-info').style.display = 'none'; return; }
+  if (!p) {
+    const strip = $('pt-info-strip');
+    if (strip) strip.style.display = 'none';
+    const nav = $('date-nav');
+    if (nav) nav.style.display = 'none';
+    return;
+  }
+  currentDate = getTodayStr();
   renderPatientSelect();
   updatePatientInfo();
-  loadTodayRecord();
+  updateDateNav();
+  loadRecord(currentDate);
   renderMedList();
+  const nav = $('date-nav');
+  if (nav) nav.style.display = 'flex';
 }
 
 function updatePatientInfo() {
   const p = patients.find(x => x.id === currentPatientId);
-  if (!p) { $('pt-info').style.display = 'none'; return; }
-  $('pt-info').style.display = 'flex';
-  const today = new Date().toISOString().slice(0, 10);
+  const strip = $('pt-info-strip');
+  if (!p) { if (strip) strip.style.display = 'none'; return; }
+  if (strip) strip.style.display = 'flex';
+  const today = getTodayStr();
   const admitDays = p.admitDate ? Math.floor((new Date(today) - new Date(p.admitDate)) / 86400000) + 1 : '-';
   const surgDays = p.surgeryDate ? Math.floor((new Date(today) - new Date(p.surgeryDate)) / 86400000) : null;
-  $('pt-info-diag').textContent = p.diagnosis || '未填诊断';
-  $('pt-info-days').textContent = `入院第${admitDays}天` + (surgDays !== null ? ` 术后第${surgDays}天` : '');
-  $('pt-info-meds').textContent = `用药 ${p.medications.length} 种`;
-  const lastRec = p.records.length > 0 ? p.records[p.records.length - 1] : null;
-  const statusEl = $('pt-info-status');
-  if (lastRec && lastRec.vitals) {
-    const v = lastRec.vitals;
-    const crit = (v.temp >= 39 || v.temp < 36 || v.hr > 130 || v.hr < 50 || v.sbp < 90 || v.spo2 < 90);
-    const watch = (v.temp >= 37.5 || v.hr > 100 || v.sbp < 100 || v.spo2 < 95);
-    statusEl.textContent = crit ? '危重' : watch ? '关注' : '稳定';
-    statusEl.className = 'pt-status ' + (crit ? 'critical' : watch ? 'watch' : 'stable');
-  } else {
-    statusEl.textContent = '未录入';
-    statusEl.className = 'pt-status watch';
-  }
+  const diagEl = $('pt-info-diag'); if (diagEl) diagEl.textContent = p.diagnosis || '未填诊断';
+  const daysEl = $('pt-info-days');
+  if (daysEl) daysEl.textContent = `入院第${admitDays}天` + (surgDays !== null ? ` 术后第${surgDays}天` : '');
+  const medsEl = $('pt-info-meds'); if (medsEl) medsEl.textContent = `用药 ${p.medications.length} 种`;
 }
 
-// ---------- 子 Tab 切换 ----------
+// ---------- ICD Search ----------
+function searchICD(query) {
+  const dd = $('icd-dropdown');
+  if (!dd) return;
+  if (!query || query.trim().length < 1) { dd.style.display = 'none'; return; }
+  const q = query.toLowerCase();
+  const results = ICD_DB.filter(d => d.code.toLowerCase().includes(q) || d.name.toLowerCase().includes(q)).slice(0, 10);
+  if (results.length === 0) { dd.style.display = 'none'; return; }
+  dd.innerHTML = results.map(d => `<div class="icd-item" onmousedown="selectICD('${d.code}','${d.name}')"><span class="icd-code">${d.code}</span>${d.name}</div>`).join('');
+  dd.style.display = 'block';
+}
+
+// close dropdown on blur
+document.addEventListener('click', e => {
+  const dd = $('icd-dropdown');
+  if (dd && !e.target.closest('.icd-search-wrap')) dd.style.display = 'none';
+});
+
+function selectICD(code, name) {
+  const diag = $('ptc-diag'); if (diag) diag.value = name;
+  const data = $('ptc-diag-data'); if (data) data.value = code;
+  const dd = $('icd-dropdown'); if (dd) dd.style.display = 'none';
+}
+
+// ---------- Date Navigation ----------
+function getTodayStr() { return new Date().toISOString().slice(0, 10); }
+
+function navDate(offset) {
+  const d = new Date(currentDate);
+  d.setDate(d.getDate() + offset);
+  currentDate = d.toISOString().slice(0, 10);
+  updateDateNav();
+  loadRecord(currentDate);
+}
+
+function updateDateNav() {
+  const label = $('date-nav-label');
+  if (label) label.textContent = currentDate;
+  const p = patients.find(x => x.id === currentPatientId);
+  const daysEl = $('date-nav-days');
+  if (!daysEl) return;
+  if (p && p.admitDate) {
+    const diff = Math.floor((new Date(currentDate) - new Date(p.admitDate)) / 86400000) + 1;
+    daysEl.textContent = `入院第${diff}天` + (currentDate === getTodayStr() ? ' (今日)' : '');
+  } else { daysEl.textContent = currentDate === getTodayStr() ? '今日' : ''; }
+  const badge = $('vitals-date-badge');
+  if (badge) badge.textContent = currentDate === getTodayStr() ? '今日' : currentDate.slice(5);
+}
+
+// ---------- Sub-tab switching ----------
 function switchRoundTab(tabId) {
   document.querySelectorAll('#mod-round .sub-tab-content').forEach(el => el.classList.remove('active'));
   document.querySelectorAll('#round-subtabs .sub-tab-btn').forEach(el => el.classList.remove('active'));
   const target = document.getElementById(tabId);
   if (target) target.classList.add('active');
   const btns = document.querySelectorAll('#round-subtabs .sub-tab-btn');
-  const idx = ['r-vitals', 'r-labs', 'r-meds', 'r-imaging', 'r-report', 'r-critval'].indexOf(tabId);
+  const idx = ['r-vitals', 'r-labs', 'r-treatment', 'r-report'].indexOf(tabId);
   if (idx >= 0 && btns[idx]) btns[idx].classList.add('active');
 }
 
-// ---------- Tab 1: 生命体征 + 出入量 ----------
+// ---------- Tab 1: Vitals + IO ----------
+function toggleRASS(val) {
+  const rass = $('rass-wrap');
+  if (rass) rass.style.display = val === '镇静镇痛' ? 'block' : 'none';
+}
+
+function toggleRespFields(type) {
+  const basic = $('resp-basic');
+  const vent = $('resp-vent');
+  if (basic) basic.style.display = (type === '鼻导管' || type === '面罩' || type === 'HFNC') ? 'block' : 'none';
+  if (vent) vent.style.display = (type === '无创通气' || type === '有创通气') ? 'block' : 'none';
+}
+
 function saveVitalsIO() {
   if (!currentPatientId) return alert('请先选择患者');
   const p = patients.find(x => x.id === currentPatientId);
   if (!p) return;
-  const today = new Date().toISOString().slice(0, 10);
-  let rec = p.records.find(r => r.date === today);
-  if (!rec) { rec = { date: today }; p.records.push(rec); }
+  if (!p.records) p.records = {};
+  let rec = p.records[currentDate];
+  if (!rec) { rec = {}; p.records[currentDate] = rec; }
 
   rec.vitals = {
     temp: getVal('pt-temp'), hr: getVal('pt-hr'),
@@ -3337,37 +3625,44 @@ function saveVitalsIO() {
     rr: getVal('pt-rr'), spo2: getVal('pt-spo2')
   };
   rec.consciousness = getSel('pt-conscious') || '';
+  rec.rass = getVal('pt-rass');
   rec.gcs = getVal('pt-gcs');
   const ssMap = {'ss-trach':'气管切开','ss-intub':'气管插管','ss-vent':'机械通气','ss-crrt':'CRRT','ss-iabp':'IABP','ss-ecmo':'ECMO'};
   rec.specialStatus = [];
-  Object.entries(ssMap).forEach(([id, label]) => {
-    if (getCheck(id)) rec.specialStatus.push(label);
-  });
-
-  const intake = getVal('pt-intake') || 0;
-  const urine = getVal('pt-urine') || 0;
-  const drain = getVal('pt-drain') || 0;
+  Object.entries(ssMap).forEach(([id, label]) => { if (getCheck(id)) rec.specialStatus.push(label); });
+  rec.respSupport = {
+    type: getSel('pt-rs-type') || 'none',
+    fio2: getVal('pt-rs-fio2') || getVal('pt-rs-vfio2'),
+    flow: getVal('pt-rs-flow'),
+    peep: getVal('pt-rs-peep'),
+    pip: getVal('pt-rs-pip'),
+    mode: getSel('pt-rs-mode') || '',
+    tidalVol: getVal('pt-rs-tv')
+  };
+  const intake = parseFloat($('pt-intake')?.value) || 0;
+  const urine = parseFloat($('pt-urine')?.value) || 0;
+  const drain = parseFloat($('pt-drain')?.value) || 0;
+  const otherOutput = parseFloat($('pt-other-out')?.value) || 0;
   rec.io = {
-    intake, urine,
+    intake, urine, drain, otherOutput,
     stoolCount: getVal('pt-stool-cnt') || 0,
     stoolType: getSel('pt-stool-type') || '',
     drainSite: $('pt-drain-site')?.value || '',
-    drainVol: drain,
     drainType: getSel('pt-drain-type') || '',
-    balance: intake - urine - drain
+    balance: intake - urine - drain - otherOutput
   };
 
   savePatients();
   updatePatientInfo();
 
-  // 显示平衡
   const bal = rec.io.balance;
   const balEl = $('io-balance-display');
-  balEl.style.display = 'block';
-  balEl.textContent = `平衡: ${bal > 0 ? '+' : ''}${bal} mL`;
-  balEl.className = 'io-balance ' + (bal > 500 ? 'positive' : bal < -500 ? 'negative' : 'zero');
+  if (balEl) {
+    balEl.style.display = 'block';
+    balEl.textContent = `平衡: ${bal > 0 ? '+' : ''}${bal} mL`;
+    balEl.className = 'io-balance ' + (bal > 500 ? 'positive' : bal < -500 ? 'negative' : 'zero');
+  }
 
-  // 危急值检查
   const alerts = [];
   const v = rec.vitals;
   if (v.temp >= 39) alerts.push(`高热 ${v.temp}°C`);
@@ -3381,95 +3676,87 @@ function saveVitalsIO() {
   if (v.rr > 30) alerts.push(`呼吸急促 ${v.rr}次/分`);
   else if (v.rr < 10) alerts.push(`呼吸抑制 ${v.rr}次/分`);
   if (v.spo2 < 90) alerts.push(`低氧 SpO₂ ${v.spo2}%`);
-
-  if (alerts.length > 0) {
-    showWarn('pt-vitals-warn', '⚠️ ' + alerts.join('；'));
-  } else {
-    hideWarn('pt-vitals-warn');
-  }
+  if (alerts.length > 0) showWarn('pt-vitals-warn', alerts.join('；'));
+  else hideWarn('pt-vitals-warn');
 
   addHistory('生命体征+出入量', new Date().toLocaleString('zh-CN', { hour: '2-digit', minute: '2-digit' }));
   showToast('生命体征已保存');
 }
 
-function loadTodayRecord() {
+function loadRecord(date) {
   if (!currentPatientId) return;
   const p = patients.find(x => x.id === currentPatientId);
   if (!p) return;
-  const today = new Date().toISOString().slice(0, 10);
-  const rec = p.records.find(r => r.date === today);
-  if (!rec) { clearVitalsForm(); return; }
+  if (!p.records) p.records = {};
+  const rec = p.records[date];
+  if (!rec) { clearAllForms(); return; }
 
-  // 加载生命体征
   if (rec.vitals) {
-    setFormVal('pt-temp', rec.vitals.temp);
-    setFormVal('pt-hr', rec.vitals.hr);
-    setFormVal('pt-sbp', rec.vitals.sbp);
-    setFormVal('pt-dbp', rec.vitals.dbp);
-    setFormVal('pt-rr', rec.vitals.rr);
-    setFormVal('pt-spo2', rec.vitals.spo2);
+    setFormVal('pt-temp', rec.vitals.temp); setFormVal('pt-hr', rec.vitals.hr);
+    setFormVal('pt-sbp', rec.vitals.sbp); setFormVal('pt-dbp', rec.vitals.dbp);
+    setFormVal('pt-rr', rec.vitals.rr); setFormVal('pt-spo2', rec.vitals.spo2);
   }
   setFormVal('pt-conscious', rec.consciousness);
+  setFormVal('pt-rass', rec.rass);
   setFormVal('pt-gcs', rec.gcs);
-
-  // 出入量
+  toggleRASS(rec.consciousness || '');
+  if (rec.specialStatus) {
+    const ssMap = {'ss-trach':'气管切开','ss-intub':'气管插管','ss-crrt':'CRRT','ss-iabp':'IABP','ss-ecmo':'ECMO'};
+    Object.entries(ssMap).forEach(([id, label]) => { const el = $(id); if (el) el.checked = rec.specialStatus.includes(label); });
+  }
+  if (rec.respSupport) {
+    const rs = rec.respSupport;
+    setFormVal('pt-rs-type', rs.type); toggleRespFields(rs.type || 'none');
+    setFormVal('pt-rs-fio2', rs.fio2); setFormVal('pt-rs-vfio2', rs.fio2);
+    setFormVal('pt-rs-flow', rs.flow); setFormVal('pt-rs-peep', rs.peep);
+    setFormVal('pt-rs-pip', rs.pip); setFormVal('pt-rs-mode', rs.mode);
+    setFormVal('pt-rs-tv', rs.tidalVol);
+  }
   if (rec.io) {
-    setFormVal('pt-intake', rec.io.intake);
-    setFormVal('pt-urine', rec.io.urine);
-    setFormVal('pt-stool-cnt', rec.io.stoolCount);
-    setFormVal('pt-stool-type', rec.io.stoolType);
-    setFormVal('pt-drain', rec.io.drainVol);
-    setFormVal('pt-drain-site', rec.io.drainSite);
-    setFormVal('pt-drain-type', rec.io.drainType);
-    const bal = rec.io.balance;
+    const io = rec.io;
+    setFormVal('pt-intake', io.intake); setFormVal('pt-urine', io.urine);
+    setFormVal('pt-drain', io.drain); setFormVal('pt-other-out', io.otherOutput);
+    setFormVal('pt-stool-cnt', io.stoolCount); setFormVal('pt-stool-type', io.stoolType);
+    setFormVal('pt-drain-site', io.drainSite); setFormVal('pt-drain-type', io.drainType);
+    const bal = io.balance;
     const balEl = $('io-balance-display');
-    if (bal != null) {
+    if (balEl && bal != null) {
       balEl.style.display = 'block';
       balEl.textContent = `平衡: ${bal > 0 ? '+' : ''}${bal} mL`;
       balEl.className = 'io-balance ' + (bal > 500 ? 'positive' : bal < -500 ? 'negative' : 'zero');
     }
   }
-
-  // 化验
-  if (rec.labs) {
-    Object.entries(rec.labs).forEach(([k, v]) => {
-      const el = $('lab-' + k);
-      if (el && v != null) el.value = v;
-    });
-  }
-  // 血气
   if (rec.abg) {
-    Object.entries(rec.abg).forEach(([k, v]) => {
-      const el = $('lab-abg-' + k);
-      if (el && v != null) el.value = v;
-    });
+    Object.entries(rec.abg).forEach(([k, v]) => { const el = $('lab-abg-' + k); if (el && v != null) el.value = v; });
   }
-  // 影像/备注
-  if (rec.imaging) setFormVal('pt-imaging', rec.imaging);
-  if (rec.notes) setFormVal('pt-notes', rec.notes);
-  if (rec.treatmentChanges) setFormVal('pt-tx-changes', rec.treatmentChanges);
-  if (rec.plan) setFormVal('pt-plan', rec.plan);
-
-  // 上次值 placeholder
+  if (rec.labs) {
+    Object.entries(rec.labs).forEach(([k, v]) => { const el = $('lab-' + k); if (el && v != null) el.value = v; });
+  }
+  setFormVal('pt-imaging', rec.imaging);
+  setFormVal('pt-exam', rec.exam);
+  setFormVal('pt-notes', rec.notes);
+  setFormVal('pt-tx-changes', rec.treatmentChanges);
+  setFormVal('pt-plan', rec.plan);
   setLastValuePlaceholders(p);
-
   highlightAbnormal();
 }
 
-function clearVitalsForm() {
-  ['pt-temp', 'pt-hr', 'pt-sbp', 'pt-dbp', 'pt-rr', 'pt-spo2', 'pt-gcs', 'pt-intake', 'pt-urine', 'pt-stool-cnt', 'pt-drain'].forEach(id => { const el = $(id); if (el) el.value = ''; });
-  setFormVal('pt-conscious', '');
-  setFormVal('pt-stool-type', '');
-  setFormVal('pt-drain-site', '');
-  setFormVal('pt-drain-type', '');
-  ['ss-trach', 'ss-intub', 'ss-vent', 'ss-crrt', 'ss-iabp', 'ss-ecmo'].forEach(id => { const el = $(id); if (el) el.checked = false; });
-  if ($('io-balance-display')) $('io-balance-display').style.display = 'none';
+function clearAllForms() {
+  ['pt-temp','pt-hr','pt-sbp','pt-dbp','pt-rr','pt-spo2','pt-gcs','pt-rass','pt-intake','pt-urine','pt-drain','pt-other-out','pt-stool-cnt'].forEach(id => { const el = $(id); if (el) el.value = ''; });
+  setFormVal('pt-conscious', ''); setFormVal('pt-stool-type', '');
+  setFormVal('pt-drain-site', ''); setFormVal('pt-drain-type', '');
+  setFormVal('pt-rs-type', 'none');
+  toggleRespFields('none');
+  ['pt-rs-fio2','pt-rs-flow','pt-rs-vfio2','pt-rs-peep','pt-rs-pip','pt-rs-tv'].forEach(id => { const el = $(id); if (el) el.value = ''; });
+  setFormVal('pt-rs-mode', '');
+  ['ss-trach','ss-intub','ss-vent','ss-crrt','ss-iabp','ss-ecmo'].forEach(id => { const el = $(id); if (el) el.checked = false; });
+  const rassWrap = $('rass-wrap'); if (rassWrap) rassWrap.style.display = 'none';
+  const balEl = $('io-balance-display'); if (balEl) balEl.style.display = 'none';
   hideWarn('pt-vitals-warn');
-  // 清空化验
-  ['lab-wbc','lab-hgb','lab-plt','lab-neut','lab-cr','lab-bun','lab-alt','lab-ast','lab-tbili','lab-alb','lab-inr','lab-ddimer','lab-bnp','lab-pct','lab-il6','lab-crp','lab-ckmb','lab-tropi','lab-k','lab-na','lab-ldh','lab-hbalc','lab-abg-ph','lab-abg-pco2','lab-abg-pao2','lab-abg-fio2','lab-abg-hco3','lab-abg-lac','lab-abg-k','lab-abg-na','lab-abg-cl','lab-abg-glu'].forEach(id => { const el = $(id); if (el) { el.value = ''; el.classList.remove('abnormal-high','abnormal-warn'); } });
+  ['lab-wbc','lab-hgb','lab-plt','lab-neut','lab-cr','lab-bun','lab-alt','lab-ast','lab-tbili','lab-dbili','lab-ibili','lab-alb','lab-inr','lab-aptt','lab-ddimer','lab-bnp','lab-pct','lab-il6','lab-crp','lab-ckmb','lab-tropi','lab-k','lab-na','lab-ca','lab-mg','lab-ldh','lab-hbalc','lab-abg-ph','lab-abg-pco2','lab-abg-pao2','lab-abg-fio2','lab-abg-hco3','lab-abg-lac','lab-abg-k','lab-abg-na','lab-abg-cl','lab-abg-glu'].forEach(id => { const el = $(id); if (el) { el.value = ''; el.classList.remove('abnormal-high','abnormal-warn'); } });
   const abnormEl = $('lab-abnormal-display'); if (abnormEl) abnormEl.innerHTML = '';
-  // 清空影像/备注
-  ['pt-imaging', 'pt-notes', 'pt-tx-changes', 'pt-plan'].forEach(id => { const el = $(id); if (el) el.value = ''; });
+  const critEl = $('inline-crit-display'); if (critEl) critEl.innerHTML = '';
+  ['pt-imaging','pt-exam','pt-notes','pt-tx-changes','pt-plan'].forEach(id => { const el = $(id); if (el) el.value = ''; });
 }
 
 function setFormVal(id, val) {
@@ -3480,8 +3767,13 @@ function setFormVal(id, val) {
 }
 
 function setLastValuePlaceholders(p) {
-  if (p.records.length < 2) return;
-  const prev = p.records[p.records.length - 2];
+  if (!p.records) return;
+  const dates = Object.keys(p.records).sort();
+  if (dates.length < 2) return;
+  const prevDate = dates[dates.length - 2] === currentDate ? dates[dates.length - 3] : dates[dates.length - 2];
+  if (!prevDate) return;
+  const prev = p.records[prevDate];
+  if (!prev) return;
   const phMap = {
     'pt-temp': 'vitals.temp', 'pt-hr': 'vitals.hr', 'pt-sbp': 'vitals.sbp',
     'pt-dbp': 'vitals.dbp', 'pt-rr': 'vitals.rr', 'pt-spo2': 'vitals.spo2',
@@ -3492,22 +3784,19 @@ function setLastValuePlaceholders(p) {
     if (!el) return;
     const parts = path.split('.');
     let val = prev;
-    parts.forEach(p => { val = val ? val[p] : null; });
-    if (val != null) {
-      el.placeholder = `上次: ${val}`;
-      el.classList.add('has-prev');
-    }
+    parts.forEach(k => { val = val ? val[k] : null; });
+    if (val != null) { el.placeholder = `上次: ${val}`; el.classList.add('has-prev'); }
   });
 }
 
-// ---------- Tab 2: 化验 + 血气 ----------
+// ---------- Tab 2: Labs ----------
 function saveLabs() {
   if (!currentPatientId) return alert('请先选择患者');
   const p = patients.find(x => x.id === currentPatientId);
   if (!p) return;
-  const today = new Date().toISOString().slice(0, 10);
-  let rec = p.records.find(r => r.date === today);
-  if (!rec) { rec = { date: today }; p.records.push(rec); }
+  if (!p.records) p.records = {};
+  let rec = p.records[currentDate];
+  if (!rec) { rec = {}; p.records[currentDate] = rec; }
 
   rec.abg = {
     ph: getVal('lab-abg-ph'), pco2: getVal('lab-abg-pco2'), pao2: getVal('lab-abg-pao2'),
@@ -3517,17 +3806,19 @@ function saveLabs() {
   rec.labs = {
     wbc: getVal('lab-wbc'), hgb: getVal('lab-hgb'), plt: getVal('lab-plt'), neut: getVal('lab-neut'),
     cr: getVal('lab-cr'), bun: getVal('lab-bun'), alt: getVal('lab-alt'), ast: getVal('lab-ast'),
-    tbili: getVal('lab-tbili'), alb: getVal('lab-alb'),
-    inr: getVal('lab-inr'), ddimer: getVal('lab-ddimer'),
-    bnp: getVal('lab-bnp'), pct: getVal('lab-pct'), il6: getVal('lab-il6'), crp: getVal('lab-crp'),
+    tbili: getVal('lab-tbili'), dbili: getVal('lab-dbili'), ibili: getVal('lab-ibili'),
+    alb: getVal('lab-alb'), inr: getVal('lab-inr'), aptt: getVal('lab-aptt'),
+    ddimer: getVal('lab-ddimer'), bnp: getVal('lab-bnp'), pct: getVal('lab-pct'),
+    il6: getVal('lab-il6'), crp: getVal('lab-crp'),
     ckmb: getVal('lab-ckmb'), tropi: getVal('lab-tropi'),
-    k: getVal('lab-k'), na: getVal('lab-na'), ldh: getVal('lab-ldh'), hbalc: getVal('lab-hbalc')
+    k: getVal('lab-k'), na: getVal('lab-na'), ca: getVal('lab-ca'), mg: getVal('lab-mg'),
+    ldh: getVal('lab-ldh'), hbalc: getVal('lab-hbalc')
   };
 
   savePatients();
   updatePatientInfo();
   highlightAbnormal();
-  checkCritValOnSave(rec.labs);
+  checkCritInline({ ...rec.labs, ...rec.abg });
   addHistory('化验+血气', new Date().toLocaleString('zh-CN', { hour: '2-digit', minute: '2-digit' }));
   showToast('化验已保存');
 }
@@ -3562,23 +3853,38 @@ function highlightAbnormal() {
   });
   const display = $('lab-abnormal-display');
   if (display) {
-    if (alerts.length > 0) {
-      display.innerHTML = '<div style="background:var(--warning-bg);padding:8px;border-radius:8px;font-size:0.82rem"><b>⚠️ 异常指标：</b><br>' + alerts.join('<br>') + '</div>';
-    } else { display.innerHTML = ''; }
+    if (alerts.length > 0) display.innerHTML = '<div style="background:var(--warning-bg);padding:8px;border-radius:8px;font-size:0.82rem"><b>异常指标：</b><br>' + alerts.join('<br>') + '</div>';
+    else display.innerHTML = '';
   }
 }
 
-function checkCritValOnSave(labs) {
+function checkCritInline(labs) {
   if (!labs) return;
-  const k = labs.k, cr = labs.cr, plt = labs.plt, wbc = labs.wbc;
-  if (k != null) { $('cv-k').value = k; }
-  if (cr != null) { $('cv-cr').value = cr; }
-  if (plt != null) { $('cv-plt').value = plt; }
-  if (wbc != null) { $('cv-wbc').value = wbc; }
-  checkCritVal();
+  const critMap = {
+    k: { label: 'K', danger: v => v < 3.0 || v > 6.0, warn: v => v < 3.5 || v > 5.5 },
+    na: { label: 'Na', danger: v => v < 120 || v > 160, warn: v => v < 130 || v > 150 },
+    glu: { label: '血糖', danger: v => v < 2.8 || v > 22.2, warn: v => v < 3.9 || v > 11.1 },
+    cr: { label: 'Cr', danger: v => v > 442, warn: v => v > 176 },
+    plt: { label: 'PLT', danger: v => v < 50 || v > 1000, warn: v => v < 100 },
+    wbc: { label: 'WBC', danger: v => v < 1.0 || v > 30, warn: v => v < 2.0 || v > 20 },
+    lac: { label: '乳酸', danger: v => v > 4.0, warn: v => v > 2.0 },
+    ph: { label: 'pH', danger: v => v < 7.20 || v > 7.60, warn: v => v < 7.35 || v > 7.45 }
+  };
+  const msgs = [];
+  Object.entries(critMap).forEach(([key, cfg]) => {
+    const v = parseFloat(labs[key]);
+    if (isNaN(v)) return;
+    if (cfg.danger(v)) msgs.push({ level: 'danger', text: `${cfg.label}: ${v} (危急)` });
+    else if (cfg.warn(v)) msgs.push({ level: 'warn', text: `${cfg.label}: ${v} (异常)` });
+  });
+  const el = $('inline-crit-display');
+  if (!el) return;
+  if (msgs.length === 0) { el.innerHTML = ''; return; }
+  el.innerHTML = msgs.map(m =>
+    `<div class="inline-crit-item ${m.level}" style="padding:4px 8px;margin:2px 0;border-radius:4px;font-size:0.82rem;background:${m.level === 'danger' ? 'var(--danger-light,#fde8e8)' : 'var(--warning-bg,#fff3cd)'};color:${m.level === 'danger' ? 'var(--danger)' : '#856404'}">${m.text}</div>`
+  ).join('');
 }
 
-// ---------- 粘贴解析 ----------
 function parseLabPaste() {
   const text = $('lab-paste-input')?.value || '';
   if (!text.trim()) return;
@@ -3591,9 +3897,12 @@ function parseLabPaste() {
     '尿素氮': 'bun', 'bun': 'bun', '尿素': 'bun',
     '谷丙转氨酶': 'alt', 'alt': 'alt', '丙氨酸氨基转移酶': 'alt',
     '谷草转氨酶': 'ast', 'ast': 'ast', '天门冬氨酸氨基转移酶': 'ast',
-    '总胆红素': 'tbili', 'tbil': 'tbili', '总胆红素': 'tbili',
+    '总胆红素': 'tbili', 'tbil': 'tbili',
+    '直接胆红素': 'dbili', 'dbil': 'dbili',
+    '间接胆红素': 'ibili', 'ibil': 'ibili',
     '白蛋白': 'alb', 'alb': 'alb',
     'inr': 'inr',
+    'aptt': 'aptt', '活化部分凝血活酶时间': 'aptt',
     'd-二聚体': 'ddimer', 'd-dimer': 'ddimer', 'ddimer': 'ddimer',
     'bnp': 'bnp', '脑钠肽': 'bnp', 'nt-probnp': 'bnp',
     'pct': 'pct', '降钙素原': 'pct',
@@ -3603,6 +3912,8 @@ function parseLabPaste() {
     '肌钙蛋白': 'tropi', 'ctni': 'tropi', 'tni': 'tropi', '肌钙蛋白i': 'tropi',
     '钾': 'k', 'k+': 'k', 'k⁺': 'k', '钾离子': 'k',
     '钠': 'na', 'na+': 'na', 'na⁺': 'na', '钠离子': 'na',
+    '钙': 'ca', 'ca2+': 'ca', '钙离子': 'ca',
+    '镁': 'mg', 'mg2+': 'mg', '镁离子': 'mg',
     'ldh': 'ldh', '乳酸脱氢酶': 'ldh',
     'hba1c': 'hbalc', '糖化血红蛋白': 'hbalc',
     'ph': 'ph', '酸碱度': 'ph',
@@ -3614,13 +3925,11 @@ function parseLabPaste() {
     '血糖': 'glu', 'glu': 'glu', '葡萄糖': 'glu',
     '氯': 'cl', 'cl-': 'cl', 'cl⁻': 'cl', '氯离子': 'cl'
   };
-
   const lines = text.split(/[\n\r]+/);
   let matched = 0, failed = [];
   lines.forEach(line => {
     line = line.trim();
     if (!line) return;
-    // Pattern: 指标名 [：: ] 数值 [单位]
     const m = line.match(/([a-zA-Z一-龥⁺⁻%\-]+)\s*[：:=\s]\s*([0-9.]+)\s*(.*)/);
     if (!m) return;
     const rawName = m[1].trim().toLowerCase();
@@ -3628,46 +3937,30 @@ function parseLabPaste() {
     if (isNaN(val)) return;
     const fieldKey = aliases[rawName];
     if (!fieldKey) { failed.push(rawName); return; }
-    // 优先填化验 tab
     const el = $('lab-' + fieldKey);
     if (el) { el.value = val; matched++; return; }
     const el2 = $('lab-abg-' + fieldKey);
     if (el2) { el2.value = val; matched++; return; }
     failed.push(rawName);
   });
-
   const resultEl = $('lab-paste-result');
   if (resultEl) {
-    let msg = `✅ 成功解析 ${matched} 项`;
+    let msg = `成功解析 ${matched} 项`;
     if (failed.length > 0) msg += ` | 未识别: ${failed.join(', ')}`;
     resultEl.textContent = msg;
   }
   highlightAbnormal();
 }
 
-// ---------- Tab 3: 用药管理 ----------
-function renderMedList() {
-  const p = patients.find(x => x.id === currentPatientId);
-  const container = $('med-list-display');
-  if (!container) return;
-  if (!p || p.medications.length === 0) {
-    container.innerHTML = '<div style="text-align:center;color:var(--text-secondary);padding:20px;font-size:0.85rem">暂无用药记录</div>';
-    return;
-  }
-  const today = new Date().toISOString().slice(0, 10);
-  container.innerHTML = p.medications.map((m, i) => {
-    const days = m.startDate ? Math.floor((new Date(today) - new Date(m.startDate)) / 86400000) + 1 : '-';
-    return `<div class="med-item">
-      <span class="med-cat ${m.category}">${m.category}</span>
-      <span class="med-name">${m.name}</span>
-      <span class="med-dose">${m.dose} (${m.route})</span>
-      <span class="med-days">第${days}天</span>
-      <button onclick="removeMed(${i})" title="删除">×</button>
-    </div>`;
-  }).join('');
-
-  // 肾功能联动
-  checkRenalDose(p);
+// ---------- Tab 3: Treatment ----------
+function switchMedMode(mode, btn) {
+  currentMedMode = mode;
+  document.querySelectorAll('.med-mode-toggle button').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  const structEl = $('med-struct-mode');
+  const freeEl = $('med-free-mode');
+  if (structEl) structEl.style.display = mode === 'struct' ? 'block' : 'none';
+  if (freeEl) freeEl.style.display = mode === 'free' ? 'block' : 'none';
 }
 
 function addMed() {
@@ -3676,16 +3969,20 @@ function addMed() {
   if (!p) return;
   const name = $('med-name')?.value?.trim();
   if (!name) return alert('请输入药名');
-  const dose = $('med-dose')?.value?.trim() || '';
-  const route = getSel('med-route') || 'iv';
-  const startDate = $('med-start')?.value || new Date().toISOString().slice(0, 10);
-  const category = getSel('med-cat') || '其他';
-  p.medications.push({ name, dose, route, startDate, category });
+  p.medications.push({
+    name,
+    dose: $('med-dose')?.value?.trim() || '',
+    freq: $('med-freq')?.value?.trim() || '',
+    route: getSel('med-route') || 'iv',
+    startDate: $('med-start')?.value || getTodayStr(),
+    category: getSel('med-cat') || '其他'
+  });
   savePatients();
   renderMedList();
   updatePatientInfo();
   $('med-name').value = '';
   $('med-dose').value = '';
+  $('med-freq').value = '';
 }
 
 function removeMed(idx) {
@@ -3697,34 +3994,65 @@ function removeMed(idx) {
   updatePatientInfo();
 }
 
-function saveMeds() {
+function renderMedList() {
+  const p = patients.find(x => x.id === currentPatientId);
+  const container = $('med-list-display');
+  if (!container) return;
+  if (!p || p.medications.length === 0) {
+    container.innerHTML = '<div style="text-align:center;color:var(--text-secondary);padding:20px;font-size:0.85rem">暂无用药记录</div>';
+    return;
+  }
+  const today = getTodayStr();
+  container.innerHTML = p.medications.map((m, i) => {
+    const days = m.startDate ? Math.floor((new Date(today) - new Date(m.startDate)) / 86400000) + 1 : '-';
+    return `<div class="med-item">
+      <span class="med-cat ${m.category}">${m.category}</span>
+      <span class="med-name">${m.name}</span>
+      <span class="med-dose">${m.dose}${m.freq ? ' ' + m.freq : ''} (${m.route})</span>
+      <span class="med-days">第${days}天</span>
+      <button onclick="removeMed(${i})" title="删除">&times;</button>
+    </div>`;
+  }).join('');
+  checkRenalDose(p);
+}
+
+function saveTreatment() {
   if (!currentPatientId) return alert('请先选择患者');
+  const p = patients.find(x => x.id === currentPatientId);
+  if (!p) return;
+  if (currentMedMode === 'free') {
+    p.medFreeText = $('med-free-text')?.value || '';
+  }
+  if (!p.records) p.records = {};
+  let rec = p.records[currentDate];
+  if (!rec) { rec = {}; p.records[currentDate] = rec; }
+  rec.imaging = $('pt-imaging')?.value || '';
+  rec.exam = $('pt-exam')?.value || '';
+  rec.notes = $('pt-notes')?.value || '';
+  rec.treatmentChanges = $('pt-tx-changes')?.value || '';
   savePatients();
-  showToast('用药方案已保存');
+  showToast('治疗方案已保存');
 }
 
 function formatMedsForReport() {
   const p = patients.find(x => x.id === currentPatientId);
-  if (!p || p.medications.length === 0) return alert('暂无用药');
+  if (!p) return '';
+  if (currentMedMode === 'free' && p.medFreeText) return p.medFreeText;
+  if (p.medications.length === 0) return '暂无用药';
   const routeMap = { iv: '静脉', po: '口服', ih: '皮下', neb: '雾化', other: '' };
-  const text = p.medications.map(m => `${m.name} ${m.dose} ${routeMap[m.route] || m.route}`).join('\n');
-  const el = $('meds-formatted');
-  if (el) { el.style.display = 'block'; el.textContent = text; }
-  navigator.clipboard.writeText(text).then(() => showToast('已复制到剪贴板')).catch(() => {});
+  return p.medications.map(m => `${m.name} ${m.dose}${m.freq ? ' ' + m.freq : ''} ${routeMap[m.route] || m.route}`).join('\n');
 }
 
 function checkRenalDose(p) {
-  const today = new Date().toISOString().slice(0, 10);
-  const rec = p.records.find(r => r.date === today);
+  if (!p.records) return;
+  const rec = p.records[currentDate];
   const cr = rec?.labs?.cr;
   const box = $('renal-alert-box');
   if (!box) return;
   if (!cr || cr <= 133) { box.style.display = 'none'; return; }
-
-  const age = p.age || 50, weight = 60, isFemale = p.sex === '女';
+  const age = p.age || 50, weight = p.weight || 60, isFemale = p.sex === '女';
   const crcl = ((140 - age) * weight) / (72 * cr) * (isFemale ? 0.85 : 1);
   const alerts = [];
-
   p.medications.forEach(m => {
     const n = m.name.toLowerCase();
     if (n.includes('哌拉西林') || n.includes('他唑巴坦')) {
@@ -3742,183 +4070,104 @@ function checkRenalDose(p) {
     }
     if (n.includes('阿米卡星')) alerts.push(`${m.name}: 需延长间隔，建议 TDM`);
   });
-
   if (alerts.length > 0) {
     box.style.display = 'block';
-    box.innerHTML = `<div class="renal-alert-title">⚠️ 肾功能不全 (Cr ${cr}μmol/L, eCrCl ${round(crcl, 0)} mL/min)</div>` + alerts.map(a => `<div class="renal-alert-item">• ${a}</div>`).join('');
-  } else {
-    box.style.display = 'none';
-  }
+    box.innerHTML = `<div class="renal-alert-title">肾功能不全 (Cr ${cr}μmol/L, eCrCl ${round(crcl, 0)} mL/min)</div>` + alerts.map(a => `<div class="renal-alert-item">• ${a}</div>`).join('');
+  } else { box.style.display = 'none'; }
 }
 
-// ---------- Tab 4: 影像 + 备注 ----------
-function saveImagingNotes() {
-  if (!currentPatientId) return alert('请先选择患者');
-  const p = patients.find(x => x.id === currentPatientId);
-  if (!p) return;
-  const today = new Date().toISOString().slice(0, 10);
-  let rec = p.records.find(r => r.date === today);
-  if (!rec) { rec = { date: today }; p.records.push(rec); }
-  rec.imaging = $('pt-imaging')?.value || '';
-  rec.notes = $('pt-notes')?.value || '';
-  rec.treatmentChanges = $('pt-tx-changes')?.value || '';
-  rec.plan = $('pt-plan')?.value || '';
-  savePatients();
-  showToast('影像和备注已保存');
-}
-
-// ---------- Tab 5: 报告生成 ----------
-function switchReportMode(mode, btn) {
-  currentReportMode = mode;
-  document.querySelectorAll('.report-mode-btns button').forEach(b => b.classList.remove('active'));
-  if (btn) btn.classList.add('active');
-  $('report-event-input').style.display = mode === 'event' ? 'block' : 'none';
-}
-
+// ---------- Tab 4: Report + AI ----------
 function genReport() {
-  if (!currentPatientId) return alert('请先选择患者');
-  const p = patients.find(x => x.id === currentPatientId);
-  if (!p) return;
-  const today = new Date().toISOString().slice(0, 10);
-  const rec = p.records.find(r => r.date === today) || p.records[p.records.length - 1];
-  if (!rec) return alert('暂无数据，请先录入');
-
-  let text = '';
-  const admitDays = p.admitDate ? Math.floor((new Date(today) - new Date(p.admitDate)) / 86400000) + 1 : '?';
-  const surgStr = p.surgeryDate ? `，术后第${Math.floor((new Date(today) - new Date(p.surgeryDate)) / 86400000)}天` : '';
-
-  if (currentReportMode === 'round') text = genRoundReport(p, rec, admitDays, surgStr);
-  else if (currentReportMode === 'handoff') text = genHandoffReport(p, rec, admitDays, surgStr);
-  else if (currentReportMode === 'admit') text = genAdmitReport(p, rec, admitDays, surgStr);
-  else if (currentReportMode === 'event') text = genEventReport(p, rec, admitDays, surgStr);
-
-  $('report-preview').style.display = 'block';
-  $('report-preview').textContent = text;
-  $('btn-copy-report').style.display = 'block';
+  if (patients.length === 0) return alert('暂无患者');
+  let allText = '';
+  patients.forEach(p => {
+    const dates = Object.keys(p.records || {}).sort();
+    const rec = p.records[currentDate] || (dates.length > 0 ? p.records[dates[dates.length - 1]] : null);
+    const today = getTodayStr();
+    const admitDays = p.admitDate ? Math.floor((new Date(today) - new Date(p.admitDate)) / 86400000) + 1 : '?';
+    const surgStr = p.surgeryDate ? `，术后第${Math.floor((new Date(today) - new Date(p.surgeryDate)) / 86400000)}天` : '';
+    let text = `查房：${p.diagnosis || '未填'}，${p.age}${p.sex}，入院第${admitDays}天${surgStr}\n\n`;
+    text += `【S 主观】\n`;
+    if (rec) {
+      text += `意识：${rec.consciousness || '未评'}`;
+      if (rec.rass != null) text += `，RASS ${rec.rass}`;
+      text += '\n';
+      if (rec.specialStatus?.length > 0) text += `特殊状态：${rec.specialStatus.join('+')}\n`;
+      if (rec.notes) text += rec.notes + '\n';
+    }
+    text += `\n【O 客观】\n`;
+    if (rec && rec.vitals) {
+      const v = rec.vitals;
+      text += `生命体征：T ${v.temp || '-'}℃，HR ${v.hr || '-'}次/分，BP ${v.sbp || '-'}/${v.dbp || '-'}mmHg，RR ${v.rr || '-'}次/分，SpO₂ ${v.spo2 || '-'}%\n`;
+    }
+    if (rec && rec.respSupport && rec.respSupport.type !== 'none') {
+      const rs = rec.respSupport;
+      text += `呼吸支持：${rs.type}`;
+      if (rs.fio2) text += `，FiO₂ ${rs.fio2}%`;
+      if (rs.flow) text += `，流量 ${rs.flow}L/min`;
+      if (rs.peep) text += `，PEEP ${rs.peep}cmH₂O`;
+      if (rs.mode) text += `，模式 ${rs.mode}`;
+      if (rs.tidalVol) text += `，VT ${rs.tidalVol}mL`;
+      text += '\n';
+    }
+    if (rec && rec.io) {
+      const io = rec.io;
+      const totalOut = (io.urine || 0) + (io.drain || 0) + (io.otherOutput || 0);
+      text += `出入量：入量${io.intake || 0}mL，出量${totalOut}mL（尿量${io.urine || 0}mL+引流${io.drain || 0}mL），平衡${io.balance > 0 ? '+' : ''}${io.balance || 0}mL\n`;
+    }
+    if (rec && rec.abg) {
+      const abg = rec.abg;
+      const fields = [];
+      if (abg.ph != null) fields.push(`pH ${abg.ph}`);
+      if (abg.pco2 != null) fields.push(`PaCO₂ ${abg.pco2}`);
+      if (abg.pao2 != null) fields.push(`PaO₂ ${abg.pao2}`);
+      if (abg.hco3 != null) fields.push(`HCO₃⁻ ${abg.hco3}`);
+      if (abg.lac != null) fields.push(`Lac ${abg.lac}`);
+      if (fields.length > 0) text += `血气：${fields.join('，')}\n`;
+    }
+    if (rec && rec.labs) {
+      const labs = rec.labs;
+      const items = [];
+      if (labs.wbc != null) items.push(`WBC ${labs.wbc}`);
+      if (labs.hgb != null) items.push(`Hb ${labs.hgb}`);
+      if (labs.plt != null) items.push(`PLT ${labs.plt}`);
+      if (labs.cr != null) items.push(`Cr ${labs.cr}`);
+      if (labs.bun != null) items.push(`BUN ${labs.bun}`);
+      if (labs.alt != null) items.push(`ALT ${labs.alt}`);
+      if (labs.ast != null) items.push(`AST ${labs.ast}`);
+      if (labs.tbili != null) items.push(`TBili ${labs.tbili}`);
+      if (labs.alb != null) items.push(`Alb ${labs.alb}`);
+      if (labs.pct != null) items.push(`PCT ${labs.pct}ng/mL`);
+      if (labs.crp != null) items.push(`CRP ${labs.crp}`);
+      if (labs.k != null) items.push(`K ${labs.k}`);
+      if (labs.na != null) items.push(`Na ${labs.na}`);
+      if (labs.inr != null) items.push(`INR ${labs.inr}`);
+      if (labs.ddimer != null) items.push(`D-dimer ${labs.ddimer}`);
+      if (labs.bnp != null) items.push(`BNP ${labs.bnp}`);
+      if (labs.tropi != null) items.push(`cTnI ${labs.tropi}`);
+      if (items.length > 0) text += `化验：${items.join('，')}\n`;
+    }
+    if (rec && rec.imaging) text += `影像：${rec.imaging}\n`;
+    if (rec && rec.exam) text += `查体：${rec.exam}\n`;
+    text += `\n【A 评估】\n\n`;
+    text += `【P 计划】\n`;
+    text += formatMedsForReportFor(p) + '\n';
+    if (rec && rec.treatmentChanges) text += `治疗变更：${rec.treatmentChanges}\n`;
+    if (rec && rec.plan) text += `计划：${rec.plan}\n`;
+    allText += text + '\n---\n\n';
+  });
+  const preview = $('report-preview');
+  if (preview) { preview.style.display = 'block'; preview.textContent = allText; }
+  const copyBtn = $('btn-copy-report');
+  if (copyBtn) copyBtn.style.display = 'inline-block';
 }
 
-function genRoundReport(p, rec, admitDays, surgStr) {
-  const v = rec.vitals || {};
-  const io = rec.io || {};
-  const abg = rec.abg || {};
-  const labs = rec.labs || {};
-  const conscious = rec.consciousness || '未评';
-  const special = rec.specialStatus?.length > 0 ? ` (${rec.specialStatus.join('+')})` : '';
-
-  let text = `查房：患者${p.diagnosis || '未填'}，${p.age}${p.sex}，入院第${admitDays}天${surgStr}\n\n`;
-  text += `【今日晨7:00数据】\n`;
-  text += `生命体征：T ${v.temp || '-'}℃，HR ${v.hr || '-'}次/分，BP ${v.sbp || '-'}/${v.dbp || '-'}mmHg，RR ${v.rr || '-'}次/分，SpO₂ ${v.spo2 || '-'}%${v.spo2 ? '' : ''}，意识：${conscious}${special}\n`;
-
-  if (io.intake != null || io.urine != null) {
-    text += `出入量：入量${io.intake || 0}mL，尿量${io.urine || 0}mL`;
-    if (io.stoolCount) text += `，大便${io.stoolCount}次${io.stoolType ? '(' + io.stoolType + ')' : ''}`;
-    if (io.drainVol) text += `，引流${io.drainVol}mL${io.drainSite ? '(' + io.drainSite + ')' : ''}${io.drainType ? io.drainType : ''}`;
-    text += `，平衡${io.balance > 0 ? '+' : ''}${io.balance || 0}mL\n`;
-  }
-
-  const abgFields = [];
-  if (abg.ph != null) abgFields.push(`pH ${abg.ph}`);
-  if (abg.pco2 != null) abgFields.push(`PaCO₂ ${abg.pco2}`);
-  if (abg.pao2 != null) abgFields.push(`PaO₂ ${abg.pao2}`);
-  if (abg.fio2 != null) abgFields.push(`FiO₂ ${abg.fio2}%`);
-  if (abg.k != null) abgFields.push(`K⁺ ${abg.k}`);
-  if (abg.na != null) abgFields.push(`Na⁺ ${abg.na}`);
-  if (abg.cl != null) abgFields.push(`Cl⁻ ${abg.cl}`);
-  if (abg.lac != null) abgFields.push(`乳酸 ${abg.lac}`);
-  if (abg.glu != null) abgFields.push(`血糖 ${abg.glu}`);
-  if (abgFields.length > 0) text += `血气：${abgFields.join('，')}\n`;
-
-  text += `\n【昨日检查结果】\n`;
-  const cbc = [];
-  if (labs.wbc != null) cbc.push(`WBC ${labs.wbc}×10⁹/L`);
-  if (labs.hgb != null) cbc.push(`Hb ${labs.hgb}g/L`);
-  if (labs.plt != null) cbc.push(`PLT ${labs.plt}×10⁹/L`);
-  if (labs.neut != null) cbc.push(`中性粒${labs.neut}%`);
-  if (cbc.length > 0) text += `血常规：${cbc.join('，')}\n`;
-
-  const bio = [];
-  if (labs.cr != null) bio.push(`Cr ${labs.cr}μmol/L`);
-  if (labs.bun != null) bio.push(`BUN ${labs.bun}`);
-  if (labs.alt != null) bio.push(`ALT ${labs.alt}`);
-  if (labs.ast != null) bio.push(`AST ${labs.ast}`);
-  if (labs.tbili != null) bio.push(`TBili ${labs.tbili}`);
-  if (labs.alb != null) bio.push(`Alb ${labs.alb}g/L`);
-  if (labs.k != null) bio.push(`K⁺ ${labs.k}`);
-  if (bio.length > 0) text += `生化：${bio.join('，')}\n`;
-
-  const inf = [];
-  if (labs.inr != null) inf.push(`INR ${labs.inr}`);
-  if (labs.ddimer != null) inf.push(`D-dimer ${labs.ddimer}`);
-  if (labs.bnp != null) inf.push(`BNP ${labs.bnp}`);
-  if (labs.pct != null) inf.push(`PCT ${labs.pct}ng/mL`);
-  if (labs.il6 != null) inf.push(`IL-6 ${labs.il6}`);
-  if (labs.ckmb != null) inf.push(`CK-MB ${labs.ckmb}`);
-  if (labs.tropi != null) inf.push(`cTnI ${labs.tropi}`);
-  if (inf.length > 0) text += `凝血/感染/心肌：${inf.join('，')}\n`;
-
-  if (rec.imaging) text += `影像：${rec.imaging}\n`;
-
-  text += `\n【目前治疗】\n`;
-  if (p.medications.length > 0) {
-    const routeMap = { iv: '静脉', po: '口服', ih: '皮下', neb: '雾化', other: '' };
-    text += p.medications.map(m => `${m.name} ${m.dose} ${routeMap[m.route] || ''}`).join('\n');
-  } else { text += rec.treatment || '未录入'; }
-  if (rec.treatmentChanges) text += `\n今日变更：${rec.treatmentChanges}`;
-
-  text += `\n\n请按"原发病、循环、呼吸、感染、脏器、营养、VTE"七维框架系统分析，并指出目前困难与下一步治疗建议。`;
-  return text;
-}
-
-function genHandoffReport(p, rec, admitDays, surgStr) {
-  const v = rec.vitals || {};
-  const io = rec.io || {};
-  const labs = rec.labs || {};
-  let text = `【交班】${p.name} ${p.diagnosis}\n\n`;
-  text += `入院第${admitDays}天${surgStr}\n\n`;
-  text += `目前状态：意识${rec.consciousness || '未评'}`;
-  if (rec.specialStatus?.length > 0) text += `，${rec.specialStatus.join('+')}`;
-  text += `\n生命体征：T ${v.temp || '-'}℃ HR ${v.hr || '-'} BP ${v.sbp || '-'}/${v.dbp || '-'} SpO₂ ${v.spo2 || '-'}%\n\n`;
-
-  if (rec.treatmentChanges) text += `用药调整：${rec.treatmentChanges}\n\n`;
-
-  const alerts = [];
-  if (labs.cr != null && labs.cr > 133) alerts.push(`Cr ${labs.cr}μmol/L 升高`);
-  if (labs.bnp != null && labs.bnp > 500) alerts.push(`BNP ${labs.bnp} 升高`);
-  if (labs.wbc != null && (labs.wbc > 10 || labs.wbc < 4)) alerts.push(`WBC ${labs.wbc} 异常`);
-  if (v.temp >= 37.5) alerts.push(`发热 ${v.temp}℃`);
-  if (v.sbp < 100) alerts.push(`血压偏低 ${v.sbp}/${v.dbp}`);
-  if (alerts.length > 0) text += `需关注：${alerts.join('；')}\n\n`;
-
-  if (rec.plan) text += `明日计划：${rec.plan}\n`;
-  return text;
-}
-
-function genAdmitReport(p, rec, admitDays, surgStr) {
-  let text = `【新入院小结】${p.name} ${p.age}${p.sex}\n\n`;
-  text += `入院日期：${p.admitDate}\n`;
-  text += `入院诊断：${p.diagnosis || '待定'}\n`;
-  if (p.pmh) text += `既往史：${p.pmh}\n`;
-  if (p.surgeryDate) text += `手术日期：${p.surgeryDate}\n`;
-  text += `\n目前状态：\n`;
-  const v = rec?.vitals || {};
-  text += `生命体征：T ${v.temp || '-'} HR ${v.hr || '-'} BP ${v.sbp || '-'}/${v.dbp || '-'} RR ${v.rr || '-'} SpO₂ ${v.spo2 || '-'}\n`;
-  text += `意识：${rec?.consciousness || '未评'}\n`;
-  if (rec?.notes) text += `\n备注：${rec.notes}\n`;
-  return text;
-}
-
-function genEventReport(p, rec, admitDays, surgStr) {
-  const eventDesc = $('rpt-event-desc')?.value || '请描述病情变化';
-  const v = rec?.vitals || {};
-  let text = `【病情变化报告】${p.name} ${p.diagnosis}\n\n`;
-  text += `入院第${admitDays}天${surgStr}\n\n`;
-  text += `事件描述：${eventDesc}\n\n`;
-  text += `目前状态：\n`;
-  text += `意识：${rec?.consciousness || '未评'}\n`;
-  text += `生命体征：T ${v.temp || '-'} HR ${v.hr || '-'} BP ${v.sbp || '-'}/${v.dbp || '-'} SpO₂ ${v.spo2 || '-'}\n`;
-  if (rec?.io) text += `出入量：入${rec.io.intake || 0} 尿${rec.io.urine || 0} 平衡${rec.io.balance || 0}\n`;
-  if (rec?.treatmentChanges) text += `\n已处理：${rec.treatmentChanges}\n`;
-  return text;
+function formatMedsForReportFor(p) {
+  if (!p) return '暂无用药';
+  if (p.medFreeText) return p.medFreeText;
+  if (p.medications.length === 0) return '暂无用药';
+  const routeMap = { iv: '静脉', po: '口服', ih: '皮下', neb: '雾化', other: '' };
+  return p.medications.map(m => `${m.name} ${m.dose}${m.freq ? ' ' + m.freq : ''} ${routeMap[m.route] || m.route}`).join('\n');
 }
 
 function copyReport() {
@@ -3927,11 +4176,10 @@ function copyReport() {
   navigator.clipboard.writeText(text).then(() => showToast('已复制到剪贴板')).catch(() => {});
 }
 
-// ---------- 趋势分析 ----------
 function showTrend() {
   if (!currentPatientId) return alert('请先选择患者');
   const p = patients.find(x => x.id === currentPatientId);
-  if (!p || p.records.length === 0) return alert('暂无历史数据');
+  if (!p || !p.records || Object.keys(p.records).length === 0) return alert('暂无历史数据');
 
   const display = $('trend-display');
   const metrics = [
@@ -3947,7 +4195,10 @@ function showTrend() {
     { key: 'io.urine', label: '尿量', unit: 'mL' }
   ];
 
-  const recent = p.records.slice(-7);
+  const dates = Object.keys(p.records).sort();
+  const recentDates = dates.slice(-7);
+  const recent = recentDates.map(d => ({ date: d, ...p.records[d] }));
+
   let html = '<table class="trend-table"><tr><th>日期</th>';
   metrics.forEach(m => { html += `<th>${m.label}</th>`; });
   html += '</tr>';
@@ -3956,163 +4207,417 @@ function showTrend() {
     metrics.forEach(m => {
       const parts = m.key.split('.');
       let val = r;
-      parts.forEach(p2 => { val = val ? val[p2] : null; });
+      parts.forEach(k => { val = val ? val[k] : null; });
       html += `<td>${val != null ? val : '-'}</td>`;
     });
     html += '</tr>';
   });
   html += '</table>';
 
-  // 趋势预警
   const alerts = [];
   if (recent.length >= 2) {
-    const getVal2 = (r, key) => { const parts = key.split('.'); let v = r; parts.forEach(p2 => { v = v ? v[p2] : null; }); return v; };
+    const getByPath = (r, key) => { const parts = key.split('.'); let v = r; parts.forEach(k => { v = v ? v[k] : null; }); return v; };
     metrics.forEach(m => {
-      const vals = recent.map(r => getVal2(r, m.key)).filter(v => v != null);
+      const vals = recent.map(r => getByPath(r, m.key)).filter(v => v != null);
       if (vals.length < 2) return;
       const latest = vals[vals.length - 1], prev = vals[vals.length - 2];
       const change = latest - prev;
       if (m.key === 'labs.cr' && vals.length >= 2) {
         const trend = vals.slice(-3);
-        if (trend.every((v, i) => i === 0 || v > trend[i - 1])) {
-          alerts.push({ type: 'danger', msg: `⚠️ Cr 连续升高：${trend.join('→')}，警惕 AKI` });
+        if (trend.length >= 2 && trend.every((v, i) => i === 0 || v > trend[i - 1])) {
+          alerts.push({ type: 'danger', msg: `Cr 连续升高：${trend.join('→')}，警惕 AKI` });
         }
       }
-      if (m.key === 'labs.bnp' && latest > 1000) alerts.push({ type: 'warn', msg: `⚠️ BNP ${latest} > 1000，心衰未控制` });
-      if (m.key === 'labs.hgb' && Math.abs(change) > 20 && change < 0) alerts.push({ type: 'danger', msg: `⚠️ Hb 下降 ${Math.abs(change)}g/L，警惕出血` });
-      if (m.key === 'abg.lac' && latest > 4) alerts.push({ type: 'danger', msg: `⚠️ 乳酸 ${latest} > 4，组织灌注不足` });
-      if (m.key === 'labs.plt' && vals.length >= 3 && vals.slice(-3).every((v, i) => i === 0 || v < vals.slice(-3)[i - 1])) {
-        alerts.push({ type: 'danger', msg: `⚠️ PLT 持续下降：${vals.slice(-3).join('→')}，警惕 DIC` });
+      if (m.key === 'labs.bnp' && latest > 1000) alerts.push({ type: 'danger', msg: `BNP ${latest} > 1000，心衰未控制` });
+      if (m.key === 'labs.hgb' && Math.abs(change) > 20 && change < 0) alerts.push({ type: 'danger', msg: `Hb 下降 ${Math.abs(change)}g/L，警惕出血` });
+      if (m.key === 'abg.lac' && latest > 4) alerts.push({ type: 'danger', msg: `乳酸 ${latest} > 4，组织灌注不足` });
+      if (m.key === 'labs.plt' && vals.length >= 3) {
+        const pltTrend = vals.slice(-3);
+        if (pltTrend.every((v, i) => i === 0 || v < pltTrend[i - 1])) {
+          alerts.push({ type: 'danger', msg: `PLT 持续下降：${pltTrend.join('→')}，警惕 DIC` });
+        }
       }
     });
   }
-
   if (alerts.length > 0) {
     html += '<div style="margin-top:12px">';
     alerts.forEach(a => { html += `<div class="trend-alert ${a.type}">${a.msg}</div>`; });
     html += '</div>';
   }
-
-  display.innerHTML = html;
+  if (display) display.innerHTML = html;
 }
 
-// ---------- 危急值（保留原有逻辑） ----------
-function checkCritVal() {
-  const alerts = [];
-  const k = getVal('cv-k'), na = getVal('cv-na'), gluc = getVal('cv-gluc'), cr = getVal('cv-cr');
-  const plt = getVal('cv-plt'), wbc = getVal('cv-wbc'), lac = getVal('cv-lac'), ph = getVal('cv-ph');
-
-  if(k != null) {
-    if(k >= 6.5) alerts.push(`🔴 K⁺ ${k} 危急！心电图 + 降钾（钙剂/胰岛素+GS/碳酸氢钠）`);
-    else if(k >= 6.0) alerts.push(`🟡 K⁺ ${k} 高钾，4h内复查，评估降钾`);
-    else if(k <= 2.5) alerts.push(`🔴 K⁺ ${k} 危急！心电监护下高浓度补钾`);
-    else if(k <= 3.0) alerts.push(`🟡 K⁺ ${k} 低钾，静脉补钾，4h复查`);
-  }
-  if(na != null) {
-    if(na >= 160) alerts.push(`🔴 Na⁺ ${na} 危急高钠！评估脱水，缓慢纠正`);
-    else if(na <= 120) alerts.push(`🔴 Na⁺ ${na} 危急低钠！评估症状，3%NaCl按需`);
-    else if(na >= 155) alerts.push(`🟡 Na⁺ ${na} 高钠，限钠+补液`);
-    else if(na <= 125) alerts.push(`🟡 Na⁺ ${na} 低钠，评估原因`);
-  }
-  if(gluc != null) {
-    if(gluc >= 33.3) alerts.push(`🔴 血糖 ${gluc} 极高！评估DKA/HHS`);
-    else if(gluc <= 2.8) alerts.push(`🔴 血糖 ${gluc} 低血糖危象！立即补糖`);
-    else if(gluc >= 22) alerts.push(`🟡 血糖 ${gluc} 显著升高`);
-    else if(gluc <= 3.9) alerts.push(`🟡 血糖 ${gluc} 偏低，注意监测`);
-  }
-  if(cr != null) {
-    if(cr >= 442) alerts.push(`🔴 Cr ${cr}μmol/L 危急！评估AKI/尿毒症`);
-    else if(cr >= 265) alerts.push(`🟡 Cr ${cr}μmol/L 显著升高，评估肾脏替代`);
-  }
-  if(plt != null) {
-    if(plt < 20) alerts.push(`🔴 PLT ${plt} 危急低！自发性出血风险，备血小板`);
-    else if(plt < 50) alerts.push(`🟡 PLT ${plt} 低，出血风险增加`);
-    else if(plt > 1000) alerts.push(`🟡 PLT ${plt} 极高，血栓风险`);
-  }
-  if(wbc != null) {
-    if(wbc > 30) alerts.push(`🔴 WBC ${wbc} 极高！白血病/类白血病反应？`);
-    else if(wbc < 1.0) alerts.push(`🔴 WBC ${wbc} 粒缺！保护性隔离，预防感染`);
-    else if(wbc > 20) alerts.push(`🟡 WBC ${wbc} 显著升高，评估感染`);
-    else if(wbc < 2.0) alerts.push(`🟡 WBC ${wbc} 偏低，注意感染征象`);
-  }
-  if(lac != null) {
-    if(lac >= 4.0) alerts.push(`🔴 乳酸 ${lac} 严重乳酸酸中毒！评估组织灌注`);
-    else if(lac >= 2.0) alerts.push(`🟡 乳酸 ${lac} 升高，监测趋势`);
-  }
-  if(ph != null) {
-    if(ph < 7.2) alerts.push(`🔴 pH ${ph} 严重酸血症！紧急处理`);
-    else if(ph > 7.6) alerts.push(`🔴 pH ${ph} 严重碱血症！紧急处理`);
-    else if(ph < 7.3) alerts.push(`🟡 pH ${ph} 酸血症`);
-    else if(ph > 7.5) alerts.push(`🟡 pH ${ph} 碱血症`);
-  }
-
-  const hasRed = alerts.some(a => a.includes('🔴'));
-  if(alerts.length > 0) {
-    showWarn('critval-warn', hasRed ? '存在危急值，需立即处理！' : '存在异常指标，请关注');
-    $('critval-res').style.display = 'block';
-    $('critval-res').classList.add('show');
-    $('critval-main').textContent = `${hasRed ? '🔴' : '🟡'} ${alerts.filter(a=>a.includes('🔴')).length} 项危急 / ${alerts.filter(a=>a.includes('🟡')).length} 项异常`;
-    $('critval-detail').innerHTML = alerts.join('<br>');
-  } else {
-    hideWarn('critval-warn');
-    $('critval-res').style.display = 'none';
-    $('critval-res').classList.remove('show');
-  }
+function savePlan() {
+  if (!currentPatientId) return alert('请先选择患者');
+  const p = patients.find(x => x.id === currentPatientId);
+  if (!p) return;
+  if (!p.records) p.records = {};
+  let rec = p.records[currentDate];
+  if (!rec) { rec = {}; p.records[currentDate] = rec; }
+  rec.plan = $('pt-plan')?.value || '';
+  savePatients();
+  showToast('计划已保存');
 }
 
-// ---------- 查房小结 & 检验复查（保留原有） ----------
-function genRoundNote() {
-  const general = getSel('rn-general') || '一般';
-  const complaint = $('rn-complaint')?.value || '无特殊变化';
-  const exam = $('rn-exam')?.value || '-';
-  const labs = $('rn-labs')?.value || '-';
-  const tx = $('rn-tx')?.value || '-';
-  const plan = $('rn-plan')?.value || '-';
-  const now = new Date().toLocaleDateString('zh-CN');
-  const note = `${now} 查房小结\n\n患者一般情况${general}。${complaint}。\n\n查体：${exam}。\n\n今日检验：${labs}。\n\n目前治疗：${tx}。\n\n明日计划：${plan}。`;
-  $('rn-res').style.display = 'block';
-  $('rn-res').classList.add('show');
-  $('rn-main').textContent = '查房小结';
-  $('rn-detail').innerHTML = `<pre id="rn-note-text" style="white-space:pre-wrap;font-family:inherit;margin:0;background:var(--bg);padding:10px;border-radius:8px">${note}</pre>`;
-}
-
-function genLabReminder() {
-  const type = getSel('lr-type') || 'general';
-  const abnormal = ($('lr-abnormal')?.value || '').toLowerCase();
-  const templates = {
-    general: [{test:'血常规',freq:'q3d',note:'注意WBC/Hb变化'},{test:'生化全套',freq:'qd-q3d',note:'肾功能、电解质'},{test:'凝血功能',freq:'prn',note:'抗凝/出血时复查'}],
-    icu: [{test:'血气分析',freq:'q4-6h',note:'根据呼吸机参数调整'},{test:'血常规',freq:'qd',note:'PLT、Hb变化'},{test:'生化全套',freq:'qd',note:'K/Cr/Lac'},{test:'PCT/CRP',freq:'q48-72h',note:'感染指标趋势'},{test:'凝血功能',freq:'qd',note:'DIC监测'},{test:'肝功能',freq:'q3d',note:'TB、ALT趋势'}],
-    postop: [{test:'血常规',freq:'postop d1, d3',note:'Hb、WBC'},{test:'生化',freq:'postop d1',note:'电解质、肾功能'},{test:'凝血功能',freq:'postop d1',note:'术后凝血'}],
-    dka: [{test:'血糖',freq:'q1h',note:'直至<13.9mmol/L后q2h'},{test:'血气',freq:'q2h',note:'pH>7.3且HCO3>15后q4h'},{test:'电解质（K⁺）',freq:'q2-4h',note:'补钾前后必查'},{test:'尿酮/血酮',freq:'q2-4h',note:'酮体转阴可停RI'}],
-    ckd: [{test:'肾功能',freq:'q1-3d',note:'Cr/BUN趋势'},{test:'电解质',freq:'q1-3d',note:'K/Ca/P/Mg'},{test:'血常规',freq:'qw',note:'EPO治疗反应'}],
-    sepsis: [{test:'血培养',freq:'抗生素前×2套',note:'每24-48h复查至转阴'},{test:'PCT',freq:'q24-48h',note:'评估抗菌效果'},{test:'乳酸',freq:'q2-4h',note:'直至<2mmol/L'},{test:'血气',freq:'q4-6h',note:'酸碱平衡'},{test:'血常规+凝血',freq:'qd',note:'DIC筛查'}]
+// ---------- AI Functions ----------
+function sendAllReports() {
+  if (patients.length === 0) return alert('暂无患者数据');
+  const systemMsg = {
+    role: 'system',
+    content: '你是一位重症医学临床助手。请根据查房数据，按八项模板系统分析每位患者：1. 当前诊断 2. 原发病分析 3. 循环系统 4. 呼吸系统 5. 感染控制 6. 脏器功能 7. 营养状态 8. VTE预防\n规则：未确认的治疗不要假设已执行；严格区分今日数据和昨日检查结果；PCT单位须精确；指出困难和下一步建议。'
   };
-  const reminders = templates[type] || templates.general;
-  let html = `<b>复查清单：</b><br>`;
-  reminders.forEach(r => { html += `• <b>${r.test}</b> ${r.freq} ${r.note ? '（' + r.note + '）' : ''}<br>`; });
-  const extra = [];
-  if(abnormal.includes('k') && (abnormal.includes('6') || abnormal.includes('>5'))) extra.push('⚠️ 高钾：2-4h内复查K⁺，做心电图，准备降钾治疗');
-  if(abnormal.includes('k') && (abnormal.includes('3.') || abnormal.includes('<3'))) extra.push('⚠️ 低钾：4h内复查K⁺，评估补钾效果');
-  if(abnormal.includes('cr') || abnormal.includes('肌酐')) extra.push('⚠️ 肌酐异常：评估AKI分期，记录出入量，48h内复查');
-  if(abnormal.includes('lac') || abnormal.includes('乳酸')) extra.push('⚠️ 高乳酸：2-4h复查乳酸，评估组织灌注');
-  if(extra.length > 0) html += '<br><b>特殊提醒：</b><br>' + extra.join('<br>');
-  $('lr-res').style.display = 'block';
-  $('lr-res').classList.add('show');
-  $('lr-main').textContent = '明日检验计划';
-  $('lr-detail').innerHTML = `<pre id="lr-note-text" style="white-space:pre-wrap;font-family:inherit;margin:0;background:var(--bg);padding:10px;border-radius:8px">${html}</pre>`;
+  let allReports = '';
+  patients.forEach(p => {
+    const dates = Object.keys(p.records || {}).sort();
+    const rec = p.records[currentDate] || (dates.length > 0 ? p.records[dates[dates.length - 1]] : null);
+    const today = getTodayStr();
+    const admitDays = p.admitDate ? Math.floor((new Date(today) - new Date(p.admitDate)) / 86400000) + 1 : '?';
+    const surgStr = p.surgeryDate ? `，术后第${Math.floor((new Date(today) - new Date(p.surgeryDate)) / 86400000)}天` : '';
+    let text = `患者：${p.name}${p.bed ? ' (' + p.bed + ')' : ''}，${p.diagnosis || '未填'}，${p.age}${p.sex}，入院第${admitDays}天${surgStr}\n`;
+    if (rec) {
+      if (rec.vitals) {
+        const v = rec.vitals;
+        text += `生命体征：T ${v.temp || '-'} HR ${v.hr || '-'} BP ${v.sbp || '-'}/${v.dbp || '-'} RR ${v.rr || '-'} SpO₂ ${v.spo2 || '-'}%\n`;
+      }
+      text += `意识：${rec.consciousness || '未评'}`;
+      if (rec.rass != null) text += ` RASS ${rec.rass}`;
+      text += '\n';
+      if (rec.respSupport && rec.respSupport.type !== 'none') {
+        text += `呼吸支持：${rec.respSupport.type}`;
+        if (rec.respSupport.fio2) text += ` FiO₂ ${rec.respSupport.fio2}%`;
+        if (rec.respSupport.peep) text += ` PEEP ${rec.respSupport.peep}`;
+        text += '\n';
+      }
+      if (rec.io) {
+        text += `出入量：入${rec.io.intake || 0} 尿${rec.io.urine || 0} 引流${rec.io.drain || 0} 平衡${rec.io.balance || 0}\n`;
+      }
+      if (rec.abg) {
+        const abg = rec.abg; const parts = [];
+        if (abg.ph != null) parts.push(`pH ${abg.ph}`);
+        if (abg.pco2 != null) parts.push(`PCO₂ ${abg.pco2}`);
+        if (abg.pao2 != null) parts.push(`PO₂ ${abg.pao2}`);
+        if (abg.lac != null) parts.push(`Lac ${abg.lac}`);
+        if (parts.length > 0) text += `血气：${parts.join(' ')}\n`;
+      }
+      if (rec.labs) {
+        const l = rec.labs; const parts = [];
+        if (l.wbc != null) parts.push(`WBC ${l.wbc}`);
+        if (l.hgb != null) parts.push(`Hb ${l.hgb}`);
+        if (l.plt != null) parts.push(`PLT ${l.plt}`);
+        if (l.cr != null) parts.push(`Cr ${l.cr}`);
+        if (l.pct != null) parts.push(`PCT ${l.pct}ng/mL`);
+        if (l.crp != null) parts.push(`CRP ${l.crp}`);
+        if (l.k != null) parts.push(`K ${l.k}`);
+        if (l.na != null) parts.push(`Na ${l.na}`);
+        if (l.alb != null) parts.push(`Alb ${l.alb}`);
+        if (parts.length > 0) text += `化验：${parts.join(' ')}\n`;
+      }
+      if (rec.imaging) text += `影像：${rec.imaging}\n`;
+      if (rec.exam) text += `查体：${rec.exam}\n`;
+      if (rec.treatmentChanges) text += `治疗变更：${rec.treatmentChanges}\n`;
+      text += `用药：${formatMedsForReportFor(p)}\n`;
+    }
+    allReports += text + '\n';
+  });
+
+  appendAIMessage('user', '请分析以下所有患者的查房数据：\n\n' + allReports);
+  const messages = [systemMsg, { role: 'user', content: '请分析以下所有患者的查房数据：\n\n' + allReports }];
+  let aiReply = '';
+  callAI(messages,
+    chunk => { aiReply += chunk; renderAIChat(); const msgs = STORE.get('medcalc_ai_conversations', []); if (msgs.length > 0 && msgs[msgs.length - 1].role === 'assistant') msgs[msgs.length - 1].content = aiReply; STORE.set('medcalc_ai_conversations', msgs); aiChatHistory = msgs; },
+    () => { },
+    err => { appendAIMessage('assistant', '请求失败：' + err); }
+  );
 }
 
-// ---------- 数据导出/备份 ----------
+function sendAIMessage() {
+  const input = $('ai-input');
+  if (!input) return;
+  const msg = input.value.trim();
+  if (!msg) return;
+  input.value = '';
+  appendAIMessage('user', msg);
+  const systemMsg = {
+    role: 'system',
+    content: '你是一位重症医学临床助手。请根据查房数据，按八项模板系统分析每位患者：1. 当前诊断 2. 原发病分析 3. 循环系统 4. 呼吸系统 5. 感染控制 6. 脏器功能 7. 营养状态 8. VTE预防\n规则：未确认的治疗不要假设已执行；严格区分今日数据和昨日检查结果；PCT单位须精确；指出困难和下一步建议。'
+  };
+  const messages = [systemMsg, ...aiChatHistory];
+  let aiReply = '';
+  callAI(messages,
+    chunk => { aiReply += chunk; renderAIChat(); const msgs = STORE.get('medcalc_ai_conversations', []); if (msgs.length > 0 && msgs[msgs.length - 1].role === 'assistant') msgs[msgs.length - 1].content = aiReply; STORE.set('medcalc_ai_conversations', msgs); aiChatHistory = msgs; },
+    () => { },
+    err => { appendAIMessage('assistant', '请求失败：' + err); }
+  );
+}
+
+function callAI(messages, onChunk, onDone, onError) {
+  const url = STORE.get('medcalc_api_url', '');
+  const key = STORE.get('medcalc_api_key', '');
+  const model = STORE.get('medcalc_api_model', '');
+  const mode = STORE.get('medcalc_api_mode', 'openai');
+  if (!url || !key) { onError('请先配置 AI 服务'); return; }
+  if (aiAbortController) { try { aiAbortController.abort(); } catch(e) {} }
+  aiAbortController = new AbortController();
+  let payload;
+  if (mode === 'openai') {
+    payload = { model: model || 'deepseek-chat', messages, stream: true };
+  } else {
+    payload = { model: model || '', messages, stream: true };
+  }
+  fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${key}` },
+    body: JSON.stringify(payload),
+    signal: aiAbortController.signal
+  }).then(response => {
+    if (!response.ok) { response.text().then(t => onError(`HTTP ${response.status}: ${t.slice(0, 200)}`)); return; }
+    const contentType = response.headers.get('content-type') || '';
+    if (contentType.includes('text/event-stream') || contentType.includes('application/stream')) {
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = '';
+      const readChunk = () => {
+        reader.read().then(({ done, value }) => {
+          if (done) { onDone(); return; }
+          buffer += decoder.decode(value, { stream: true });
+          const lines = buffer.split('\n');
+          buffer = lines.pop() || '';
+          for (const line of lines) {
+            const trimmed = line.trim();
+            if (!trimmed || trimmed === 'data: [DONE]') continue;
+            if (!trimmed.startsWith('data: ')) continue;
+            try {
+              const json = JSON.parse(trimmed.slice(6));
+              const content = extractByPath(json, 'choices[0].delta.content');
+              if (content) onChunk(content);
+            } catch (e) {}
+          }
+          readChunk();
+        }).catch(e => { if (e.name !== 'AbortError') onError(e.message); });
+      };
+      readChunk();
+    } else {
+      response.json().then(json => {
+        const content = extractByPath(json, 'choices[0].message.content') || extractByPath(json, 'choices[0].delta.content');
+        if (content) { onChunk(content); onDone(); }
+        else onError('无法解析 AI 响应');
+      }).catch(e => onError(e.message));
+    }
+  }).catch(e => { if (e.name !== 'AbortError') onError(e.message); });
+}
+
+function extractByPath(obj, path) {
+  try {
+    const match = path.match(/^(\w+)(?:\[(\d+)\])?\.(.+)$/);
+    if (!match) return obj[path];
+    const key = match[1], idx = match[2], rest = match[3];
+    let val = obj[key];
+    if (idx !== undefined) val = val[parseInt(idx)];
+    return extractByPath(val, rest);
+  } catch (e) { return undefined; }
+}
+
+function refreshAIContext() {
+  aiChatHistory = [];
+  STORE.set('medcalc_ai_conversations', []);
+  renderAIChat();
+  sendAllReports();
+}
+
+function clearAIChat() {
+  aiChatHistory = [];
+  STORE.set('medcalc_ai_conversations', []);
+  renderAIChat();
+}
+
+function renderAIChat() {
+  const body = $('ai-chat-body');
+  if (!body) return;
+  if (aiChatHistory.length === 0) {
+    body.innerHTML = '<div style="text-align:center;color:var(--text-secondary);font-size:0.82rem;padding:20px" id="ai-placeholder">配置 AI 服务后即可使用</div>';
+    return;
+  }
+  const placeholder = body.querySelector('#ai-placeholder');
+  if (placeholder) placeholder.remove();
+  body.innerHTML = aiChatHistory.map(m => {
+    const roleClass = m.role === 'user' ? 'ai-msg-user' : 'ai-msg-assistant';
+    let content = m.content;
+    content = content.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    content = content.replace(/^### (.+)$/gm, '<b>$1</b>');
+    content = content.replace(/^## (.+)$/gm, '<b>$1</b>');
+    content = content.replace(/\*\*(.+?)\*\*/g, '<b>$1</b>');
+    content = content.replace(/^- (.+)$/gm, '&bull; $1');
+    content = content.replace(/\n/g, '<br>');
+    return `<div class="ai-msg ${roleClass}">${content}</div>`;
+  }).join('');
+  body.scrollTop = body.scrollHeight;
+}
+
+function appendAIMessage(role, content) {
+  aiChatHistory.push({ role, content });
+  STORE.set('medcalc_ai_conversations', aiChatHistory);
+  renderAIChat();
+}
+
+function toggleAISettings() {
+  const body = $('ai-settings-body');
+  if (!body) return;
+  body.style.display = body.style.display === 'none' ? 'block' : 'none';
+}
+
+function setAIPreset(preset) {
+  const presets = {
+    deepseek: { url: 'https://api.deepseek.com/chat/completions', model: 'deepseek-chat', key: '', mode: 'openai' },
+    minimax: { url: 'https://api.minimax.chat/v1/chat/completions', model: 'MiniMax-Text-01', key: '', mode: 'openai' },
+    custom: { url: '', model: '', key: '', mode: 'custom' }
+  };
+  const p = presets[preset];
+  if (!p) return;
+  const urlEl = $('ai-url'); if (urlEl) urlEl.value = p.url;
+  const modelEl = $('ai-model'); if (modelEl) modelEl.value = p.model;
+  const keyEl = $('ai-key'); if (keyEl) keyEl.value = p.key;
+  STORE.set('medcalc_api_mode', p.mode);
+  STORE.set('medcalc_api_preset', preset);
+  document.querySelectorAll('.ai-preset-btns button').forEach(b => b.classList.remove('active'));
+  const btn = $('preset-' + preset);
+  if (btn) btn.classList.add('active');
+}
+
+function saveAISettings() {
+  STORE.set('medcalc_api_url', $('ai-url')?.value?.trim() || '');
+  STORE.set('medcalc_api_key', $('ai-key')?.value?.trim() || '');
+  STORE.set('medcalc_api_model', $('ai-model')?.value?.trim() || '');
+  const mode = STORE.get('medcalc_api_mode', 'openai');
+  STORE.set('medcalc_api_mode', mode);
+  updateAIStatus();
+  showToast('AI 设置已保存');
+}
+
+function loadAISettings() {
+  const url = STORE.get('medcalc_api_url', '');
+  const key = STORE.get('medcalc_api_key', '');
+  const model = STORE.get('medcalc_api_model', '');
+  if ($('ai-url')) $('ai-url').value = url;
+  if ($('ai-key')) $('ai-key').value = key;
+  if ($('ai-model')) $('ai-model').value = model;
+  const preset = STORE.get('medcalc_api_preset', '');
+  if (preset) {
+    const btn = $('preset-' + preset);
+    if (btn) btn.classList.add('active');
+  }
+  updateAIStatus();
+}
+
+function testAIConnection() {
+  const url = $('ai-url')?.value?.trim();
+  const key = $('ai-key')?.value?.trim();
+  const model = $('ai-model')?.value?.trim();
+  const result = $('ai-test-result');
+  if (!url || !key) { if (result) result.textContent = '请填写 URL 和 Key'; return; }
+  if (result) result.textContent = '测试中...';
+  const payload = { model: model || 'deepseek-chat', messages: [{ role: 'user', content: '你好，请回复OK' }], stream: true };
+  const testController = new AbortController();
+  const timeout = setTimeout(() => { testController.abort(); if (result) result.textContent = '连接超时'; }, 15000);
+  fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${key}` },
+    body: JSON.stringify(payload),
+    signal: testController.signal
+  }).then(response => {
+    clearTimeout(timeout);
+    if (!response.ok) { if (result) result.textContent = `错误: HTTP ${response.status}`; return; }
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    let gotContent = false;
+    const readChunk = () => {
+      reader.read().then(({ done, value }) => {
+        if (done) {
+          if (result) result.innerHTML = `<span style="color:var(--success)">连接成功${gotContent ? '，收到回复' : ''}</span>`;
+          return;
+        }
+        const text = decoder.decode(value, { stream: true });
+        if (text.includes('data:')) gotContent = true;
+        readChunk();
+      }).catch(() => { if (result) result.innerHTML = '<span style="color:var(--success)">连接成功</span>'; });
+    };
+    readChunk();
+  }).catch(e => {
+    clearTimeout(timeout);
+    if (result) result.textContent = '连接失败: ' + (e.name === 'AbortError' ? '超时' : e.message);
+  });
+}
+
+function updateAIStatus() {
+  const url = STORE.get('medcalc_api_url', '');
+  const key = STORE.get('medcalc_api_key', '');
+  const configured = !!(url && key);
+  const statusEl = $('ai-status');
+  if (statusEl) {
+    statusEl.textContent = configured ? '已配置' : '未配置';
+    statusEl.style.color = configured ? 'var(--success)' : 'var(--text-secondary)';
+  }
+  ['btn-ai-send', 'btn-ai-refresh', 'btn-ai-clear', 'btn-ai-ask'].forEach(id => {
+    const el = $(id);
+    if (el) el.disabled = !configured;
+  });
+}
+
+// ---------- Calculator Integration ----------
+function importToABG() {
+  const p = patients.find(x => x.id === currentPatientId);
+  if (!p || !p.records) return alert('请先选择患者并录入数据');
+  const rec = p.records[currentDate];
+  if (!rec || !rec.abg) return alert('当日暂无血气数据');
+  const abg = rec.abg;
+  if ($('abg-ph')) $('abg-ph').value = abg.ph || '';
+  if ($('abg-pco2')) $('abg-pco2').value = abg.pco2 || '';
+  if ($('abg-pao2')) $('abg-pao2').value = abg.pao2 || '';
+  if ($('abg-fio2')) $('abg-fio2').value = abg.fio2 || '';
+  if ($('abg-hco3')) $('abg-hco3').value = abg.hco3 || '';
+  if ($('abg-na')) $('abg-na').value = abg.na || '';
+  if ($('abg-cl')) $('abg-cl').value = abg.cl || '';
+  if ($('abg-lac')) $('abg-lac').value = abg.lac || '';
+  showToast('血气数据已导入计算器');
+}
+
+function importToNutrition() {
+  const p = patients.find(x => x.id === currentPatientId);
+  if (!p) return alert('请先选择患者');
+  if ($('nut-weight')) $('nut-weight').value = p.weight || '';
+  if ($('nut-height')) $('nut-height').value = p.height || '';
+  if ($('nut-age')) $('nut-age').value = p.age || '';
+  if ($('nut-sex') && p.sex) $('nut-sex').value = p.sex === '男' ? 'male' : 'female';
+  showToast('患者信息已导入营养计算器');
+}
+
+function importToFluid() {
+  const p = patients.find(x => x.id === currentPatientId);
+  if (!p) return alert('请先选择患者');
+  if ($('fluid-weight')) $('fluid-weight').value = p.weight || '';
+  if ($('fluid-age')) $('fluid-age').value = p.age || '';
+  showToast('体重已导入补液计算器');
+}
+
+// ---------- Data Export ----------
+function downloadJSON(data, filename) {
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename; a.click();
+  URL.revokeObjectURL(url);
+}
+
 function exportCurrentPatient() {
   if (!currentPatientId) return alert('请先选择患者');
   const p = patients.find(x => x.id === currentPatientId);
   if (!p) return;
-  downloadJSON(p, `patient_${p.name}_${new Date().toISOString().slice(0, 10)}.json`);
+  downloadJSON(p, `patient_${p.name}_${getTodayStr()}.json`);
+  STORE.set('medcalc_last_backup', Date.now());
 }
 
 function exportAllPatients() {
   if (patients.length === 0) return alert('暂无患者数据');
-  downloadJSON(patients, `medcalc_backup_${new Date().toISOString().slice(0, 10)}.json`);
+  downloadJSON(patients, `medcalc_backup_${getTodayStr()}.json`);
   STORE.set('medcalc_last_backup', Date.now());
 }
 
@@ -4133,6 +4638,15 @@ function restorePatients() {
           let imported = 0;
           data.forEach(p => {
             if (!patients.find(x => x.id === p.id)) {
+              if (!p.records || Array.isArray(p.records)) {
+                if (Array.isArray(p.records)) {
+                  const newRecs = {};
+                  p.records.forEach(r => { if (r.date) newRecs[r.date] = r; });
+                  p.records = newRecs;
+                } else { p.records = {}; }
+              }
+              if (!p.medications) p.medications = [];
+              if (!p.medFreeText) p.medFreeText = '';
               patients.push(p);
               imported++;
             }
@@ -4142,6 +4656,15 @@ function restorePatients() {
           alert(`成功导入 ${imported} 位患者`);
         } else if (data.id) {
           if (!patients.find(x => x.id === data.id)) {
+            if (!data.records || Array.isArray(data.records)) {
+              if (Array.isArray(data.records)) {
+                const newRecs = {};
+                data.records.forEach(r => { if (r.date) newRecs[r.date] = r; });
+                data.records = newRecs;
+              } else { data.records = {}; }
+            }
+            if (!data.medications) data.medications = [];
+            if (!data.medFreeText) data.medFreeText = '';
             patients.push(data);
             savePatients();
             renderPatientSelect();
@@ -4155,15 +4678,6 @@ function restorePatients() {
   input.click();
 }
 
-function downloadJSON(data, filename) {
-  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url; a.download = filename; a.click();
-  URL.revokeObjectURL(url);
-}
-
-// ---------- 工具函数 ----------
 function showToast(msg) {
   const toast = document.createElement('div');
   toast.textContent = msg;
@@ -4173,37 +4687,12 @@ function showToast(msg) {
   setTimeout(() => { toast.style.opacity = '0'; setTimeout(() => toast.remove(), 300); }, 1500);
 }
 
-function copyText(id) {
-  const el = document.getElementById(id);
-  if(!el) return;
-  const text = el.textContent || el.innerText;
-  navigator.clipboard.writeText(text).then(() => showToast('已复制')).catch(() => {});
-}
-
-// 出入量自动计算平衡
-['pt-intake', 'pt-urine', 'pt-drain'].forEach(id => {
-  const el = $(id);
-  if (el) el.addEventListener('input', () => {
-    const intake = parseFloat($('pt-intake')?.value) || 0;
-    const urine = parseFloat($('pt-urine')?.value) || 0;
-    const drain = parseFloat($('pt-drain')?.value) || 0;
-    const bal = intake - urine - drain;
-    const balEl = $('io-balance-display');
-    if (intake || urine || drain) {
-      balEl.style.display = 'block';
-      balEl.textContent = `平衡: ${bal > 0 ? '+' : ''}${bal} mL`;
-      balEl.className = 'io-balance ' + (bal > 500 ? 'positive' : bal < -500 ? 'negative' : 'zero');
-    } else { balEl.style.display = 'none'; }
-  });
-});
-
-// 7天备份提醒
 function checkBackupReminder() {
   const last = STORE.get('medcalc_last_backup', 0);
   if (Date.now() - last > 7 * 24 * 60 * 60 * 1000 && patients.length > 0) {
     const banner = document.createElement('div');
     banner.className = 'backup-banner';
-    banner.innerHTML = '<span>⚠️ 已超过 7 天未备份数据，建议导出备份</span><button class="btn btn-secondary" onclick="this.parentElement.remove();backupAllPatients()">立即备份</button>';
+    banner.innerHTML = '<span>已超过 7 天未备份数据，建议导出备份</span><button class="btn btn-secondary" onclick="this.parentElement.remove();backupAllPatients()">立即备份</button>';
     const ptBar = $('pt-bar');
     if (ptBar) ptBar.after(banner);
   }
@@ -4216,6 +4705,7 @@ function init() {
   updateFavButtons();
   renderHistory();
   loadPatients();
+  loadAISettings();
   checkBackupReminder();
   // Hide search results on outside click
   document.addEventListener('click', e => {
@@ -4226,7 +4716,7 @@ function init() {
   switchRoundTab(savedTab);
   document.querySelectorAll('#round-subtabs .sub-tab-btn').forEach((btn, i) => {
     btn.addEventListener('click', () => {
-      const tabs = ['r-vitals', 'r-labs', 'r-meds', 'r-imaging', 'r-report', 'r-critval'];
+      const tabs = ['r-vitals', 'r-labs', 'r-treatment', 'r-report'];
       STORE.set('medcalc_round_tab', tabs[i]);
     });
   });
