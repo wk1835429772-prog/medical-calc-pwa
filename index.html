@@ -461,6 +461,7 @@ textarea.form-input{min-height:80px;resize:vertical;line-height:1.6}
 </style>
 </head>
 <body>
+<div id="db-debug" style="display:none;position:fixed;top:0;left:0;right:0;z-index:99999;padding:8px 12px;font-size:.8rem;color:#fff;text-align:center;font-weight:600"></div>
 
 <!-- ===== Header ===== -->
 <header class="app-header" id="appHeader">
@@ -582,21 +583,31 @@ function haptic() {
 /* ===== 4a. DB Storage Layer (Pure localStorage) ===== */
 const DB = {
   _cache: {},
+  _errors: [],
+
+  _showStatus(msg, type) {
+    // Show visible debug toast on page
+    const el = document.getElementById('db-debug');
+    if (el) { el.textContent = msg; el.style.background = type === 'error' ? 'var(--danger)' : type === 'warn' ? 'var(--warning)' : 'var(--success)'; el.style.display = 'block'; setTimeout(() => el.style.display = 'none', 4000); }
+  },
 
   async init() {
-    // Load all app keys from localStorage into memory cache
+    let loaded = 0;
     for (let i = 0; i < localStorage.length; i++) {
       const k = localStorage.key(i);
       if (k && (k.startsWith('mc_') || k === 'app_page')) {
-        try { this._cache[k] = JSON.parse(localStorage.getItem(k)); } catch { this._cache[k] = localStorage.getItem(k); }
+        try { this._cache[k] = JSON.parse(localStorage.getItem(k)); loaded++; } catch { this._cache[k] = localStorage.getItem(k); loaded++; }
       }
     }
-    // Clean up old IndexedDB (from pre-V3.1)
+    // Clean up old IndexedDB + Service Worker
     try { indexedDB.deleteDatabase('clinic-db'); } catch(e) {}
-    // Unregister any lingering Service Workers
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.getRegistrations().then(regs => regs.forEach(r => r.unregister())).catch(() => {});
     }
+    // Show status
+    const pts = this._cache['mc_patients'];
+    const ptCount = Array.isArray(pts) ? pts.length : 0;
+    this._showStatus(`V3.2 已加载: ${loaded}项数据, ${ptCount}位患者`, 'ok');
   },
 
   get(key, def) {
@@ -607,12 +618,12 @@ const DB = {
   set(key, val) {
     this._cache[key] = val;
     try {
-      localStorage.setItem(key, JSON.stringify(val));
+      const json = JSON.stringify(val);
+      localStorage.setItem(key, json);
     } catch(e) {
-      console.error('[DB] save failed:', key, e);
-      if (e.name === 'QuotaExceededError') {
-        alert('存储空间已满，请在设置中导出数据后清除部分记录');
-      }
+      this._errors.push(key + ':' + e.message);
+      this._showStatus('存储失败: ' + key + ' ' + e.message, 'error');
+      if (e.name === 'QuotaExceededError') alert('存储空间已满，请在设置中导出数据后清除部分记录');
     }
   },
 
@@ -622,7 +633,7 @@ const DB = {
   }
 };
 
-// Flush all state to localStorage before page closes
+// Flush all state before page closes
 window.addEventListener('pagehide', () => {
   try {
     for (const [k, v] of Object.entries(DB._cache)) {
@@ -3691,6 +3702,11 @@ function renderSettings() {
         <div class="settings-text"><div class="settings-label">深色模式</div></div>
         <div class="toggle ${State.theme==='dark'?'on':''}"></div>
       </div>
+      <div class="settings-item" onclick="testStorage()">
+        <span class="settings-icon">🧪</span>
+        <div class="settings-text"><div class="settings-label">测试存储</div><div class="settings-desc">验证数据保存是否正常</div></div>
+        <span class="settings-arrow">›</span>
+      </div>
     </div>
     <div class="settings-group">
       <div class="settings-group-title">数据管理</div>
@@ -3717,6 +3733,34 @@ function renderSettings() {
         <div class="settings-text"><div class="settings-label">版本 V3.2</div><div class="settings-desc">临床助手 · 移动端 PWA</div></div>
       </div>
     </div>`;
+}
+
+function testStorage() {
+  const testKey = '_test_' + Date.now();
+  const testVal = { ts: Date.now(), patients: State.patients.length };
+  // Write
+  try { localStorage.setItem(testKey, JSON.stringify(testVal)); } catch(e) {
+    alert('❌ 写入失败: ' + e.message); return;
+  }
+  // Read back
+  const readback = localStorage.getItem(testKey);
+  localStorage.removeItem(testKey);
+  if (!readback) { alert('❌ 读取失败: localStorage 无法读回数据'); return; }
+  try {
+    const parsed = JSON.parse(readback);
+    if (parsed.ts === testVal.ts) {
+      const mcKeys = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const k = localStorage.key(i);
+        if (k && k.startsWith('mc_')) mcKeys.push(k);
+      }
+      alert(`✅ 存储正常！\n写入→读回: 成功\n已保存数据项: ${mcKeys.length}\n患者数: ${State.patients.length}\n\n关闭页面再打开，数据应该会保留。\n如果仍然丢失，请截图此页面发给我。`);
+    } else {
+      alert('❌ 数据不一致: 写入和读回的值不同');
+    }
+  } catch(e) {
+    alert('❌ JSON解析失败: ' + e.message);
+  }
 }
 
 function openSystemPromptEditor() {
