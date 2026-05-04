@@ -579,63 +579,24 @@ function haptic() {
   if (navigator.vibrate) navigator.vibrate(10);
 }
 
-/* ===== 4a. DB Storage Layer ===== */
+/* ===== 4a. DB Storage Layer (Pure localStorage) ===== */
 const DB = {
   _cache: {},
-  _ready: false,
-  _db: null,
-  _dirty: false,
 
   async init() {
-    // Load ALL localStorage mc_* keys into cache (source of truth)
+    // Load all app keys from localStorage into memory cache
     for (let i = 0; i < localStorage.length; i++) {
       const k = localStorage.key(i);
       if (k && (k.startsWith('mc_') || k === 'app_page')) {
         try { this._cache[k] = JSON.parse(localStorage.getItem(k)); } catch { this._cache[k] = localStorage.getItem(k); }
       }
     }
-
-    // Open IndexedDB (secondary backup)
-    return new Promise((resolve) => {
-      const req = indexedDB.open('clinic-db', 1);
-      req.onupgradeneeded = (e) => {
-        const db = e.target.result;
-        if (!db.objectStoreNames.contains('kv')) db.createObjectStore('kv');
-      };
-      req.onsuccess = (e) => {
-        this._db = e.target.result;
-        const tx = this._db.transaction('kv', 'readonly');
-        const store = tx.objectStore('kv');
-        const cursorReq = store.openCursor();
-        cursorReq.onsuccess = (ev) => {
-          const cursor = ev.target.result;
-          if (cursor) {
-            // IDB data supplements localStorage (does NOT overwrite)
-            if (this._cache[cursor.key] === undefined) {
-              this._cache[cursor.key] = cursor.value;
-            }
-            cursor.continue();
-          } else {
-            this._ready = true;
-            this._syncCacheToIDB();
-            resolve();
-          }
-        };
-        cursorReq.onerror = () => { this._ready = true; resolve(); };
-      };
-      req.onerror = () => { this._ready = true; resolve(); };
-    });
-  },
-
-  _syncCacheToIDB() {
-    if (!this._db) return;
-    try {
-      const tx = this._db.transaction('kv', 'readwrite');
-      const store = tx.objectStore('kv');
-      for (const [k, v] of Object.entries(this._cache)) {
-        if (k.startsWith('mc_') || k === 'app_page') store.put(v, k);
-      }
-    } catch(e) {}
+    // Clean up old IndexedDB (from pre-V3.1)
+    try { indexedDB.deleteDatabase('clinic-db'); } catch(e) {}
+    // Unregister any lingering Service Workers
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.getRegistrations().then(regs => regs.forEach(r => r.unregister())).catch(() => {});
+    }
   },
 
   get(key, def) {
@@ -645,56 +606,30 @@ const DB = {
 
   set(key, val) {
     this._cache[key] = val;
-    this._dirty = true;
-    // localStorage = primary (synchronous, survives page close)
     try {
-      const json = JSON.stringify(val);
-      localStorage.setItem(key, json);
-      // Verify write succeeded
-      const readback = localStorage.getItem(key);
-      if (readback !== json) {
-        console.warn('[DB] localStorage verify FAILED for', key);
-      }
+      localStorage.setItem(key, JSON.stringify(val));
     } catch(e) {
-      console.error('[DB] localStorage write FAILED for', key, e);
-    }
-    // IndexedDB = secondary (async, best-effort)
-    if (this._db) {
-      try {
-        const tx = this._db.transaction('kv', 'readwrite');
-        tx.objectStore('kv').put(val, key);
-      } catch(e) { console.warn('[DB] IDB write failed for', key, e); }
+      console.error('[DB] save failed:', key, e);
+      if (e.name === 'QuotaExceededError') {
+        alert('存储空间已满，请在设置中导出数据后清除部分记录');
+      }
     }
   },
 
   remove(key) {
     delete this._cache[key];
     try { localStorage.removeItem(key); } catch(e) {}
-    if (this._db) {
-      try {
-        const tx = this._db.transaction('kv', 'readwrite');
-        tx.objectStore('kv').delete(key);
-      } catch(e) {}
-    }
-  },
-
-  // Flush all in-memory state to localStorage before page unload
-  flush() {
-    if (!this._dirty) return;
-    try {
-      for (const [k, v] of Object.entries(this._cache)) {
-        if (k.startsWith('mc_') || k === 'app_page') {
-          localStorage.setItem(k, JSON.stringify(v));
-        }
-      }
-      this._dirty = false;
-    } catch(e) { console.error('[DB] flush failed', e); }
   }
 };
 
-// Safety net: flush all data before page closes
-window.addEventListener('pagehide', () => DB.flush());
-document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') DB.flush(); });
+// Flush all state to localStorage before page closes
+window.addEventListener('pagehide', () => {
+  try {
+    for (const [k, v] of Object.entries(DB._cache)) {
+      if (k.startsWith('mc_') || k === 'app_page') localStorage.setItem(k, JSON.stringify(v));
+    }
+  } catch(e) {}
+});
 
 /* ===== 4b. Router ===== */
 const Router = {
@@ -3779,7 +3714,7 @@ function renderSettings() {
       <div class="settings-group-title">关于</div>
       <div class="settings-item" style="cursor:default">
         <span class="settings-icon">ℹ️</span>
-        <div class="settings-text"><div class="settings-label">版本 V3.1</div><div class="settings-desc">临床助手 · 移动端 PWA</div></div>
+        <div class="settings-text"><div class="settings-label">版本 V3.2</div><div class="settings-desc">临床助手 · 移动端 PWA</div></div>
       </div>
     </div>`;
 }
