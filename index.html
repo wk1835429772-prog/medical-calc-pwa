@@ -191,6 +191,7 @@ textarea.form-input{min-height:80px;resize:vertical;line-height:1.6}
 .btn:active{transform:scale(.96)}
 .btn-primary{background:var(--primary);color:#fff}
 .btn-secondary{background:var(--bg);border:1px solid var(--border);color:var(--text)}
+.btn-secondary.active{background:var(--primary);color:#fff;border-color:var(--primary)}
 .btn-danger{background:var(--danger);color:#fff}
 .btn-sm{padding:6px 10px;font-size:.78rem}
 .btn-block{width:100%}
@@ -583,18 +584,18 @@ const DB = {
   _cache: {},
   _ready: false,
   _db: null,
-  _APP_PREFIX: 'mc_',
+  _dirty: false,
 
   async init() {
-    // Load localStorage FIRST (source of truth — always survives page close)
+    // Load ALL localStorage mc_* keys into cache (source of truth)
     for (let i = 0; i < localStorage.length; i++) {
       const k = localStorage.key(i);
-      if (k.startsWith(this._APP_PREFIX) || k === 'app_page') {
+      if (k && (k.startsWith('mc_') || k === 'app_page')) {
         try { this._cache[k] = JSON.parse(localStorage.getItem(k)); } catch { this._cache[k] = localStorage.getItem(k); }
       }
     }
 
-    // Open IndexedDB (secondary — may have stale data if prior session crashed)
+    // Open IndexedDB (secondary backup)
     return new Promise((resolve) => {
       const req = indexedDB.open('clinic-db', 1);
       req.onupgradeneeded = (e) => {
@@ -609,14 +610,14 @@ const DB = {
         cursorReq.onsuccess = (ev) => {
           const cursor = ev.target.result;
           if (cursor) {
-            // Only use IDB data for keys NOT already in cache from localStorage
+            // IDB data supplements localStorage (does NOT overwrite)
             if (this._cache[cursor.key] === undefined) {
               this._cache[cursor.key] = cursor.value;
             }
             cursor.continue();
           } else {
             this._ready = true;
-            this._syncLSToIDB();
+            this._syncCacheToIDB();
             resolve();
           }
         };
@@ -626,13 +627,14 @@ const DB = {
     });
   },
 
-  // Sync localStorage keys INTO IDB (only keys IDB doesn't have yet)
-  _syncLSToIDB() {
+  _syncCacheToIDB() {
     if (!this._db) return;
     try {
       const tx = this._db.transaction('kv', 'readwrite');
       const store = tx.objectStore('kv');
-      Object.entries(this._cache).forEach(([k, v]) => store.put(v, k));
+      for (const [k, v] of Object.entries(this._cache)) {
+        if (k.startsWith('mc_') || k === 'app_page') store.put(v, k);
+      }
     } catch(e) {}
   },
 
@@ -643,14 +645,25 @@ const DB = {
 
   set(key, val) {
     this._cache[key] = val;
-    // localStorage = primary (sync, survives page close instantly)
-    try { localStorage.setItem(key, JSON.stringify(val)); } catch(e) {}
+    this._dirty = true;
+    // localStorage = primary (synchronous, survives page close)
+    try {
+      const json = JSON.stringify(val);
+      localStorage.setItem(key, json);
+      // Verify write succeeded
+      const readback = localStorage.getItem(key);
+      if (readback !== json) {
+        console.warn('[DB] localStorage verify FAILED for', key);
+      }
+    } catch(e) {
+      console.error('[DB] localStorage write FAILED for', key, e);
+    }
     // IndexedDB = secondary (async, best-effort)
     if (this._db) {
       try {
         const tx = this._db.transaction('kv', 'readwrite');
         tx.objectStore('kv').put(val, key);
-      } catch(e) {}
+      } catch(e) { console.warn('[DB] IDB write failed for', key, e); }
     }
   },
 
@@ -663,8 +676,25 @@ const DB = {
         tx.objectStore('kv').delete(key);
       } catch(e) {}
     }
+  },
+
+  // Flush all in-memory state to localStorage before page unload
+  flush() {
+    if (!this._dirty) return;
+    try {
+      for (const [k, v] of Object.entries(this._cache)) {
+        if (k.startsWith('mc_') || k === 'app_page') {
+          localStorage.setItem(k, JSON.stringify(v));
+        }
+      }
+      this._dirty = false;
+    } catch(e) { console.error('[DB] flush failed', e); }
   }
 };
+
+// Safety net: flush all data before page closes
+window.addEventListener('pagehide', () => DB.flush());
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') DB.flush(); });
 
 /* ===== 4b. Router ===== */
 const Router = {
@@ -3747,7 +3777,7 @@ function renderSettings() {
     </div>
     <div class="settings-group">
       <div class="settings-group-title">关于</div>
-      <div class="settings-item">
+      <div class="settings-item" style="cursor:default">
         <span class="settings-icon">ℹ️</span>
         <div class="settings-text"><div class="settings-label">版本 V3.1</div><div class="settings-desc">临床助手 · 移动端 PWA</div></div>
       </div>
