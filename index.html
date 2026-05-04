@@ -164,15 +164,17 @@ input::-webkit-outer-spin-button,input::-webkit-inner-spin-button{-webkit-appear
   transition:all .15s;
 }
 .qt-btn:active{background:var(--primary);color:#fff}
+.qt-trigger.active{background:var(--primary);color:#fff;border-color:var(--primary)}
 
 /* ===== 11. Forms ===== */
-.form-group{margin-bottom:12px}
+.form-group{margin-bottom:8px}
 .form-group label{display:block;font-size:.78rem;color:var(--text2);margin-bottom:4px;font-weight:500}
-.form-input{
-  width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:8px;
+.form-input,.pt-input{
+  width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:8px;
   background:var(--card);font-size:.9rem;transition:border-color .2s;
 }
-.form-input:focus{border-color:var(--primary)}
+.form-input:focus,.pt-input:focus{border-color:var(--primary);outline:none;box-shadow:0 0 0 2px color-mix(in srgb,var(--primary) 15%,transparent)}
+.pt-input{background:var(--bg);border-color:color-mix(in srgb,var(--border) 80%,var(--text2))}
 .form-row{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .form-row-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
 textarea.form-input{min-height:80px;resize:vertical;line-height:1.6}
@@ -741,7 +743,10 @@ const State = {
       {id:'qc1', label:'分析血气', prompt:'请分析当前患者的血气结果'},
       {id:'qc2', label:'总结病情', prompt:'请总结患者今日病情变化'},
       {id:'qc3', label:'用药建议', prompt:'根据当前化验结果，给出用药建议'},
-      {id:'qc4', label:'生成交班', prompt:'请生成交班报告'}
+      {id:'qc4', label:'生成交班', prompt:'请生成交班报告'},
+      {id:'qc5', label:'八项汇报', prompt:'请按八项模板（诊断/原发病/循环/呼吸/感染/脏器/营养/VTE）汇报今日病情'},
+      {id:'qc6', label:'查房汇报', prompt:'查房：请分析当前患者今日变化，关注异常指标趋势'},
+      {id:'qc7', label:'分析全部', prompt:'请分析所有在管患者，指出需要优先关注的患者'}
     ]);
     this.labRanges = DB.get('mc_lab_ranges', {});
     this.aiHistory = DB.get('mc_ai_history', []);
@@ -1151,14 +1156,12 @@ function renderWorkspace() {
     cardsHtml = pts.map(p => PatientCard(p)).join('');
   }
 
-  // Quick tools
-  const quickTools = [
-    { id: 'abg', label: '血气分析', icon: '🩸' },
-    { id: 'nadeficit', label: '补钠', icon: '💊' },
-    { id: 'pumprate', label: '泵速', icon: '💉' },
-    { id: 'lactate', label: '乳酸', icon: '📈' },
-    { id: 'map', label: 'MAP', icon: '📊' }
-  ];
+  // Quick tools — read from user settings
+  const savedQuickIds = DB.get('mc_quick_calcs', DEFAULT_QUICK_IDS);
+  const quickTools = savedQuickIds.map(id => {
+    const c = CalcRegistry.find(x => x.id === id);
+    return c ? { id: c.id, label: c.name, icon: c.icon } : null;
+  }).filter(Boolean);
 
   page.innerHTML = `
     ${anomalyHtml}
@@ -1276,8 +1279,9 @@ function renderPatientDetail(p, replace) {
   const totalIn = parseFloat(io.intake) || 0;
   const urine = parseFloat(io.urine) || 0;
   const drain = parseFloat(io.drain) || 0;
+  const stool = parseFloat(io.stool) || 0;
   const otherOut = parseFloat(io.otherOut) || 0;
-  const totalOut = urine + drain + otherOut;
+  const totalOut = urine + drain + stool + otherOut;
   const balance = totalIn - totalOut;
   const balanceDisplay = totalIn || totalOut ? `<div style="margin-top:4px;font-size:.82rem"><span style="color:var(--text2)">总出量 ${totalOut} mL</span> · <span style="font-weight:600;color:${balance > 500 ? 'var(--danger)' : balance < -500 ? 'var(--warning)' : 'var(--success)'}">平衡 ${balance > 0 ? '+' : ''}${balance} mL</span></div>` : '';
 
@@ -1441,6 +1445,7 @@ function renderPatientDetail(p, replace) {
       <div class="form-row">
         <div class="form-group"><label>总入量 (mL)</label><input type="number" class="pt-input pt-io" data-pid="${p.id}" data-field="io.intake" min="0" value="${io.intake || ''}"></div>
         <div class="form-group"><label>尿量 (mL)</label><input type="number" class="pt-input pt-io" data-pid="${p.id}" data-field="io.urine" min="0" value="${io.urine || ''}"></div>
+        <div class="form-group"><label>大便量 (mL)</label><input type="number" class="pt-input pt-io" data-pid="${p.id}" data-field="io.stool" min="0" value="${io.stool || ''}"></div>
       </div>
       <div class="form-row">
         <div class="form-group"><label>引流量 (mL)</label><input type="number" class="pt-input pt-io" data-pid="${p.id}" data-field="io.drain" min="0" value="${io.drain || ''}"></div>
@@ -1448,6 +1453,10 @@ function renderPatientDetail(p, replace) {
       </div>
       <div id="io-balance-display">${balanceDisplay}</div>
     </div>
+    <details class="card" style="padding:8px 14px">
+      <summary style="cursor:pointer;font-size:.85rem;font-weight:500;color:var(--text2)">📝 补充记录</summary>
+      <textarea class="form-input pt-input" data-pid="${p.id}" data-field="vitals.notes" rows="3" placeholder="体征相关的补充说明..." style="margin-top:8px">${rec.vitals?.notes || ''}</textarea>
+    </details>
   </div>
 
   <!-- Sub Tab: 查体 -->
@@ -1495,6 +1504,10 @@ function renderPatientDetail(p, replace) {
       <div class="form-row">${labField('ca', labRanges.ca)}${labField('mg', labRanges.mg)}</div>
       <div class="form-row">${labField('ldh', labRanges.ldh)}<div class="form-group"></div></div>
     </div>
+    <details class="card" style="padding:8px 14px">
+      <summary style="cursor:pointer;font-size:.85rem;font-weight:500;color:var(--text2)">📝 补充记录</summary>
+      <textarea class="form-input pt-input" data-pid="${p.id}" data-field="labs.notes" rows="3" placeholder="化验相关的补充说明..." style="margin-top:8px">${rec.labs?.notes || ''}</textarea>
+    </details>
   </div>
 
   <!-- Sub Tab: 检查 -->
@@ -1547,6 +1560,20 @@ function renderPatientDetail(p, replace) {
     <div class="card">
       <div class="card-title">明日计划</div>
       <div class="form-group"><textarea class="form-input pt-input" data-pid="${p.id}" data-field="plan" rows="2" placeholder="明日诊疗计划">${rec.plan || ''}</textarea></div>
+    </div>
+    <div class="card">
+      <div class="card-title flex-between"><span>🤖 AI 分析</span></div>
+      <div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:8px">
+        <button class="btn btn-sm btn-secondary" onclick="sendPatientAI('${p.id}','分析今日病情')" style="font-size:.75rem;padding:4px 8px">分析病情</button>
+        <button class="btn btn-sm btn-secondary" onclick="sendPatientAI('${p.id}','生成汇报')" style="font-size:.75rem;padding:4px 8px">生成汇报</button>
+        <button class="btn btn-sm btn-secondary" onclick="sendPatientAI('${p.id}','解读化验')" style="font-size:.75rem;padding:4px 8px">解读化验</button>
+        <button class="btn btn-sm btn-secondary" onclick="sendPatientAI('${p.id}','用药审查')" style="font-size:.75rem;padding:4px 8px">用药审查</button>
+      </div>
+      <div id="patient-ai-history-${p.id}" style="max-height:300px;overflow-y:auto;font-size:.82rem;margin-bottom:8px">${renderPatientAIHistory(p.id)}</div>
+      <div style="display:flex;gap:6px">
+        <input type="text" id="patient-ai-input-${p.id}" class="form-input" placeholder="针对该患者提问..." style="font-size:.82rem;padding:6px 10px" onkeydown="if(event.key==='Enter')sendPatientAI('${p.id}')">
+        <button class="btn btn-primary btn-sm" onclick="sendPatientAI('${p.id}')" style="padding:6px 12px">↑</button>
+      </div>
     </div>
   </div>`;
 
@@ -1650,8 +1677,9 @@ function updateIODisplay() {
   const intake = parseFloat(document.querySelector('[data-field="io.intake"]')?.value) || 0;
   const urine = parseFloat(document.querySelector('[data-field="io.urine"]')?.value) || 0;
   const drain = parseFloat(document.querySelector('[data-field="io.drain"]')?.value) || 0;
+  const stool = parseFloat(document.querySelector('[data-field="io.stool"]')?.value) || 0;
   const otherOut = parseFloat(document.querySelector('[data-field="io.otherOut"]')?.value) || 0;
-  const totalOut = urine + drain + otherOut;
+  const totalOut = urine + drain + stool + otherOut;
   const balance = intake - totalOut;
   const el = document.getElementById('io-balance-display');
   if (!el) return;
@@ -1895,10 +1923,11 @@ function genHandoff(p, rec) {
   const intake = parseFloat(io.intake) || 0;
   const urine = parseFloat(io.urine) || 0;
   const drain = parseFloat(io.drain) || 0;
+  const stool = parseFloat(io.stool) || 0;
   const otherOut = parseFloat(io.otherOut) || 0;
-  const totalOut = urine + drain + otherOut;
+  const totalOut = urine + drain + stool + otherOut;
   if (intake || totalOut) {
-    lines.push(`出入量: 入${intake} 出${totalOut}(尿${urine}${drain ? ' 引流'+drain : ''}) 平衡${intake-totalOut > 0 ? '+' : ''}${intake-totalOut}`);
+    lines.push(`出入量: 入${intake} 出${totalOut}(尿${urine}${stool ? ' 便'+stool : ''}${drain ? ' 引流'+drain : ''}) 平衡${intake-totalOut > 0 ? '+' : ''}${intake-totalOut}`);
   }
 
   // Key labs
@@ -1981,48 +2010,77 @@ function calcABGForPatient(rec) {
 const Calc = {
   round(n, d=1) { return n == null || isNaN(n) ? '' : Math.round(n * 10**d) / 10**d; },
 
-  abg(ph, pco2, hco3, na, cl, k, lac) {
+  abg(ph, pco2, hco3, na, cl, k, lac, alb) {
     if (!ph || !pco2 || !hco3) return null;
-    ph = +ph; pco2 = +pco2; hco3 = +hco3;
+    ph = +ph; pco2 = +pco2; hco3 = +hco3; na = +na; cl = +cl;
     let state = ph < 7.35 ? '酸血症' : ph > 7.45 ? '碱血症' : 'pH正常';
-    let primary = '';
+    let primary = '', primaryDetail = '';
     if (ph < 7.35) {
-      if (pco2 > 45) primary += '呼吸性酸中毒';
-      if (hco3 < 22) primary += (primary?' + ':'') + '代谢性酸中毒';
+      if (pco2 > 45) { primary = '呼吸性酸中毒'; primaryDetail = `PaCO₂ ${pco2}>45`; }
+      if (hco3 < 22) { primary += (primary?' + ':'') + '代谢性酸中毒'; primaryDetail += (primaryDetail?'；':'') + `HCO₃⁻ ${hco3}<22`; }
     } else if (ph > 7.45) {
-      if (pco2 < 35) primary += '呼吸性碱中毒';
-      if (hco3 > 26) primary += (primary?' + ':'') + '代谢性碱中毒';
+      if (pco2 < 35) { primary = '呼吸性碱中毒'; primaryDetail = `PaCO₂ ${pco2}<35`; }
+      if (hco3 > 26) { primary += (primary?' + ':'') + '代谢性碱中毒'; primaryDetail += (primaryDetail?'；':'') + `HCO₃⁻ ${hco3}>26`; }
     } else {
-      primary = '无明显原发紊乱';
+      if (pco2 > 45 && hco3 > 26) primary = '混合性紊乱（待定）';
+      else if (pco2 < 35 && hco3 < 22) primary = '混合性紊乱（待定）';
+      else primary = '无明显原发紊乱';
     }
-    let lines = [`<b>${state}</b> — ${primary}`];
-    // Compensation
-    if (primary.includes('代谢性酸中毒') && !primary.includes('呼')) {
-      const expCO2 = 1.5 * hco3 + 8;
-      const lo = this.round(expCO2 - 2, 1), hi = this.round(expCO2 + 2, 1);
+    let lines = [`<b>① ${state}</b>（pH ${ph}）`, `<b>② 原发紊乱</b>: ${primary}`];
+    // Compensation + acute/chronic distinction
+    const hasMetAcid = primary.includes('代谢性酸中毒'), hasMetAlk = primary.includes('代谢性碱中毒');
+    const hasRespAcid = primary.includes('呼吸性酸中毒'), hasRespAlk = primary.includes('呼吸性碱中毒');
+    if (hasMetAcid && !hasRespAcid && !hasRespAlk) {
+      const exp = 1.5 * hco3 + 8, lo = this.round(exp-2,1), hi = this.round(exp+2,1);
       const msg = pco2 < lo ? '合并呼碱' : pco2 > hi ? '合并呼酸' : '代偿适当';
-      lines.push(`代偿: 预计PaCO₂ ${this.round(expCO2,1)}(${lo}-${hi}) → ${msg}`);
+      lines.push(`<b>③ 代偿</b>: 预计PaCO₂ ${this.round(exp,1)}（${lo}-${hi}）→ ${msg}`);
+    } else if (hasMetAlk && !hasRespAcid && !hasRespAlk) {
+      const exp = 0.7 * hco3 + 21, lo = this.round(exp-2,1), hi = this.round(exp+2,1);
+      const msg = pco2 < lo ? '合并呼碱' : pco2 > hi ? '合并呼酸' : '代偿适当';
+      lines.push(`<b>③ 代偿</b>: 预计PaCO₂ ${this.round(exp,1)}（${lo}-${hi}）→ ${msg}`);
+    } else if (hasRespAcid && !hasMetAcid && !hasMetAlk) {
+      const dc = pco2 - 40;
+      const ac = this.round(24 + dc*0.1,1), chr = this.round(24 + dc*0.35,1);
+      const chronic = Math.abs(hco3-chr) <= Math.abs(hco3-ac);
+      lines.push(`<b>③ 急/慢</b>: 急性HCO₃⁻ ${ac}，慢性 ${chr}，实测 ${hco3} → ${chronic?'慢性':'急性'}呼酸`);
+    } else if (hasRespAlk && !hasMetAcid && !hasMetAlk) {
+      const dc = 40 - pco2;
+      const ac = this.round(24 - dc*0.2,1), chr = this.round(24 - dc*0.5,1);
+      const chronic = Math.abs(hco3-chr) <= Math.abs(hco3-ac);
+      lines.push(`<b>③ 急/慢</b>: 急性HCO₃⁻ ${ac}，慢性 ${chr}，实测 ${hco3} → ${chronic?'慢性':'急性'}呼碱`);
+    } else {
+      lines.push('<b>③ 代偿</b>: 混合紊乱，公式不适用');
     }
-    // AG
+    // AG with albumin correction
+    let warnMsg = '';
     if (na && cl) {
       const ag = this.round(na - cl - hco3, 1);
-      let agStr = `AG = ${ag}`;
-      if (ag > 16) agStr += ' ⬆️高AG代酸';
-      lines.push(agStr);
+      let effAG = ag, agStr = `AG = ${ag}`;
+      if (alb) { const cAG = this.round(ag + 2.5*(4 - alb/10),1); effAG = cAG; agStr += ` → 校正AG = ${cAG}`; }
+      agStr += effAG > 16 ? ' ⬆️' : effAG < 8 ? ' ⬇️' : ' ✓';
+      lines.push(`<b>④ 阴离子间隙</b>: ${agStr}`);
+      // Delta-Delta
+      if (effAG > 16 && hco3 < 24) {
+        const dd = this.round((effAG-12)/(24-hco3),2);
+        if (dd && dd > 0) {
+          const ddMsg = dd < 1 ? '合并正常AG代酸' : dd <= 2 ? '单纯高AG代酸' : '合并代碱';
+          lines.push(`<b>⑤ Δ-Δ</b> = ${dd} → ${ddMsg}`);
+        }
+      }
     }
-    // Lactate
-    if (lac && lac > 2) lines.push(`乳酸 ${lac} mmol/L ⬆️`);
-    if (k && k < 3.5) lines.push(`K⁺ ${k} 低钾`);
-    if (k && k > 5.0) lines.push(`K⁺ ${k} 高钾`);
-    return { main: `${state}, ${primary}`, detail: lines.join('<br>') };
+    if (lac && lac > 2) { lines.push(`<b>⑥ 乳酸</b>: ${lac} ⬆️`); if (lac > 4) warnMsg = '乳酸>4, 严重乳酸酸中毒'; }
+    if (k && k < 3.5) lines.push(`<b>⑦ K⁺</b>: ${k} 低钾`);
+    if (k && k > 5.0) lines.push(`<b>⑦ K⁺</b>: ${k} 高钾`);
+    return { main: `${state} · ${primary}`, detail: lines.join('<br>'), warn: warnMsg };
   },
 
-  nadeficit(na, wt) {
+  nadeficit(na, wt, sex) {
     if (!na || !wt) return null;
     na = +na; wt = +wt;
-    const deficit = Math.round((140 - na) * wt * 0.6);
+    const factor = sex === '女' ? 0.5 : 0.6;
+    const deficit = Math.round((140 - na) * wt * factor);
     const rate = Math.round(deficit / 72);
-    return { main: `缺钠量 ≈ ${deficit} mmol`, detail: `按72h纠正: 约${rate} mmol/h<br>纠正速度 ≤ 0.5 mmol/L/h` };
+    return { main: `缺钠量 ≈ ${deficit} mmol`, detail: `TBW系数 ${factor}（${sex||'男'}）<br>按72h纠正: 约${rate} mmol/h<br>纠正速度 ≤ 0.5 mmol/L/h` };
   },
 
   naCorrection(na, glu) {
@@ -2067,14 +2125,19 @@ const Calc = {
     return { main: `校正钙 = ${corrected} mmol/L`, detail: `${ca} + 0.02×(40-${alb})` };
   },
 
-  cg(age, wt, cr, sex) {
+  cg(age, wt, cr, sex, useIBW, ht) {
     if (!age || !wt || !cr) return null;
     age = +age; wt = +wt; cr = +cr;
+    let w = wt, note = '';
+    if (useIBW && ht) {
+      const ibw = sex === '女' ? 45.5 + 0.91*(+ht-152.4) : 50 + 0.91*(+ht-152.4);
+      w = Math.min(wt, ibw); note = '已用去脂体重校正';
+    }
     const crMg = cr / 88.4;
-    let crcl = ((140 - age) * wt) / (72 * crMg);
+    let crcl = ((140 - age) * w) / (72 * crMg);
     if (sex === '女') crcl *= 0.85;
     crcl = this.round(crcl, 1);
-    return { main: `CrCl = ${crcl} mL/min`, detail: `Cockcroft-Gault 公式` };
+    return { main: `CrCl = ${crcl} mL/min`, detail: `Cockcroft-Gault${note ? ' · ' + note : ''}` };
   },
 
   egfr(cr, age, sex) {
@@ -2095,7 +2158,7 @@ const Calc = {
   ag(na, cl, hco3) {
     if (!na || !cl || !hco3) return null;
     const ag = this.round(+na - (+cl + +hco3), 1);
-    const interp = ag > 16 ? '升高 ⬆️ 高AG代酸' : ag >= 8 ? '正常' : '偏低';
+    const interp = ag > 12 ? '升高 ⬆️ 高AG代酸' : ag >= 8 ? '正常（12±4）' : '偏低';
     return { main: `AG = ${ag} mmol/L`, detail: interp };
   },
 
@@ -2110,8 +2173,9 @@ const Calc = {
 
   bsa(h, wt) {
     if (!h || !wt) return null;
-    const bsa = this.round(0.007184 * Math.pow(+h, 0.725) * Math.pow(+wt, 0.725), 2);
-    return { main: `BSA = ${bsa} m²`, detail: `Du Bois 公式` };
+    const dubois = this.round(0.007184 * Math.pow(+h, 0.725) * Math.pow(+wt, 0.725), 2);
+    const mosteller = this.round(Math.sqrt(+h * +wt / 3600), 2);
+    return { main: `BSA = ${dubois} m²`, detail: `Du Bois: ${dubois} m²<br>Mosteller: ${mosteller} m²` };
   },
 
   map(sbp, dbp) {
@@ -2172,7 +2236,7 @@ const Calc = {
     return { main: `乳酸清除率 = ${clearance}%`, detail: `${ok ? '✅' : '⚠️'} ${ok ? '清除率≥20%，复苏有效' : '清除率<20%，需继续积极复苏'}` };
   },
 
-  sofa(pao2, fio2, plt, bili, map, gcs, cr) {
+  sofa(pao2, fio2, plt, bili, map, gcs, cr, vaso, uo) {
     let total = 0, details = [];
     if (pao2 && fio2) {
       const pf = +pao2 / (+fio2/100);
@@ -2188,7 +2252,13 @@ const Calc = {
       const r = mg >= 12 ? 4 : mg >= 6 ? 3 : mg >= 2 ? 2 : mg >= 1.2 ? 1 : 0;
       total += r; details.push(`肝脏 TB=${bili} → ${r}分`);
     }
-    if (map) {
+    // Cardiovascular: vasopressor takes priority over MAP
+    if (vaso && +vaso > 0) {
+      const v = +vaso;
+      total += v;
+      const labels = ['','多巴胺≤5','多巴胺>5 或 NE≤0.1','多巴胺>15 或 NE>0.1'];
+      details.push(`心血管 ${labels[v]} → ${v}分`);
+    } else if (map) {
       const r = +map < 70 ? 1 : 0;
       total += r; details.push(`心血管 MAP=${map} → ${r}分`);
     }
@@ -2196,10 +2266,14 @@ const Calc = {
       const r = gcs < 6 ? 4 : gcs < 10 ? 3 : gcs < 13 ? 2 : gcs < 15 ? 1 : 0;
       total += r; details.push(`CNS GCS=${gcs} → ${r}分`);
     }
+    // Renal: Cr or urine output fallback
     if (cr) {
       const mg = +cr / 88.4;
       const r = mg >= 5.0 ? 4 : mg >= 3.5 ? 3 : mg >= 2.0 ? 2 : mg >= 1.2 ? 1 : 0;
       total += r; details.push(`肾脏 Cr=${cr} → ${r}分`);
+    } else if (uo) {
+      const r = +uo < 200 ? 4 : +uo < 500 ? 3 : 0;
+      total += r; details.push(`肾脏 尿量=${uo}mL/d → ${r}分`);
     }
     const mort = total >= 15 ? '>95%' : total >= 13 ? '~80%' : total >= 10 ? '~50%' : total >= 7 ? '~20%' : total >= 4 ? '~10%' : '<5%';
     return { main: `SOFA = ${total} 分`, detail: details.join('<br>') + `<br>死亡率约 ${mort}` };
@@ -2296,22 +2370,234 @@ const Calc = {
     if (stroke) score += 2;
     if (vasc) score++;
     if (female) score++;
+    const rates = {0:'0%',1:'1.3%',2:'2.2%',3:'3.2%',4:'4.0%',5:'6.7%',6:'9.8%',7:'9.6%',8:'6.7%',9:'15.2%'};
+    const rate = rates[score] || '≥15%';
     const maleScore = score - (female ? 1 : 0);
     const needAC = maleScore >= 1;
-    return { main: `${score} 分`, detail: `抗凝建议: ${needAC ? '推荐抗凝(NOAC优先)' : '不推荐抗凝'}` };
+    return { main: `${score} 分 · 年卒中率 ${rate}`, detail: `抗凝建议: ${needAC ? '推荐口服抗凝（NOAC优先）' : '不推荐抗凝'}<br>年卒中率(Lip): ${rate}${needAC ? '<br>建议同时评估HAS-BLED评分' : ''}`, warn: score >= 4 ? '高危，强烈推荐抗凝' : '' };
+  },
+
+  // === Kidney ===
+  schwartz(h, cr) {
+    if (!h || !cr) return null;
+    const egfr = this.round(36.5 * +h / +cr, 1);
+    return { main: `eGFR = ${egfr} mL/min/1.73m²`, detail: 'Schwartz公式(经典系数36.5)' };
+  },
+
+  // === Nutrition ===
+  bmr(age, wt, ht, sex, act) {
+    if (!age || !wt || !ht) return null;
+    age=+age; wt=+wt; ht=+ht; act=+act||1.2;
+    let hb, msj;
+    if (sex === '女') { hb = 447.593+9.247*wt+3.098*ht-4.33*age; msj = 10*wt+6.25*ht-5*age-161; }
+    else { hb = 88.362+13.397*wt+4.799*ht-5.677*age; msj = 10*wt+6.25*ht-5*age+5; }
+    const tdee = Math.round(msj * act);
+    return { main: `TDEE ≈ ${tdee} kcal/d`, detail: `Harris-Benedict: ${Math.round(hb)} kcal<br>Mifflin-St Jeor: ${Math.round(msj)} kcal<br>活动系数: ×${act}` };
+  },
+
+  whr(waist, hip, ht) {
+    if (!waist || !hip) return null;
+    const ratio = this.round(+waist / +hip, 2);
+    let detail = `腰臀比 = ${ratio}`;
+    if (ht) { const whtr = this.round(+waist / +ht, 2); detail += `<br>腰高比 = ${whtr}` + (whtr > 0.5 ? ' ⚠️ 中心性肥胖' : ''); }
+    return { main: `WHR = ${ratio}`, detail };
+  },
+
+  // === TPN ===
+  pnprotein(wt, gPerKg) {
+    if (!wt) return null;
+    const prot = this.round(+wt * +gPerKg, 1), n2 = this.round(prot*0.16,1);
+    return { main: `${prot} g/d`, detail: `${gPerKg} g/kg × ${wt}kg<br>氮量 ≈ ${n2}g | 供能 ≈ ${Math.round(prot*4)}kcal` };
+  },
+  pnenergy(wt, kcalPerKg) {
+    if (!wt) return null;
+    const total = Math.round(+wt * +kcalPerKg);
+    return { main: `${total} kcal/d`, detail: `${kcalPerKg} kcal/kg × ${wt}kg` };
+  },
+  pnmacro(totalKcal, carbPct, fatPct, protPct) {
+    if (!totalKcal) return null;
+    carbPct=+carbPct||60; fatPct=+fatPct||25; protPct=+protPct||15;
+    const pctSum = carbPct+fatPct+protPct;
+    const cG = this.round(totalKcal*carbPct/100/3.4,1), fG = this.round(totalKcal*fatPct/100/10,1), pG = this.round(totalKcal*protPct/100/4,1);
+    return { main: `糖${cG}g 脂${fG}g 蛋白${pG}g`, detail: `50%GS:${Math.round(cG/0.5)}mL 20%脂肪乳:${Math.round(fG/0.2)}mL 8.5%AA:${Math.round(pG/0.085)}mL`, warn: pctSum !== 100 ? `供能比之和=${pctSum}%≠100%` : '' };
+  },
+  glucoserate(glucG, wt) {
+    if (!glucG || !wt) return null;
+    const rate = this.round(+glucG*1000/(+wt*1440),2);
+    return { main: `${rate} mg/kg/min`, detail: `${glucG}g/d ÷ ${wt}kg ÷ 1440min`, warn: rate>5?'速率>5,建议CVC':rate>4?'速率接近上限,注意血糖':'' };
+  },
+  tnratio(npCal, aaG) {
+    if (!npCal || !aaG) return null;
+    const n2 = +aaG*0.16, ratio = Math.round(+npCal/n2);
+    const interp = ratio>=100&&ratio<=150?'理想范围':ratio<100?'偏低,增加非蛋白热量':'偏高,增加氨基酸';
+    return { main: `热氮比 = ${ratio}:1`, detail: `氮量=${this.round(n2,1)}g<br>${interp}`, warn: (ratio<100||ratio>150)?interp:'' };
+  },
+  pnosm(gVol, fVol, aVol, oVol) {
+    gVol=+gVol||0; fVol=+fVol||0; aVol=+aVol||0; oVol=+oVol||0;
+    const total = gVol+fVol+aVol+oVol;
+    if (!total) return null;
+    const osm = Math.round((gVol*2500+fVol*350+aVol*800+oVol*300)/total);
+    return { main: `总量${total}mL 渗透压≈${osm}mOsm/L`, detail: '', warn: osm>900?'必须CVC!':osm>600?'建议CVC':'' };
+  },
+
+  // === Fluid ===
+  mainadult(wt, mode) {
+    if (!wt) return null; wt = +wt; mode = mode || 'maint';
+    let mlh = wt<=10?wt*4:wt<=20?40+(wt-10)*2:60+(wt-20)*1;
+    const mld = Math.round(mlh*24);
+    const order = mode==='maint' ? `5%GNS ${mld}mL + 15%KCl 10mL iv @${Math.round(mlh)}mL/h` :
+      `①NS ${Math.round(mld*0.3)}mL iv @${Math.round(mld*0.3/2)}mL/h(前2h) ②5%GNS ${Math.round(mld*0.7)}mL iv @${Math.round(mld*0.7/22)}mL/h(后22h)`;
+    return { main: `${Math.round(mlh)} mL/h（${mld} mL/d）`, detail: `4-2-1法则<br>医嘱：${order}` };
+  },
+  mainchild(wt) {
+    if (!wt) return null; wt = +wt;
+    let mlh = wt<=10?wt*4:wt<=20?40+(wt-10)*2:60+(wt-20)*1;
+    const mld = Math.round(mlh*24);
+    return { main: `${Math.round(mlh)} mL/h`, detail: `每日总量≈${mld}mL`, warn: mld>2400?'总量>2400mL,注意监测':'' };
+  },
+  dehydration(wt, na, k, rateMode) {
+    if (!wt || !na) return null; wt=+wt; na=+na; rateMode=rateMode||'safe';
+    const deficit = this.round(wt*0.6*(na/140-1),2);
+    const isHypo = na < 140;
+    const rates = {safe:{h:72,max:0.5},slow:{h:48,max:0.5},fast:{h:24,max:1.0}};
+    const rm = rates[rateMode]; const hr = Math.round(Math.abs(deficit)*1000/rm.h);
+    const fluid = na>150?'5%GS':na<120?'3%高渗盐水':'5%GNS';
+    return { main: `缺水≈${Math.abs(deficit)}L（${isHypo?'低钠':'高钠'}纠正）`, detail: `${rm.h}h纠正，${hr}mL/h<br>液体：${fluid}<br>目标下降速度≤${rm.max}mmol/L/h`, warn: na<120?'严重低钠！渗透性脱髓鞘风险':'' };
+  },
+
+  // === Emergency ===
+  dka(wt, degree, glucose, k) {
+    if (!wt || !degree) return null; wt=+wt; degree=+degree;
+    const total = Math.round(wt*degree*1000);
+    const p1 = Math.round(wt*20), p2 = Math.round((total-p1)*0.5), p3 = total-p1-p2;
+    const insR = this.round(wt*0.1,2);
+    let kGuide = k ? (+k>5?'暂不补钾':+k>3.5?'KCl 15mL/袋':'KCl 30mL/袋,心电监护') : '查血钾后决定';
+    return { main: `DKA/HHS 补液 ${total}mL`, detail: `①NS ${p1}mL@${p1}mL/h(1h) ②NS ${p2}mL@${Math.round(p2/7)}mL/h(2-8h) ③5%GNS ${p3}mL@${Math.round(p3/16)}mL/h(8-24h)<br>RI ${insR}U/h(0.1U/kg/h)<br>补钾：${kGuide}<br>血糖13.9后换5%GS+RI减量` };
+  },
+  insulintdd(type, wt) {
+    if (!wt) return null;
+    const lo = +type===1?0.3:0.2, hi = +type===1?0.6:0.4;
+    return { main: `TDD: ${Math.round(+wt*lo)}-${Math.round(+wt*hi)} U/d`, detail: `基础: ${Math.round(+wt*lo/2)}-${Math.round(+wt*hi/2)}U<br>餐时: ${Math.round(+wt*lo/2)}-${Math.round(+wt*hi/2)}U` };
+  },
+  isf(tdd) {
+    if (!tdd) return null;
+    return { main: `ISF = ${this.round(100/+tdd,1)} mmol/L/U`, detail: `1800法则: ${Math.round(1800/+tdd)} mg/dL/U<br>100法则: ${this.round(100/+tdd,1)} mmol/L/U` };
+  },
+  icr(tdd) {
+    if (!tdd) return null;
+    return { main: `ICR = ${this.round(28/+tdd,1)} g碳水/U`, detail: `500法则: ${Math.round(500/+tdd)} g/U<br>28法则: ${this.round(28/+tdd,1)} g/U` };
+  },
+
+  // === Pharmacy ===
+  dilution(c1, c2, v2, v1) {
+    if (!c1 || !c2) return null;
+    if (v2) { const r = this.round(+c2*+v2/+c1,2); return { main: `V₁ = ${r} mL`, detail: `取${r}mL原液定容至${v2}mL` }; }
+    if (v1) { const r = this.round(+c1*+v1/+c2,2); return { main: `V₂ = ${r} mL`, detail: `移取${v1}mL原液定容至${r}mL` }; }
+    return null;
+  },
+  solution(mass, vol) {
+    if (!mass || !vol) return null;
+    return { main: `${this.round(+mass/+vol,2)} mg/mL`, detail: `${mass}mg / ${vol}mL` };
+  },
+  kclconc(type, amount, totalVol) {
+    if (!amount || !totalVol) return null;
+    const mg = type==='ml'?+amount*100:+amount;
+    const pct = this.round(mg/+totalVol*100,2), mmol = this.round(mg/74.55/+totalVol*1000,1);
+    return { main: `${pct}%（${mmol} mmol/L）`, detail: `${mg}mg KCl / ${totalVol}mL`, warn: pct>0.3?'外周静脉禁用！必须CVC':pct>0.2?'建议CVC':'' };
+  },
+
+  // === OB ===
+  edd(lmpStr) {
+    if (!lmpStr) return null;
+    const lmp = new Date(lmpStr), edd = new Date(lmp); edd.setDate(edd.getDate()+280);
+    const diff = Math.floor((Date.now()-lmp)/(864e5));
+    return { main: `预产期: ${edd.toLocaleDateString('zh-CN')}`, detail: `当前孕周: ${Math.floor(diff/7)}周${diff%7}天` };
+  },
+  fetalweight(fh, ac) {
+    if (!fh || !ac) return null;
+    const est = Math.max(Math.round((+fh-11)*155*(1+(+ac-30)*0.015)),100);
+    return { main: `≈${est} g`, detail: 'Johnson公式修正，以超声为准' };
+  },
+
+  // === Scoring ===
+  gcs(eye, verbal, motor) {
+    const total = +eye + +verbal + +motor;
+    return { main: `GCS = ${total}（E${eye}V${verbal}M${motor}）`, detail: total>=13?'轻度':total>=9?'中度':'重度昏迷', warn: total<9?'GCS<8考虑插管保护气道':'' };
+  },
+  apgar(color, hr, reflex, tone, resp) {
+    const total = +color + +hr + +reflex + +tone + +resp;
+    return { main: `Apgar = ${total}/10`, detail: total>=7?'正常':total>=4?'轻度窒息':'重度窒息', warn: total<4?'需立即复苏':'' };
+  },
+  insulinPrep() {
+    return { main: '50U RI + 49.5mL NS', detail: '浓度 1U/mL<br>起始 0.1U/kg/h' };
+  },
+
+  // === Unit Converters ===
+  convGluc(val, from) { return from==='mmol' ? {main:`${val} mmol/L = ${Math.round(val*18.02)} mg/dL`,detail:''} : {main:`${val} mg/dL = ${this.round(val/18.02,1)} mmol/L`,detail:''}; },
+  convCr(val, from) { return from==='umol' ? {main:`${val} μmol/L = ${this.round(val/88.4,2)} mg/dL`,detail:''} : {main:`${val} mg/dL = ${Math.round(val*88.4)} μmol/L`,detail:''}; },
+  convCa(val, from) { return from==='mmol' ? {main:`${val} mmol/L = ${this.round(val*4.008,1)} mg/dL`,detail:''} : {main:`${val} mg/dL = ${this.round(val/4.008,2)} mmol/L`,detail:''}; },
+  convMg(val, from) { return from==='mmol' ? {main:`${val} mmol/L = ${this.round(val*2.43,1)} mg/dL`,detail:''} : {main:`${val} mg/dL = ${this.round(val/2.43,2)} mmol/L`,detail:''}; },
+  convBili(val, from) { return from==='umol' ? {main:`${val} μmol/L = ${this.round(val/17.1,1)} mg/dL`,detail:''} : {main:`${val} mg/dL = ${Math.round(val*17.1)} μmol/L`,detail:''}; },
+  convChol(val, from) { return from==='mmol' ? {main:`${val} mmol/L = ${Math.round(val*38.67)} mg/dL`,detail:''} : {main:`${val} mg/dL = ${this.round(val/38.67,2)} mmol/L`,detail:''}; },
+  convTG(val, from) { return from==='mmol' ? {main:`${val} mmol/L = ${Math.round(val*88.57)} mg/dL`,detail:''} : {main:`${val} mg/dL = ${this.round(val/88.57,2)} mmol/L`,detail:''}; },
+  convPres(val, from) {
+    let mmhg = from==='mmhg'?+val : from==='kpa'?+val/0.1333 : +val/1.36;
+    return { main: `${Math.round(mmhg)} mmHg = ${this.round(mmhg*0.1333,2)} kPa = ${this.round(mmhg*1.36,1)} cmH₂O`, detail: '' };
+  },
+  convTemp(val, from) {
+    return from==='c' ? { main: `${val}°C = ${this.round(val*9/5+32,1)}°F`, detail: '' }
+      : { main: `${val}°F = ${this.round((val-32)*5/9,1)}°C`, detail: '' };
   }
 };
+
+const DEFAULT_QUICK_IDS = ['abg','nadeficit','pumprate','lactate','map','hyperk','insulin_drip','correctedca','nacorr'];
+
+const DEFAULT_CLINICAL_PROMPT = `你是一位ICU/内科临床AI助手，辅助值班医生进行病情分析、化验解读和诊疗决策。
+
+## 输出规范
+1. 所有回答使用中文，专业术语可附英文缩写
+2. 回答简洁有力，先结论后依据
+3. 涉及数值时注明单位和参考范围
+4. 存在危险值时用⚠️醒目标注
+5. 不确定的判断标注"需确认"
+
+## 八项汇报模板（查房/交班时使用）
+按以下八项逐条汇报，每项1-2句话：
+1. **诊断**：主要诊断 + 入院天数
+2. **原发病**：病因、严重程度、当前状态
+3. **循环**：血压、心率、血管活性药、液体平衡
+4. **呼吸**：氧合、通气模式、呼吸机参数
+5. **感染**：体温、WBC/PCT/CRP、当前抗感染方案
+6. **脏器功能**：肝肾功能、凝血、意识
+7. **营养**：热量摄入、蛋白、肠内/肠外
+8. **VTE预防**：抗凝方案、出血风险
+
+## 数据纪律
+- 引用化验数值时必须与原始数据一致，不得编造或修改
+- 趋势分析基于至少两个时间点的数据
+- 如数据不足，明确指出"数据不足，无法判断"
+
+## 模式区分
+- **查房模式**（指令含"查房"）：聚焦今日变化、异常趋势、需调整的治疗
+- **通用模式**：按需分析，给出建议
+
+## 安全红线
+- 建议仅供参考，不替代临床判断
+- 紧急情况优先提醒：如K⁺>6.5、pH<7.15、MAP<65等
+- 用药建议需考虑肝肾功能和药物相互作用`;
+
+function getSystemPrompt() { return DB.get('mc_system_prompt', DEFAULT_CLINICAL_PROMPT); }
 
 /* ===== Calculator Registry ===== */
 const CalcRegistry = [
   // Quick tools (emergency)
   { id:'abg', name:'血气分析', icon:'🩸', cat:'急算', quick:true, keywords:'血气 ABG pH 酸碱',
-    inputs:[{k:'ph',l:'pH',s:0.01},{k:'pco2',l:'PaCO₂',s:0.1},{k:'hco3',l:'HCO₃⁻',s:0.1},{k:'na',l:'Na⁺',s:0.1},{k:'cl',l:'Cl⁻',s:0.1},{k:'k',l:'K⁺',s:0.1},{k:'lac',l:'乳酸',s:0.1}],
-    compute(v) { return Calc.abg(v.ph,v.pco2,v.hco3,v.na,v.cl,v.k,v.lac); } },
+    inputs:[{k:'ph',l:'pH',s:0.01},{k:'pco2',l:'PaCO₂',s:0.1},{k:'hco3',l:'HCO₃⁻',s:0.1},{k:'na',l:'Na⁺',s:0.1},{k:'cl',l:'Cl⁻',s:0.1},{k:'k',l:'K⁺',s:0.1},{k:'lac',l:'乳酸',s:0.1},{k:'alb',l:'白蛋白(g/L)',s:0.1}],
+    compute(v) { return Calc.abg(v.ph,v.pco2,v.hco3,v.na,v.cl,v.k,v.lac,v.alb); } },
 
   { id:'nadeficit', name:'低钠补钠', icon:'💊', cat:'急算', quick:true, keywords:'低钠 补钠 缺钠',
-    inputs:[{k:'na',l:'血Na⁺'},{k:'wt',l:'体重kg',s:0.1}],
-    compute(v) { return Calc.nadeficit(v.na,v.wt); } },
+    inputs:[{k:'na',l:'血Na⁺'},{k:'wt',l:'体重kg',s:0.1},{k:'sex',l:'性别',type:'select',opts:[{v:'男',t:'男(0.6)'},{v:'女',t:'女(0.5)'}]}],
+    compute(v) { return Calc.nadeficit(v.na,v.wt,v.sex); } },
 
   { id:'pumprate', name:'泵速计算', icon:'💉', cat:'急算', quick:true, keywords:'泵速 升压药 多巴胺',
     inputs:[{k:'wt',l:'体重kg',s:0.1},{k:'dose',l:'药物总量mg'},{k:'vol',l:'溶媒mL'},{k:'target',l:'目标剂量'}],
@@ -2347,8 +2633,8 @@ const CalcRegistry = [
     compute(v) { return Calc.egfr(v.cr,v.age,v.sex); } },
 
   { id:'cg', name:'Cockcroft-Gault', icon:'🫘', cat:'肾脏', keywords:'CrCl 肌酐清除率 CG',
-    inputs:[{k:'age',l:'年龄'},{k:'wt',l:'体重kg',s:0.1},{k:'cr',l:'Cr μmol/L'},{k:'sex',l:'性别',type:'select',opts:[{v:'男',t:'男'},{v:'女',t:'女'}]}],
-    compute(v) { return Calc.cg(v.age,v.wt,v.cr,v.sex); } },
+    inputs:[{k:'age',l:'年龄'},{k:'wt',l:'体重kg',s:0.1},{k:'cr',l:'Cr μmol/L'},{k:'sex',l:'性别',type:'select',opts:[{v:'男',t:'男'},{v:'女',t:'女'}]},{k:'useIBW',l:'用IBW',type:'check'},{k:'ht',l:'身高cm'}],
+    compute(v) { return Calc.cg(v.age,v.wt,v.cr,v.sex,v.useIBW,v.ht); } },
 
   { id:'kdeficit', name:'补钾', icon:'💊', cat:'肾脏', keywords:'低钾 补钾 缺钾',
     inputs:[{k:'k',l:'K⁺ mmol/L',s:0.1},{k:'wt',l:'体重kg',s:0.1}],
@@ -2391,8 +2677,8 @@ const CalcRegistry = [
 
   // Scoring
   { id:'sofa', name:'SOFA', icon:'📊', cat:'评分', keywords:'SOFA 器官功能 脓毒症',
-    inputs:[{k:'pao2',l:'PaO₂'},{k:'fio2',l:'FiO₂%',d:21},{k:'plt',l:'PLT'},{k:'bili',l:'TBil μmol/L'},{k:'map',l:'MAP'},{k:'gcs',l:'GCS'},{k:'cr',l:'Cr μmol/L'}],
-    compute(v) { return Calc.sofa(v.pao2,v.fio2,v.plt,v.bili,v.map,v.gcs,v.cr); } },
+    inputs:[{k:'pao2',l:'PaO₂'},{k:'fio2',l:'FiO₂%',d:21},{k:'plt',l:'PLT'},{k:'bili',l:'TBil μmol/L'},{k:'map',l:'MAP'},{k:'vaso',l:'血管活性药',type:'select',opts:[{v:0,t:'无'},{v:1,t:'多巴胺≤5'},{v:2,t:'多巴胺>5/NE≤0.1'},{v:3,t:'多巴胺>15/NE>0.1'}]},{k:'gcs',l:'GCS'},{k:'cr',l:'Cr μmol/L'},{k:'uo',l:'尿量mL/d'}],
+    compute(v) { return Calc.sofa(v.pao2,v.fio2,v.plt,v.bili,v.map,v.gcs,v.cr,v.vaso,v.uo); } },
 
   { id:'wells', name:'Wells PE', icon:'📊', cat:'评分', keywords:'Wells 肺栓塞 PE',
     inputs:[{k:'dvt',l:'DVT症状/体征',type:'check'},{k:'pe',l:'PE可能性大',type:'check'},{k:'hr',l:'HR>100',type:'check'},{k:'imm',l:'制动/手术',type:'check'},{k:'dvthx',l:'DVT/PE史',type:'check'},{k:'hemo',l:'咯血',type:'check'},{k:'mal',l:'活动性肿瘤',type:'check'}],
@@ -2420,8 +2706,8 @@ const CalcRegistry = [
     compute(v) { if(!v.na||!v.glu||!v.bun||!v.meas) return null; const calc=2*v.na+v.glu+v.bun; const gap=Calc.round(v.meas-calc,1); return {main:`渗透压间隙 = ${gap} mOsm/kg`, detail:`计算渗透压 = ${Calc.round(calc,1)}${gap>10?' ⚠️提示外源性溶质':''}`}; } },
 
   { id:'dehydration', name:'脱水补液', icon:'💧', cat:'补液', keywords:'脱水 补液 纠正',
-    inputs:[{k:'wt',l:'体重kg',s:0.1},{k:'na',l:'血Na⁺'},{k:'target',l:'目标Na⁺',d:140}],
-    compute(v) { if(!v.wt||!v.na) return null; const t=v.target||140; const deficit=Math.abs(Calc.round(v.wt*0.6*(v.na/t-1),2)); const hourly=Math.round(deficit*1000/72); const fluid=v.na<130?'3%高渗盐水':v.na>150?'5%GS':'5%GNS'; return {main:`缺水量 ≈ ${deficit}L`, detail:`${fluid} ${Math.round(deficit*1000)}mL<br>72h纠正: ${hourly}mL/h<br>监测: 每2-4h复查血钠`}; } },
+    inputs:[{k:'wt',l:'体重kg',s:0.1},{k:'na',l:'血Na⁺'},{k:'k',l:'K⁺(选填)',s:0.1},{k:'rateMode',l:'纠正速度',type:'select',opts:[{v:'safe',t:'安全(72h)'},{v:'slow',t:'慢(48h)'},{v:'fast',t:'快(24h)'}]}],
+    compute(v) { return Calc.dehydration(v.wt,v.na,v.k,v.rateMode); } },
 
   { id:'dex', name:'地塞米松换算', icon:'💊', cat:'配药', keywords:'地塞米松 激素 等效剂量',
     inputs:[{k:'dose',l:'地塞米松mg',s:0.1},{k:'route',l:'途径',type:'select',opts:[{v:'po',t:'口服'},{v:'iv',t:'静脉'}]}],
@@ -2431,23 +2717,154 @@ const CalcRegistry = [
     inputs:[{k:'wt',l:'体重kg',s:0.1},{k:'dose',l:'mg/kg',s:0.01},{k:'max',l:'极量mg'}],
     compute(v) { if(!v.wt||!v.dose) return null; let total=Calc.round(v.wt*v.dose,1); let warn=''; if(v.max&&total>v.max){total=v.max;warn='⚠️已按极量限制';} return {main:`总剂量 = ${total} mg`, detail:`${v.wt}kg × ${v.dose}mg/kg${warn?'<br>'+warn:''}`}; } },
 
+  // Kidney extras
+  { id:'schwartz', name:'Schwartz公式', icon:'🫘', cat:'肾脏', keywords:'Schwartz 儿童 eGFR',
+    inputs:[{k:'h',l:'身高cm'},{k:'cr',l:'Cr μmol/L'}],
+    compute(v) { return Calc.schwartz(v.h,v.cr); } },
+
+  // Nutrition extras
+  { id:'bmr', name:'BMR/TDEE', icon:'🥗', cat:'营养', keywords:'基础代谢 TDEE BMR 热量',
+    inputs:[{k:'age',l:'年龄'},{k:'wt',l:'体重kg',s:0.1},{k:'ht',l:'身高cm'},{k:'sex',l:'性别',type:'select',opts:[{v:'男',t:'男'},{v:'女',t:'女'}]},{k:'act',l:'活动系数',type:'select',opts:[{v:'1.2',t:'久坐(1.2)'},{v:'1.375',t:'轻度活动(1.375)'},{v:'1.55',t:'中度活动(1.55)'},{v:'1.725',t:'重度活动(1.725)'},{v:'1.9',t:'极重活动(1.9)'}]}],
+    compute(v) { return Calc.bmr(v.age,v.wt,v.ht,v.sex,v.act); } },
+
+  { id:'whr', name:'腰臀比', icon:'🥗', cat:'营养', keywords:'WHR 腰臀比 肥胖',
+    inputs:[{k:'waist',l:'腰围cm'},{k:'hip',l:'臀围cm'},{k:'ht',l:'身高cm(选填)'}],
+    compute(v) { return Calc.whr(v.waist,v.hip,v.ht); } },
+
+  // TPN
+  { id:'pnprotein', name:'TPN蛋白量', icon:'🧬', cat:'TPN', keywords:'TPN 蛋白 氮量 肠外营养',
+    inputs:[{k:'wt',l:'体重kg',s:0.1},{k:'gPerKg',l:'g/kg/d',type:'select',opts:[{v:'0.8',t:'0.8(标准)'},{v:'1.0',t:'1.0'},{v:'1.2',t:'1.2'},{v:'1.5',t:'1.5(应激)'},{v:'2.0',t:'2.0(严重应激)'}]}],
+    compute(v) { return Calc.pnprotein(v.wt,v.gPerKg); } },
+
+  { id:'pnenergy', name:'TPN能量', icon:'🧬', cat:'TPN', keywords:'TPN 能量 热量 肠外营养',
+    inputs:[{k:'wt',l:'体重kg',s:0.1},{k:'kcalPerKg',l:'kcal/kg/d',type:'select',opts:[{v:'20',t:'20(低)'},{v:'25',t:'25'},{v:'30',t:'30(标准)'},{v:'35',t:'35(应激)'}]}],
+    compute(v) { return Calc.pnenergy(v.wt,v.kcalPerKg); } },
+
+  { id:'pnmacro', name:'TPN宏量营养素', icon:'🧬', cat:'TPN', keywords:'TPN 糖 脂 蛋白 宏量',
+    inputs:[{k:'totalKcal',l:'总热量kcal'},{k:'carbPct',l:'糖供能比%',d:60},{k:'fatPct',l:'脂供能比%',d:25},{k:'protPct',l:'蛋白供能比%',d:15}],
+    compute(v) { return Calc.pnmacro(v.totalKcal,v.carbPct,v.fatPct,v.protPct); } },
+
+  { id:'glucoserate', name:'TPN糖速', icon:'🧬', cat:'TPN', keywords:'TPN 糖速 葡萄糖 mg/kg/min',
+    inputs:[{k:'glucG',l:'葡萄糖g/d'},{k:'wt',l:'体重kg',s:0.1}],
+    compute(v) { return Calc.glucoserate(v.glucG,v.wt); } },
+
+  { id:'tnratio', name:'热氮比', icon:'🧬', cat:'TPN', keywords:'TPN 热氮比 非蛋白热量',
+    inputs:[{k:'npCal',l:'非蛋白热量kcal'},{k:'aaG',l:'氨基酸g'}],
+    compute(v) { return Calc.tnratio(v.npCal,v.aaG); } },
+
+  { id:'pnosm', name:'TPN渗透压', icon:'🧬', cat:'TPN', keywords:'TPN 渗透压 渗透压浓度',
+    inputs:[{k:'gVol',l:'50%GS mL'},{k:'fVol',l:'20%脂肪乳mL'},{k:'aVol',l:'氨基酸mL'},{k:'oVol',l:'其他液体mL'}],
+    compute(v) { return Calc.pnosm(v.gVol,v.fVol,v.aVol,v.oVol); } },
+
+  // Fluid extras
+  { id:'mainadult', name:'成人维持液', icon:'💧', cat:'补液', keywords:'维持液 成人 4-2-1',
+    inputs:[{k:'wt',l:'体重kg',s:0.1},{k:'mode',l:'模式',type:'select',opts:[{v:'maint',t:'维持'},{v:'deficit',t:'纠正'}]}],
+    compute(v) { return Calc.mainadult(v.wt,v.mode); } },
+
+  { id:'mainchild', name:'儿科维持液', icon:'💧', cat:'补液', keywords:'维持液 儿童 小儿',
+    inputs:[{k:'wt',l:'体重kg',s:0.1}],
+    compute(v) { return Calc.mainchild(v.wt); } },
+
+  // Emergency / Insulin
+  { id:'dka', name:'DKA/HHS补液', icon:'🚨', cat:'急算', keywords:'DKA HHS 补液 糖尿病酮症',
+    inputs:[{k:'wt',l:'体重kg',s:0.1},{k:'degree',l:'脱水程度',type:'select',opts:[{v:'0.05',t:'轻度(50mL/kg)'},{v:'0.07',t:'中度(70mL/kg)'},{v:'0.1',t:'重度(100mL/kg)'}]},{k:'glucose',l:'血糖mmol/L(选填)',s:0.1},{k:'k',l:'K⁺(选填)',s:0.1}],
+    compute(v) { return Calc.dka(v.wt,v.degree,v.glucose,v.k); } },
+
+  { id:'insulintdd', name:'胰岛素TDD', icon:'💉', cat:'胰岛素', keywords:'胰岛素 TDD 总日剂量',
+    inputs:[{k:'type',l:'类型',type:'select',opts:[{v:'1',t:'1型(0.3-0.6U/kg)'},{v:'2',t:'2型(0.2-0.4U/kg)'}]},{k:'wt',l:'体重kg',s:0.1}],
+    compute(v) { return Calc.insulintdd(v.type,v.wt); } },
+
+  { id:'isf', name:'胰岛素敏感系数', icon:'💉', cat:'胰岛素', keywords:'ISF 胰岛素敏感系数 100法则',
+    inputs:[{k:'tdd',l:'总日剂量TDD'}],
+    compute(v) { return Calc.isf(v.tdd); } },
+
+  { id:'icr', name:'胰岛素碳水比', icon:'💉', cat:'胰岛素', keywords:'ICR 碳水比 500法则',
+    inputs:[{k:'tdd',l:'总日剂量TDD'}],
+    compute(v) { return Calc.icr(v.tdd); } },
+
+  // Pharmacy
+  { id:'dilution', name:'稀释计算器', icon:'💊', cat:'配药', keywords:'稀释 C1V1 C2V2 定容',
+    inputs:[{k:'c1',l:'原液浓度C₁'},{k:'c2',l:'目标浓度C₂'},{k:'v2',l:'目标体积V₂(选填)'},{k:'v1',l:'原液体积V₁(选填)'}],
+    compute(v) { return Calc.dilution(v.c1,v.c2,v.v2,v.v1); } },
+
+  { id:'solution', name:'溶液浓度', icon:'💊', cat:'配药', keywords:'浓度 mg/mL 溶液',
+    inputs:[{k:'mass',l:'药物质量mg'},{k:'vol',l:'溶媒体积mL'}],
+    compute(v) { return Calc.solution(v.mass,v.vol); } },
+
+  { id:'kclconc', name:'KCl浓度检查', icon:'💊', cat:'配药', keywords:'KCl 浓度 补钾 CVC 外周',
+    inputs:[{k:'type',l:'输入方式',type:'select',opts:[{v:'ml',t:'15%KCl mL数'},{v:'mg',t:'KCl mg数'}]},{k:'amount',l:'KCl量'},{k:'totalVol',l:'溶媒总量mL'}],
+    compute(v) { return Calc.kclconc(v.type,v.amount,v.totalVol); } },
+
+  // OB
+  { id:'edd', name:'预产期', icon:'🤰', cat:'产科', keywords:'预产期 EDD 孕周 末次月经',
+    inputs:[{k:'lmpStr',l:'末次月经',type:'date'}],
+    compute(v) { return Calc.edd(v.lmpStr); } },
+
+  { id:'fetalweight', name:'胎儿体重', icon:'🤰', cat:'产科', keywords:'胎儿体重 宫高 腹围',
+    inputs:[{k:'fh',l:'宫高cm'},{k:'ac',l:'腹围cm'}],
+    compute(v) { return Calc.fetalweight(v.fh,v.ac); } },
+
+  // Scoring
+  { id:'gcs', name:'GCS评分', icon:'🧠', cat:'评分', keywords:'GCS 格拉斯哥 昏迷 意识',
+    inputs:[{k:'eye',l:'睁眼(1-4)',type:'select',opts:[{v:'4',t:'自发睁眼(4)'},{v:'3',t:'呼唤睁眼(3)'},{v:'2',t:'刺痛睁眼(2)'},{v:'1',t:'不睁眼(1)'}]},{k:'verbal',l:'语言(1-5)',type:'select',opts:[{v:'5',t:'回答正确(5)'},{v:'4',t:'回答错误(4)'},{v:'3',t:'吐词不清(3)'},{v:'2',t:'只能发声(2)'},{v:'1',t:'不能言语(1)'}]},{k:'motor',l:'运动(1-6)',type:'select',opts:[{v:'6',t:'遵嘱活动(6)'},{v:'5',t:'刺痛定位(5)'},{v:'4',t:'刺痛躲避(4)'},{v:'3',t:'刺痛屈曲(3)'},{v:'2',t:'刺痛过伸(2)'},{v:'1',t:'无运动(1)'}]}],
+    compute(v) { return Calc.gcs(v.eye,v.verbal,v.motor); } },
+
+  { id:'apgar', name:'Apgar评分', icon:'👶', cat:'评分', keywords:'Apgar 新生儿 评分 窒息',
+    inputs:[{k:'color',l:'肤色(0-2)',type:'select',opts:[{v:'2',t:'全身红润(2)'},{v:'1',t:'躯干红四肢紫(1)'},{v:'0',t:'全身苍白/紫(0)'}]},{k:'hr',l:'心率(0-2)',type:'select',opts:[{v:'2',t:'>100次/分(2)'},{v:'1',t:'<100次/分(1)'},{v:'0',t:'无(0)'}]},{k:'reflex',l:'刺激反应(0-2)',type:'select',opts:[{v:'2',t:'哭/喷嚏(2)'},{v:'1',t:'皱眉(1)'},{v:'0',t:'无反应(0)'}]},{k:'tone',l:'肌张力(0-2)',type:'select',opts:[{v:'2',t:'四肢活动好(2)'},{v:'1',t:'四肢稍屈曲(1)'},{v:'0',t:'松弛(0)'}]},{k:'resp',l:'呼吸(0-2)',type:'select',opts:[{v:'2',t:'哭声响亮(2)'},{v:'1',t:'慢/不规则(1)'},{v:'0',t:'无呼吸(0)'}]}],
+    compute(v) { return Calc.apgar(v.color,v.hr,v.reflex,v.tone,v.resp); } },
+
+  { id:'insulinPrep', name:'胰岛素配制', icon:'📋', cat:'配药', keywords:'胰岛素配制 泵 RI',
+    inputs:[],
+    compute(v) { return Calc.insulinPrep(); } },
+
+  { id:'correctedNa_hypoglyc', name:'校正钠(低血糖)', icon:'🧪', cat:'肾脏', keywords:'校正钠 低血糖 低血糖校正钠',
+    inputs:[{k:'na',l:'Na⁺'},{k:'glu',l:'血糖mmol/L',s:0.1}],
+    compute(v) { return Calc.correctedNa_hypoglyc(v.na,v.glu); } },
+
+  // Unit Converters
   { id:'glucconv', name:'血糖换算', icon:'🔄', cat:'换算', keywords:'血糖 换算 mmol mg/dL',
     inputs:[{k:'mmol',l:'mmol/L',s:0.1},{k:'mg',l:'mg/dL'}],
     bidirectional: true,
-    compute(v) {
-      if (v.mmol) return { main: `${Calc.round(v.mmol*18.02,0)} mg/dL`, detail: 'mmol/L → mg/dL' };
-      if (v.mg) return { main: `${Calc.round(v.mg/18.02,1)} mmol/L`, detail: 'mg/dL → mmol/L' };
-      return null;
-    } },
+    compute(v) { return v.mmol ? {main:`${Calc.round(v.mmol*18.02,0)} mg/dL`,detail:'mmol/L → mg/dL'} : v.mg ? {main:`${Calc.round(v.mg/18.02,1)} mmol/L`,detail:'mg/dL → mmol/L'} : null; } },
 
   { id:'crconv', name:'肌酐换算', icon:'🔄', cat:'换算', keywords:'肌酐 换算 μmol mg/dL',
     inputs:[{k:'umol',l:'μmol/L'},{k:'mg',l:'mg/dL',s:0.01}],
     bidirectional: true,
-    compute(v) {
-      if (v.umol) return { main: `${Calc.round(v.umol/88.4,2)} mg/dL`, detail: 'μmol/L → mg/dL' };
-      if (v.mg) return { main: `${Calc.round(v.mg*88.4,1)} μmol/L`, detail: 'mg/dL → μmol/L' };
-      return null;
-    } }
+    compute(v) { return v.umol ? {main:`${Calc.round(v.umol/88.4,2)} mg/dL`,detail:'μmol/L → mg/dL'} : v.mg ? {main:`${Calc.round(v.mg*88.4,1)} μmol/L`,detail:'mg/dL → μmol/L'} : null; } },
+
+  { id:'caconv', name:'钙换算', icon:'🔄', cat:'换算', keywords:'钙 Ca 换算 mmol mg',
+    inputs:[{k:'mmol',l:'mmol/L',s:0.01},{k:'mg',l:'mg/dL',s:0.1}],
+    bidirectional: true,
+    compute(v) { return v.mmol ? {main:`${Calc.round(v.mmol*4.008,1)} mg/dL`,detail:'mmol/L → mg/dL'} : v.mg ? {main:`${Calc.round(v.mg/4.008,2)} mmol/L`,detail:'mg/dL → mmol/L'} : null; } },
+
+  { id:'mgconv', name:'镁换算', icon:'🔄', cat:'换算', keywords:'镁 Mg 换算 mmol mg',
+    inputs:[{k:'mmol',l:'mmol/L',s:0.01},{k:'mg',l:'mg/dL',s:0.1}],
+    bidirectional: true,
+    compute(v) { return v.mmol ? {main:`${Calc.round(v.mmol*2.43,1)} mg/dL`,detail:'mmol/L → mg/dL'} : v.mg ? {main:`${Calc.round(v.mg/2.43,2)} mmol/L`,detail:'mg/dL → mmol/L'} : null; } },
+
+  { id:'biliconv', name:'胆红素换算', icon:'🔄', cat:'换算', keywords:'胆红素 Bili 换算 μmol mg',
+    inputs:[{k:'umol',l:'μmol/L'},{k:'mg',l:'mg/dL',s:0.1}],
+    bidirectional: true,
+    compute(v) { return v.umol ? {main:`${Calc.round(v.umol/17.1,1)} mg/dL`,detail:'μmol/L → mg/dL'} : v.mg ? {main:`${Math.round(v.mg*17.1)} μmol/L`,detail:'mg/dL → μmol/L'} : null; } },
+
+  { id:'cholconv', name:'胆固醇换算', icon:'🔄', cat:'换算', keywords:'胆固醇 TC 换算 mmol mg',
+    inputs:[{k:'mmol',l:'mmol/L',s:0.01},{k:'mg',l:'mg/dL'}],
+    bidirectional: true,
+    compute(v) { return v.mmol ? {main:`${Math.round(v.mmol*38.67)} mg/dL`,detail:'mmol/L → mg/dL'} : v.mg ? {main:`${Calc.round(v.mg/38.67,2)} mmol/L`,detail:'mg/dL → mmol/L'} : null; } },
+
+  { id:'tgconv', name:'甘油三酯换算', icon:'🔄', cat:'换算', keywords:'甘油三酯 TG 换算 mmol mg',
+    inputs:[{k:'mmol',l:'mmol/L',s:0.01},{k:'mg',l:'mg/dL'}],
+    bidirectional: true,
+    compute(v) { return v.mmol ? {main:`${Math.round(v.mmol*88.57)} mg/dL`,detail:'mmol/L → mg/dL'} : v.mg ? {main:`${Calc.round(v.mg/88.57,2)} mmol/L`,detail:'mg/dL → mmol/L'} : null; } },
+
+  { id:'presconv', name:'血压/压力换算', icon:'🔄', cat:'换算', keywords:'血压 mmHg kPa cmH2O 压力',
+    inputs:[{k:'mmhg',l:'mmHg'},{k:'kpa',l:'kPa',s:0.1},{k:'cmh2o',l:'cmH₂O',s:0.1}],
+    compute(v) { return Calc.convPres(v.mmhg||v.kpa||v.cmh2o||0, v.mmhg?'mmhg':v.kpa?'kpa':'cmh2o'); } },
+
+  { id:'tempconv', name:'体温换算', icon:'🔄', cat:'换算', keywords:'体温 ℃ °F 温度',
+    inputs:[{k:'c',l:'°C',s:0.1},{k:'f',l:'°F',s:0.1}],
+    bidirectional: true,
+    compute(v) { return v.c ? {main:`${v.c}°C = ${Calc.round(v.c*9/5+32,1)}°F`,detail:''} : v.f ? {main:`${v.f}°F = ${Calc.round((v.f-32)*5/9,1)}°C`,detail:''} : null; } }
 ];
 
 /* ===== Toolbox Rendering ===== */
@@ -2455,7 +2872,8 @@ function renderToolbox() {
   const page = $('page-toolbox');
   if (!page) return;
 
-  const quickTools = CalcRegistry.filter(c => c.quick);
+  const savedQuickIds = DB.get('mc_quick_calcs', DEFAULT_QUICK_IDS);
+  const quickTools = CalcRegistry.filter(c => c.quick && savedQuickIds.includes(c.id));
   const categories = [...new Set(CalcRegistry.filter(c => !c.quick).map(c => c.cat))];
   const favs = State.favorites || [];
 
@@ -2476,14 +2894,15 @@ function renderToolbox() {
   // Quick tools
   html += `<div class="flex-between mb-8 mt-12"><span class="text-sm text-secondary">⚡ 急算工具</span></div>
   <div class="quick-tools" id="toolbox-quick">${quickTools.map(c =>
-    `<button class="qt-btn" onclick="openCalcCard('${c.id}')">${c.icon} ${c.name}</button>`
-  ).join('')}</div>`;
+    `<button class="qt-btn qt-trigger" data-qt-id="${c.id}" onclick="openCalcCard('${c.id}')">${c.icon} ${c.name}</button>`
+  ).join('')}</div>
+  <div id="quick-calc-container" style="margin-top:8px"></div>`;
 
   // Category accordions
   html += '<div class="mt-12" id="toolbox-cats">';
   for (const cat of categories) {
     const tools = CalcRegistry.filter(c => c.cat === cat && !c.quick);
-    const icon = cat === '肾脏' ? '🫘' : cat === '营养' ? '🥗' : cat === '补液' ? '💧' : cat === '胰岛素' ? '💊' : cat === '配药' ? '💉' : cat === '评分' ? '📊' : cat === '换算' ? '🔄' : '🧮';
+    const icon = cat === '肾脏' ? '🫘' : cat === '营养' ? '🥗' : cat === '补液' ? '💧' : cat === '胰岛素' ? '💊' : cat === '配药' ? '💉' : cat === '评分' ? '📊' : cat === '换算' ? '🔄' : cat === 'TPN' ? '🧬' : cat === '产科' ? '🤰' : '🧮';
     html += `<div class="accordion-item" data-cat="${cat}">
       <div class="accordion-header" onclick="toggleAccordion(this)">
         <span class="acc-icon">${icon}</span>
@@ -2520,6 +2939,9 @@ function renderCalcInputs(calc) {
     }
     if (inp.type === 'select') {
       return `<select class="form-input calc-input" data-calc="${calc.id}" data-key="${inp.k}" style="width:auto;min-width:80px;padding:6px 8px;font-size:.82rem">${inp.opts.map(o => `<option value="${o.v}">${o.t}</option>`).join('')}</select>`;
+    }
+    if (inp.type === 'date') {
+      return `<input type="date" class="form-input calc-input" data-calc="${calc.id}" data-key="${inp.k}" style="width:auto;min-width:100px;padding:6px 8px;font-size:.82rem">`;
     }
     return `<input type="number" class="form-input calc-input" data-calc="${calc.id}" data-key="${inp.k}" placeholder="${inp.l}" step="${inp.s||1}" style="width:auto;min-width:80px;padding:6px 8px;font-size:.82rem">`;
   }).join('')}
@@ -2575,17 +2997,41 @@ function runCalc(id) {
 function openCalcCard(id) {
   const calc = CalcRegistry.find(c => c.id === id);
   if (!calc) return;
-  // Open the accordion containing this calc
-  const card = document.querySelector(`[data-calc-id="${id}"]`);
+  // Check accordion card first
+  const card = document.querySelector(`.accordion-item [data-calc-id="${id}"]`);
   if (card) {
     const accordion = card.closest('.accordion-item');
     if (accordion && !accordion.classList.contains('open')) accordion.classList.add('open');
     setTimeout(() => card.scrollIntoView({ behavior: 'smooth', block: 'center' }), 100);
-  } else {
-    // Quick tool — just scroll to quick section
-    const quickEl = document.getElementById('toolbox-quick');
-    if (quickEl) quickEl.scrollIntoView({ behavior: 'smooth' });
+    return;
   }
+  // Quick tool — toggle card in quick-calc-container
+  const container = document.getElementById('quick-calc-container');
+  if (!container) return;
+  const existing = container.querySelector(`[data-calc-id="${id}"]`);
+  if (existing) {
+    existing.remove();
+    document.querySelectorAll(`.qt-trigger[data-qt-id="${id}"]`).forEach(b => b.classList.remove('active'));
+    return;
+  }
+  const favs = State.favorites || [];
+  const cardHtml = `<div class="calc-card" data-calc-id="${id}" style="border:2px solid var(--primary);border-radius:12px;padding:12px;background:var(--card);margin-top:8px">
+    <div class="flex-between mb-8">
+      <span style="font-weight:600;font-size:.95rem">${calc.icon} ${calc.name}</span>
+      <div style="display:flex;gap:6px;align-items:center">
+        <button class="qt-btn" style="padding:4px 8px;font-size:.7rem" onclick="toggleFavCalc('${calc.id}',this)">${favs.includes(calc.id) ? '★' : '☆'}</button>
+        <button class="qt-btn" style="padding:4px 8px;font-size:.7rem" onclick="openCalcCard('${calc.id}')">✕</button>
+      </div>
+    </div>
+    ${renderCalcInputs(calc)}
+    <div class="result-box" id="res-${calc.id}" style="display:none">
+      <div class="res-value" id="res-main-${calc.id}"></div>
+      <div id="res-detail-${calc.id}" style="font-size:.82rem;margin-top:4px"></div>
+    </div>
+  </div>`;
+  container.insertAdjacentHTML('beforeend', cardHtml);
+  document.querySelectorAll(`.qt-trigger[data-qt-id="${id}"]`).forEach(b => b.classList.add('active'));
+  setTimeout(() => container.querySelector(`[data-calc-id="${id}"]`)?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 100);
 }
 
 function filterToolbox(q) {
@@ -2623,12 +3069,13 @@ function resetAllCalcs() {
 let _aiAbortController = null;
 let _aiStartTime = 0;
 let _aiFirstContent = true;
+let _pendingAIImage = null; // { base64, mimeType }
 
 function renderAI() {
   const page = $('page-ai');
   if (!page) return;
   const apiUrl = DB.get('mc_ai_url', '');
-  const connected = !!apiUrl;
+  const connected = DB.get('mc_ai_connected', false) && !!apiUrl;
 
   // Quick commands
   const cmds = State.quickCmds;
@@ -2671,23 +3118,72 @@ function renderAI() {
     <div id="aiChatBody" style="min-height:200px;max-height:calc(100vh - 300px);overflow-y:auto;padding:8px 0">${chatHtml}</div>
     <div class="ai-input-bar">
       <button class="btn btn-sm btn-secondary" onclick="startVoiceInput()" id="voiceBtn" style="border-radius:50%;width:36px;height:36px;padding:0">🎤</button>
+      <button class="btn btn-sm btn-secondary" onclick="document.getElementById('aiImageInput').click()" style="border-radius:50%;width:36px;height:36px;padding:0">📷</button>
+      <input type="file" id="aiImageInput" accept="image/*" style="display:none" onchange="handleAIImageUpload(this)">
       <input type="text" id="aiInput" placeholder="输入问题..." onkeydown="if(event.key==='Enter')sendAIMessage()">
       <button class="send-btn" onclick="sendAIMessage()">↑</button>
-    </div>`;
+    </div>
+    <div id="aiImagePreview" style="display:none;padding:4px 0"></div>`;
 }
 
 function sendAIMessage() {
   const input = $('aiInput');
   const msg = input?.value?.trim();
-  if (!msg) return;
+  if (!msg && !_pendingAIImage) return;
   input.value = '';
-  appendAI('user', msg);
+  const displayMsg = _pendingAIImage ? (msg || '📷 图片') + ' [附图]' : msg;
+  appendAI('user', displayMsg);
   _callAI();
+}
+
+function handleAIImageUpload(fileInput) {
+  const file = fileInput.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const img = new Image();
+    img.onload = function() {
+      // Resize to max 800px width to reduce token usage
+      const canvas = document.createElement('canvas');
+      const maxW = 800;
+      const scale = img.width > maxW ? maxW / img.width : 1;
+      canvas.width = img.width * scale;
+      canvas.height = img.height * scale;
+      canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+      const base64 = canvas.toDataURL('image/jpeg', 0.8);
+      const mimeType = 'image/jpeg';
+      _pendingAIImage = { base64, mimeType };
+      // Show preview
+      const preview = $('aiImagePreview');
+      if (preview) {
+        preview.style.display = 'block';
+        preview.innerHTML = `<div style="display:inline-flex;align-items:center;gap:6px;padding:4px 8px;background:var(--bg);border-radius:8px">
+          <img src="${base64}" style="max-height:60px;border-radius:4px">
+          <button class="btn btn-sm btn-secondary" onclick="clearAIImage()" style="padding:2px 6px;font-size:.75rem">✕</button>
+        </div>`;
+      }
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+  fileInput.value = '';
+}
+
+function clearAIImage() {
+  _pendingAIImage = null;
+  const preview = $('aiImagePreview');
+  if (preview) { preview.style.display = 'none'; preview.innerHTML = ''; }
 }
 
 function runQuickCmd(id) {
   const cmd = State.quickCmds.find(c => c.id === id);
   if (!cmd) return;
+  // "分析全部" commands use all-patient context
+  if (cmd.id === 'qc7' || cmd.label.includes('全部')) {
+    Router.switch('ai');
+    setTimeout(() => sendAllPatientReports(), 200);
+    return;
+  }
   let prompt = cmd.prompt;
   // Attach current patient context if available
   if (State.currentPatientId) {
@@ -2699,7 +3195,7 @@ function runQuickCmd(id) {
     }
   }
   appendAI('user', `[${cmd.label}] ${cmd.prompt}`);
-  _callAI([{ role: 'system', content: '你是一位临床医学AI助手，帮助医生分析病情、解读化验结果、给出诊疗建议。回答要简洁专业。' }, ...State.aiHistory.map(m => ({ role: m.role, content: m.content }))]);
+  _callAI([{ role: 'system', content: getSystemPrompt() }, ...State.aiHistory.map(m => ({ role: m.role, content: m.content }))]);
 }
 
 function sendAllPatientReports() {
@@ -2710,7 +3206,7 @@ function sendAllPatientReports() {
   }
   context += '请分析所有患者的病情，指出需要关注的问题和建议。';
   appendAI('user', '分析全部患者');
-  _callAI([{ role: 'system', content: '你是一位临床医学AI助手。' }, { role: 'user', content: context }]);
+  _callAI([{ role: 'system', content: getSystemPrompt() }, { role: 'user', content: context }]);
 }
 
 function buildPatientContext(p, rec) {
@@ -2774,8 +3270,23 @@ function _callAI(messages) {
   _aiFirstContent = true;
 
   if (!messages) {
-    messages = [{ role: 'system', content: '你是一位临床医学AI助手，帮助医生分析病情、解读化验结果、给出诊疗建议。回答简洁专业。' }];
+    messages = [{ role: 'system', content: getSystemPrompt() }];
     messages.push(...State.aiHistory.map(m => ({ role: m.role, content: m.content })));
+  }
+
+  // Support image in last user message
+  if (_pendingAIImage) {
+    const lastUserIdx = messages.map((m,i) => m.role==='user'?i:-1).filter(i=>i>=0).pop();
+    if (lastUserIdx != null) {
+      const text = messages[lastUserIdx].content || '';
+      messages[lastUserIdx].content = [
+        { type: 'text', text },
+        { type: 'image_url', image_url: { url: _pendingAIImage.base64 } }
+      ];
+    }
+    _pendingAIImage = null;
+    const preview = $('aiImagePreview');
+    if (preview) { preview.style.display = 'none'; preview.innerHTML = ''; }
   }
 
   // Add placeholder for assistant response
@@ -2860,6 +3371,94 @@ function clearAIChat() {
   renderAI();
 }
 
+/* ===== Patient Sub-AI (Report Tab) ===== */
+if (!State.patientAIHistory) State.patientAIHistory = {};
+
+function renderPatientAIHistory(pid) {
+  const hist = State.patientAIHistory[pid] || [];
+  if (!hist.length) return '<div class="text-sm text-secondary text-center" style="padding:8px">点击快捷指令或输入问题开始分析</div>';
+  return hist.map(m => {
+    let content = (m.content || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    content = content.replace(/\*\*(.+?)\*\*/g, '<b>$1</b>').replace(/\n/g, '<br>');
+    return `<div class="ai-msg ${m.role==='user'?'ai-msg-user':'ai-msg-assistant'}" style="max-width:90%;font-size:.82rem;margin-bottom:6px">${content}</div>`;
+  }).join('');
+}
+
+function sendPatientAI(pid, presetPrompt) {
+  const url = DB.get('mc_ai_url', '');
+  const key = DB.get('mc_ai_key', '');
+  const model = DB.get('mc_ai_model', 'deepseek-chat');
+  if (!url || !key) { showToast('请先配置 AI 服务'); return; }
+
+  const inputEl = document.getElementById(`patient-ai-input-${pid}`);
+  const prompt = presetPrompt || inputEl?.value?.trim();
+  if (!prompt) return;
+  if (inputEl && !presetPrompt) inputEl.value = '';
+
+  const p = State.patients.find(x => x.id === pid);
+  const rec = p ? State.getPatientRecord(p, State.currentDate) : null;
+  let context = '';
+  if (p && rec) context = buildPatientContext(p, rec);
+
+  if (!State.patientAIHistory[pid]) State.patientAIHistory[pid] = [];
+  State.patientAIHistory[pid].push({ role: 'user', content: prompt });
+
+  const messages = [
+    { role: 'system', content: getSystemPrompt() },
+    { role: 'user', content: `患者信息：\n${context}\n\n问题：${prompt}` }
+  ];
+
+  State.patientAIHistory[pid].push({ role: 'assistant', content: '' });
+  const histEl = document.getElementById(`patient-ai-history-${pid}`);
+  if (histEl) histEl.innerHTML = renderPatientAIHistory(pid);
+
+  fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + key },
+    body: JSON.stringify({ model, messages, stream: true })
+  }).then(response => {
+    if (!response.ok) { response.text().then(t => { _patientAIError(pid, `HTTP ${response.status}`); }); return; }
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = '';
+    const readChunk = () => {
+      reader.read().then(({ done, value }) => {
+        if (done) { _patientAIDone(pid); return; }
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split('\n');
+        buffer = lines.pop() || '';
+        for (const line of lines) {
+          if (!line.startsWith('data: ')) continue;
+          const data = line.slice(6).trim();
+          if (data === '[DONE]') { _patientAIDone(pid); return; }
+          try {
+            const delta = JSON.parse(data).choices?.[0]?.delta;
+            if (delta?.content) {
+              const hist = State.patientAIHistory[pid];
+              if (hist?.length) { hist[hist.length-1].content += delta.content; }
+              if (histEl) histEl.innerHTML = renderPatientAIHistory(pid);
+              histEl.scrollTop = histEl.scrollHeight;
+            }
+          } catch {}
+        }
+        readChunk();
+      });
+    };
+    readChunk();
+  }).catch(e => _patientAIError(pid, e.message));
+}
+
+function _patientAIDone(pid) {
+  DB.set('mc_patient_ai_' + pid, State.patientAIHistory[pid]);
+}
+
+function _patientAIError(pid, msg) {
+  const hist = State.patientAIHistory[pid];
+  if (hist?.length) hist[hist.length-1].content = `⚠️ ${msg}`;
+  const histEl = document.getElementById(`patient-ai-history-${pid}`);
+  if (histEl) histEl.innerHTML = renderPatientAIHistory(pid);
+}
+
 /* ===== AI Settings ===== */
 function openAISettings() {
   const url = DB.get('mc_ai_url', '');
@@ -2917,9 +3516,10 @@ function saveAISettings() {
   DB.set('mc_ai_url', url);
   DB.set('mc_ai_key', key);
   DB.set('mc_ai_model', model);
+  DB.set('mc_ai_connected', false); // Reset; must re-test
   closeSheet();
   renderAI();
-  showToast('AI 设置已保存');
+  showToast('AI 设置已保存，请重新测试连接');
 }
 
 function testAI() {
@@ -2933,9 +3533,19 @@ function testAI() {
     headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + key },
     body: JSON.stringify({ model, messages: [{ role: 'user', content: 'hi' }], max_tokens: 5 })
   }).then(r => {
-    if (r.ok) showToast('✅ 连接成功');
-    else r.text().then(t => showToast(`❌ ${r.status}: ${t.slice(0,100)}`));
-  }).catch(e => showToast('❌ ' + e.message));
+    if (r.ok) {
+      DB.set('mc_ai_connected', true);
+      DB.set('mc_ai_last_test', Date.now());
+      showToast('✅ 连接成功');
+      renderAI();
+    } else {
+      DB.set('mc_ai_connected', false);
+      r.text().then(t => showToast(`❌ ${r.status}: ${t.slice(0,100)}`));
+    }
+  }).catch(e => {
+    DB.set('mc_ai_connected', false);
+    showToast('❌ ' + e.message);
+  });
 }
 
 function addCmd() {
@@ -2997,6 +3607,11 @@ function renderSettings() {
         <div class="settings-text"><div class="settings-label">快捷指令</div><div class="settings-desc">${State.quickCmds.length} 个指令</div></div>
         <span class="settings-arrow">›</span>
       </div>
+      <div class="settings-item" onclick="openSystemPromptEditor()">
+        <span class="settings-icon">📝</span>
+        <div class="settings-text"><div class="settings-label">系统提示词</div><div class="settings-desc">自定义AI的角色和行为规范</div></div>
+        <span class="settings-arrow">›</span>
+      </div>
     </div>
     <div class="settings-group">
       <div class="settings-group-title">临床设置</div>
@@ -3004,6 +3619,13 @@ function renderSettings() {
         <span class="settings-icon">📊</span>
         <div class="settings-text"><div class="settings-label">化验参考范围</div><div class="settings-desc">自定义各项化验的正常范围</div></div>
         <span class="settings-arrow">›</span>
+      </div>
+    </div>
+    <div class="settings-group">
+      <div class="settings-group-title">急算工具管理</div>
+      <div style="padding:8px 16px;font-size:.82rem;color:var(--text-secondary)">勾选要在工作台和工具箱显示的急算工具：</div>
+      <div id="quick-calc-toggles" style="padding:0 16px 12px">
+        ${renderQuickCalcToggles()}
       </div>
     </div>
     <div class="settings-group">
@@ -3036,9 +3658,79 @@ function renderSettings() {
       <div class="settings-group-title">关于</div>
       <div class="settings-item">
         <span class="settings-icon">ℹ️</span>
-        <div class="settings-text"><div class="settings-label">版本 V3.0</div><div class="settings-desc">临床助手 · 移动端 PWA</div></div>
+        <div class="settings-text"><div class="settings-label">版本 V3.1</div><div class="settings-desc">临床助手 · 移动端 PWA</div></div>
+      </div>
+      <div class="settings-item" onclick="showAPKGuide()">
+        <span class="settings-icon">📦</span>
+        <div class="settings-text"><div class="settings-label">打包为 APK</div><div class="settings-desc">使用 PWABuilder 生成安卓安装包</div></div>
+        <span class="settings-arrow">›</span>
       </div>
     </div>`;
+}
+
+function openSystemPromptEditor() {
+  const current = DB.get('mc_system_prompt', DEFAULT_CLINICAL_PROMPT);
+  showSheet('系统提示词', `
+    <p class="text-sm text-secondary mb-8">自定义AI助手的角色、输出规范和行为约束。修改后所有AI对话将使用新的系统提示词。</p>
+    <div class="form-group">
+      <textarea id="sys-prompt-editor" class="form-input" rows="15" style="font-size:.82rem;font-family:monospace">${current.replace(/</g,'&lt;')}</textarea>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:12px">
+      <button class="btn btn-primary btn-block" onclick="saveSystemPrompt()">保存</button>
+      <button class="btn btn-secondary" onclick="restoreDefaultPrompt()" style="white-space:nowrap">恢复默认</button>
+    </div>
+  `);
+}
+
+function saveSystemPrompt() {
+  const text = document.getElementById('sys-prompt-editor')?.value?.trim();
+  if (!text) { showToast('提示词不能为空'); return; }
+  DB.set('mc_system_prompt', text);
+  closeSheet();
+  showToast('系统提示词已保存');
+}
+
+function restoreDefaultPrompt() {
+  DB.set('mc_system_prompt', DEFAULT_CLINICAL_PROMPT);
+  const el = document.getElementById('sys-prompt-editor');
+  if (el) el.value = DEFAULT_CLINICAL_PROMPT;
+  showToast('已恢复默认提示词');
+}
+
+function renderQuickCalcToggles() {
+  const saved = DB.get('mc_quick_calcs', DEFAULT_QUICK_IDS);
+  const allQuick = CalcRegistry.filter(c => c.quick);
+  return allQuick.map(c =>
+    `<label style="display:inline-flex;align-items:center;gap:6px;margin:4px 8px 4px 0;padding:6px 10px;background:var(--bg);border-radius:8px;font-size:.85rem;cursor:pointer">
+      <input type="checkbox" ${saved.includes(c.id)?'checked':''} onchange="saveQuickCalcSetting('${c.id}',this.checked)">
+      ${c.icon} ${c.name}
+    </label>`
+  ).join('');
+}
+
+function saveQuickCalcSetting(id, on) {
+  let saved = DB.get('mc_quick_calcs', DEFAULT_QUICK_IDS);
+  if (on && !saved.includes(id)) saved.push(id);
+  if (!on) saved = saved.filter(x => x !== id);
+  DB.set('mc_quick_calcs', saved);
+}
+
+function showAPKGuide() {
+  showSheet('打包为 APK', `
+    <div style="line-height:1.8;font-size:.88rem">
+      <p>将本 PWA 打包为 Android APK 安装包：</p>
+      <ol style="padding-left:20px">
+        <li>将本 HTML 文件部署到 HTTPS 网址（如 GitHub Pages）</li>
+        <li>访问 <a href="https://www.pwabuilder.com/" target="_blank" style="color:var(--primary)">pwabuilder.com</a></li>
+        <li>输入网址，点击 <b>Start</b></li>
+        <li>选择 <b>Android</b> → <b>Generate Package</b></li>
+        <li>下载 APK 安装到手机</li>
+      </ol>
+      <p style="margin-top:12px;color:var(--text2);font-size:.82rem">
+        💡 也可以在手机浏览器中直接"添加到主屏幕"使用，无需打包 APK
+      </p>
+    </div>
+  `);
 }
 
 function openLabRangeSettings() {
@@ -3145,6 +3837,80 @@ function sendToAI(prompt) {
     _callAI();
   }, 200);
 }
+
+/* ===== PWA Service Worker ===== */
+(function registerSW() {
+  if ('serviceWorker' in navigator) {
+    const swCode = `
+      const CACHE_NAME = 'clinic-v3.1';
+      const ASSETS = [self.location.href.replace(/sw\\.js.*/, '')];
+      self.addEventListener('install', e => {
+        e.waitUntil(caches.open(CACHE_NAME).then(c => c.addAll(ASSETS)).then(() => self.skipWaiting()));
+      });
+      self.addEventListener('activate', e => {
+        e.waitUntil(caches.keys().then(keys => Promise.all(keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k)))).then(() => self.clients.claim()));
+      });
+      self.addEventListener('fetch', e => {
+        if (e.request.method !== 'GET') return;
+        e.respondWith(caches.match(e.request).then(r => r || fetch(e.request).then(resp => {
+          if (resp.ok) { const clone = resp.clone(); caches.open(CACHE_NAME).then(c => c.put(e.request, clone)); }
+          return resp;
+        }).catch(() => caches.match(e.request)));
+      });
+    `;
+    const blob = new Blob([swCode], { type: 'application/javascript' });
+    const swUrl = URL.createObjectURL(blob);
+    navigator.serviceWorker.register(swUrl, { scope: './' }).catch(() => {});
+  }
+})();
+
+/* ===== PWA Install Guide ===== */
+let _deferredInstallPrompt = null;
+window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); _deferredInstallPrompt = e; });
+
+function showInstallGuide() {
+  const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+  if (isStandalone) return; // Already installed
+  const dismissed = sessionStorage.getItem('mc_install_dismissed');
+  if (dismissed) return;
+
+  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+  const guideText = isIOS
+    ? '点击 Safari 底部的 <b>分享按钮</b> ↑ → <b>添加到主屏幕</b>'
+    : '点击浏览器菜单 → <b>添加到主屏幕</b> 或 <b>安装应用</b>';
+
+  const div = document.createElement('div');
+  div.id = 'install-guide';
+  div.style.cssText = 'position:fixed;bottom:70px;left:12px;right:12px;z-index:9999;background:var(--card);border:2px solid var(--primary);border-radius:12px;padding:14px;box-shadow:0 4px 20px rgba(0,0,0,.15)';
+  div.innerHTML = `
+    <div style="display:flex;align-items:center;gap:10px">
+      <span style="font-size:1.5rem">📱</span>
+      <div style="flex:1">
+        <div style="font-weight:600;font-size:.9rem">添加到主屏幕</div>
+        <div style="font-size:.8rem;color:var(--text2);margin-top:2px">${guideText}</div>
+      </div>
+      <button onclick="dismissInstallGuide()" style="background:none;border:none;font-size:1.2rem;cursor:pointer;padding:4px">✕</button>
+    </div>
+    ${!isIOS && _deferredInstallPrompt ? '<button class="btn btn-primary btn-block btn-sm" style="margin-top:8px" onclick="promptInstall()">一键安装</button>' : ''}
+  `;
+  document.body.appendChild(div);
+}
+
+function promptInstall() {
+  if (_deferredInstallPrompt) {
+    _deferredInstallPrompt.prompt();
+    _deferredInstallPrompt.userChoice.then(() => { _deferredInstallPrompt = null; dismissInstallGuide(); });
+  }
+}
+
+function dismissInstallGuide() {
+  sessionStorage.setItem('mc_install_dismissed', '1');
+  const el = document.getElementById('install-guide');
+  if (el) el.remove();
+}
+
+// Show install guide after 3s on first visit
+setTimeout(showInstallGuide, 3000);
 
 /* ===== Start ===== */
 init();
