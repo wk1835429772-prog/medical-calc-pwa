@@ -583,36 +583,40 @@ const DB = {
   _cache: {},
   _ready: false,
   _db: null,
+  _APP_PREFIX: 'mc_',
 
   async init() {
-    // Load from localStorage first (instant)
+    // Load localStorage FIRST (source of truth — always survives page close)
     for (let i = 0; i < localStorage.length; i++) {
       const k = localStorage.key(i);
-      try { this._cache[k] = JSON.parse(localStorage.getItem(k)); } catch { this._cache[k] = localStorage.getItem(k); }
+      if (k.startsWith(this._APP_PREFIX) || k === 'app_page') {
+        try { this._cache[k] = JSON.parse(localStorage.getItem(k)); } catch { this._cache[k] = localStorage.getItem(k); }
+      }
     }
 
-    // Open IndexedDB
+    // Open IndexedDB (secondary — may have stale data if prior session crashed)
     return new Promise((resolve) => {
       const req = indexedDB.open('clinic-db', 1);
       req.onupgradeneeded = (e) => {
         const db = e.target.result;
         if (!db.objectStoreNames.contains('kv')) db.createObjectStore('kv');
       };
-      req.onsuccess = async (e) => {
+      req.onsuccess = (e) => {
         this._db = e.target.result;
-        // Load all from IDB into cache (overwrites localStorage if both exist)
         const tx = this._db.transaction('kv', 'readonly');
         const store = tx.objectStore('kv');
         const cursorReq = store.openCursor();
         cursorReq.onsuccess = (ev) => {
           const cursor = ev.target.result;
           if (cursor) {
-            this._cache[cursor.key] = cursor.value;
+            // Only use IDB data for keys NOT already in cache from localStorage
+            if (this._cache[cursor.key] === undefined) {
+              this._cache[cursor.key] = cursor.value;
+            }
             cursor.continue();
           } else {
             this._ready = true;
-            // Migrate localStorage → IDB
-            this._migrateFromLS();
+            this._syncLSToIDB();
             resolve();
           }
         };
@@ -622,11 +626,14 @@ const DB = {
     });
   },
 
-  _migrateFromLS() {
+  // Sync localStorage keys INTO IDB (only keys IDB doesn't have yet)
+  _syncLSToIDB() {
     if (!this._db) return;
-    const tx = this._db.transaction('kv', 'readwrite');
-    const store = tx.objectStore('kv');
-    Object.entries(this._cache).forEach(([k, v]) => store.put(v, k));
+    try {
+      const tx = this._db.transaction('kv', 'readwrite');
+      const store = tx.objectStore('kv');
+      Object.entries(this._cache).forEach(([k, v]) => store.put(v, k));
+    } catch(e) {}
   },
 
   get(key, def) {
@@ -636,8 +643,9 @@ const DB = {
 
   set(key, val) {
     this._cache[key] = val;
-    // Always write to localStorage as primary fallback (reliable on file://)
+    // localStorage = primary (sync, survives page close instantly)
     try { localStorage.setItem(key, JSON.stringify(val)); } catch(e) {}
+    // IndexedDB = secondary (async, best-effort)
     if (this._db) {
       try {
         const tx = this._db.transaction('kv', 'readwrite');
@@ -3743,18 +3751,14 @@ function renderSettings() {
         <span class="settings-icon">ℹ️</span>
         <div class="settings-text"><div class="settings-label">版本 V3.1</div><div class="settings-desc">临床助手 · 移动端 PWA</div></div>
       </div>
-      <div class="settings-item" onclick="showAPKGuide()">
-        <span class="settings-icon">📦</span>
-        <div class="settings-text"><div class="settings-label">打包为 APK</div><div class="settings-desc">使用 PWABuilder 生成安卓安装包</div></div>
-        <span class="settings-arrow">›</span>
-      </div>
     </div>`;
 }
 
 function openSystemPromptEditor() {
   const current = DB.get('mc_system_prompt', DEFAULT_CLINICAL_PROMPT);
-  showSheet('系统提示词', `
-    <p class="text-sm text-secondary mb-8">自定义AI助手的角色、输出规范和行为约束。修改后所有AI对话将使用新的系统提示词。</p>
+  openSheet(`
+    <div class="card-title" style="margin-bottom:8px">系统提示词</div>
+    <p style="font-size:.82rem;color:var(--text2);margin-bottom:8px">自定义AI助手的角色、输出规范和行为约束。修改后所有AI对话将使用新的系统提示词。</p>
     <div class="form-group">
       <textarea id="sys-prompt-editor" class="form-input" rows="15" style="font-size:.82rem;font-family:monospace">${current.replace(/</g,'&lt;')}</textarea>
     </div>
@@ -3796,24 +3800,6 @@ function saveQuickCalcSetting(id, on) {
   if (on && !saved.includes(id)) saved.push(id);
   if (!on) saved = saved.filter(x => x !== id);
   DB.set('mc_quick_calcs', saved);
-}
-
-function showAPKGuide() {
-  showSheet('打包为 APK', `
-    <div style="line-height:1.8;font-size:.88rem">
-      <p>将本 PWA 打包为 Android APK 安装包：</p>
-      <ol style="padding-left:20px">
-        <li>将本 HTML 文件部署到 HTTPS 网址（如 GitHub Pages）</li>
-        <li>访问 <a href="https://www.pwabuilder.com/" target="_blank" style="color:var(--primary)">pwabuilder.com</a></li>
-        <li>输入网址，点击 <b>Start</b></li>
-        <li>选择 <b>Android</b> → <b>Generate Package</b></li>
-        <li>下载 APK 安装到手机</li>
-      </ol>
-      <p style="margin-top:12px;color:var(--text2);font-size:.82rem">
-        💡 也可以在手机浏览器中直接"添加到主屏幕"使用，无需打包 APK
-      </p>
-    </div>
-  `);
 }
 
 function openLabRangeSettings() {
