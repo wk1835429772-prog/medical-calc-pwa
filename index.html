@@ -1285,11 +1285,11 @@ function renderPatientDetail(p, replace) {
 
   // IO balance
   const totalIn = parseFloat(io.intake) || 0;
+  const totalOut = parseFloat(io.totalOut) || 0;
   const urine = parseFloat(io.urine) || 0;
   const drain = parseFloat(io.drain) || 0;
   const stool = parseFloat(io.stool) || 0;
-  const otherOut = parseFloat(io.otherOut) || 0;
-  const totalOut = urine + drain + stool + otherOut;
+  const otherOut = totalOut - urine - drain - stool;
   const balance = totalIn - totalOut;
 
   // Lab reference ranges
@@ -1452,14 +1452,14 @@ function renderPatientDetail(p, replace) {
       <div style="font-size:.78rem;color:var(--text2);font-weight:600;margin-bottom:4px">入量</div>
       <div class="form-group"><label>总入量 (mL)</label><input type="number" class="pt-input pt-io" data-pid="${p.id}" data-field="io.intake" min="0" value="${io.intake || ''}"></div>
       <div style="font-size:.78rem;color:var(--text2);font-weight:600;margin:8px 0 4px">出量</div>
-      <div class="form-group"><label>总出量 (mL)</label><input type="text" class="pt-input" id="io-total-out" readonly style="background:var(--bg);color:var(--text);font-weight:600" value="${totalOut || ''}"></div>
+      <div class="form-group"><label>总出量 (mL)</label><input type="number" class="pt-input pt-io" data-pid="${p.id}" data-field="io.totalOut" min="0" value="${io.totalOut || ''}"></div>
       <div class="form-row">
         <div class="form-group"><label>尿量 (mL)</label><input type="number" class="pt-input pt-io" data-pid="${p.id}" data-field="io.urine" min="0" value="${io.urine || ''}"></div>
         <div class="form-group"><label>引流量 (mL)</label><input type="number" class="pt-input pt-io" data-pid="${p.id}" data-field="io.drain" min="0" value="${io.drain || ''}"></div>
       </div>
       <div class="form-row">
         <div class="form-group"><label>大便量 (mL)</label><input type="number" class="pt-input pt-io" data-pid="${p.id}" data-field="io.stool" min="0" value="${io.stool || ''}"></div>
-        <div class="form-group"><label>其他出量 (mL)</label><input type="number" class="pt-input pt-io" data-pid="${p.id}" data-field="io.otherOut" min="0" value="${io.otherOut || ''}"></div>
+        <div class="form-group"><label>其他出量 (mL)</label><input type="text" class="pt-input" id="io-other-out" readonly style="background:var(--bg);color:var(--text2)" value="${io.otherOut || ''}"></div>
       </div>
       <div id="io-balance-display" style="margin-top:6px;padding:6px 10px;border-radius:6px;font-size:.85rem;font-weight:600;background:${totalIn||totalOut ? (balance>500?'var(--danger-bg)':balance<-500?'var(--warning-bg)':'var(--success-bg)') : 'var(--bg)'};color:${totalIn||totalOut ? (balance>500?'var(--danger)':balance<-500?'var(--warning)':'var(--success)') : 'var(--text2)'}">平衡 ${balance>0?'+':''}${balance} mL</div>
     </div>
@@ -1600,19 +1600,46 @@ function switchPatientSubTab(pid, tab) {
   _currentSubTab = tab;
   document.querySelectorAll('#patientSubTabs .sub-tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tab));
   document.querySelectorAll('.sub-tab-panel').forEach(p => p.classList.toggle('hidden', !p.id.endsWith(tab)));
-  // AI sub-tab: make page flex so input sticks to bottom
-  const page = $('page-detail');
-  if (page) {
+  // AI sub-tab: restructure layout so input sticks to bottom
+  const slidePg = $('slidePage');
+  const slideBd = $('slideBody');
+  if (slidePg && slideBd) {
     if (tab === 'ai') {
-      page.style.display = 'flex';
-      page.style.flexDirection = 'column';
-      // Hide everything except sub-tabs and AI panel
-      page.querySelectorAll(':scope > *:not(.sub-tabs):not(#subtab-ai)').forEach(el => { if (!el.classList.contains('sub-tabs')) el.style.display = 'none'; });
-      page.querySelectorAll(':scope > .sub-tabs').forEach(el => el.style.flexShrink = '0');
+      // slidePage: no scroll, flex column
+      slidePg.style.overflow = 'hidden';
+      slidePg.style.display = 'flex';
+      slidePg.style.flexDirection = 'column';
+      // slideBody: fill remaining space, flex column, no scroll
+      slideBd.style.flex = '1';
+      slideBd.style.overflow = 'hidden';
+      slideBd.style.display = 'flex';
+      slideBd.style.flexDirection = 'column';
+      slideBd.style.minHeight = '0';
+      slideBd.style.paddingBottom = '0';
+      // Hide non-AI panels
+      slideBd.querySelectorAll('.sub-tab-panel:not(#subtab-ai)').forEach(el => el.style.display = 'none');
+      // Sub-tabs nav: fixed height
+      const nav = slideBd.querySelector('.sub-tabs');
+      if (nav) nav.style.flexShrink = '0';
+      // AI panel: fill remaining, flex column
+      const aiPanel = document.getElementById('subtab-ai');
+      if (aiPanel) { aiPanel.style.flex = '1'; aiPanel.style.minHeight = '0'; }
     } else {
-      page.style.display = '';
-      page.style.flexDirection = '';
-      page.querySelectorAll(':scope > *').forEach(el => el.style.display = '');
+      // Restore defaults
+      slidePg.style.overflow = '';
+      slidePg.style.display = '';
+      slidePg.style.flexDirection = '';
+      slideBd.style.flex = '';
+      slideBd.style.overflow = '';
+      slideBd.style.display = '';
+      slideBd.style.flexDirection = '';
+      slideBd.style.minHeight = '';
+      slideBd.style.paddingBottom = '';
+      slideBd.querySelectorAll('.sub-tab-panel').forEach(el => el.style.display = '');
+      const nav = slideBd.querySelector('.sub-tabs');
+      if (nav) nav.style.flexShrink = '';
+      const aiPanel = document.getElementById('subtab-ai');
+      if (aiPanel) { aiPanel.style.flex = ''; aiPanel.style.minHeight = ''; }
     }
   }
   // Auto-scroll AI history to bottom
@@ -1709,15 +1736,15 @@ function updateMAPDisplay() {
 
 function updateIODisplay() {
   const intake = parseFloat(document.querySelector('[data-field="io.intake"]')?.value) || 0;
+  const totalOut = parseFloat(document.querySelector('[data-field="io.totalOut"]')?.value) || 0;
   const urine = parseFloat(document.querySelector('[data-field="io.urine"]')?.value) || 0;
   const drain = parseFloat(document.querySelector('[data-field="io.drain"]')?.value) || 0;
   const stool = parseFloat(document.querySelector('[data-field="io.stool"]')?.value) || 0;
-  const otherOut = parseFloat(document.querySelector('[data-field="io.otherOut"]')?.value) || 0;
-  const totalOut = urine + drain + stool + otherOut;
+  const otherOut = totalOut - urine - drain - stool;
   const balance = intake - totalOut;
-  // Update 总出量 readonly field
-  const outEl = document.getElementById('io-total-out');
-  if (outEl) outEl.value = totalOut || '';
+  // Update 其他出量 readonly field
+  const otherEl = document.getElementById('io-other-out');
+  if (otherEl) otherEl.value = otherOut > 0 ? otherOut : '';
   // Update balance bar
   const el = document.getElementById('io-balance-display');
   if (!el) return;
@@ -1963,17 +1990,17 @@ function genHandoff(p, rec) {
   // IO
   const io = rec?.io || {};
   const intake = parseFloat(io.intake) || 0;
+  const totalOut = parseFloat(io.totalOut) || 0;
   const urine = parseFloat(io.urine) || 0;
   const drain = parseFloat(io.drain) || 0;
   const stool = parseFloat(io.stool) || 0;
-  const otherOut = parseFloat(io.otherOut) || 0;
-  const totalOut = urine + drain + stool + otherOut;
+  const otherOut = totalOut - urine - drain - stool;
   if (intake || totalOut) {
     const parts = [];
     if (urine) parts.push(`尿${urine}`);
     if (drain) parts.push(`引流${drain}`);
     if (stool) parts.push(`便${stool}`);
-    if (otherOut) parts.push(`其他${otherOut}`);
+    if (otherOut > 0) parts.push(`其他${otherOut}`);
     lines.push(`出入量: 入${intake} 出${totalOut}(${parts.join(' ')}) 平衡${intake-totalOut > 0 ? '+' : ''}${intake-totalOut}`);
   }
 
