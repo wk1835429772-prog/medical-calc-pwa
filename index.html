@@ -704,6 +704,24 @@ const Router = {
   }
 };
 
+const LAB_RANGE_DEFAULTS = [
+  { key: 'cr', label: 'Cr (μmol/L)', lo: 44, hi: 133 },
+  { key: 'bun', label: 'BUN (mmol/L)', lo: 2.9, hi: 8.2 },
+  { key: 'k', label: 'K⁺ (mmol/L)', lo: 3.5, hi: 5.0 },
+  { key: 'na', label: 'Na⁺ (mmol/L)', lo: 135, hi: 145 },
+  { key: 'wbc', label: 'WBC (×10⁹/L)', lo: 4, hi: 10 },
+  { key: 'hgb', label: 'Hb (g/L)', lo: 120, hi: 160 },
+  { key: 'plt', label: 'PLT (×10⁹/L)', lo: 125, hi: 350 },
+  { key: 'alt', label: 'ALT (U/L)', lo: 0, hi: 40 },
+  { key: 'ast', label: 'AST (U/L)', lo: 0, hi: 40 },
+  { key: 'tbili', label: 'TBil (μmol/L)', lo: 3.4, hi: 17.1 },
+  { key: 'alb', label: 'Alb (g/L)', lo: 35, hi: 55 },
+  { key: 'abg_ph', label: 'pH', lo: 7.35, hi: 7.45 },
+  { key: 'abg_lac', label: '乳酸 (mmol/L)', lo: 0, hi: 2.0 },
+  { key: 'crp', label: 'CRP (mg/L)', lo: 0, hi: 10 },
+  { key: 'pct', label: 'PCT (ng/mL)', lo: 0, hi: 0.05 }
+];
+
 /* ===== 4c. State ===== */
 const State = {
   patients: [],
@@ -822,7 +840,7 @@ function handlePaste(e) {
     openSheet(`
       <div class="card-title">📋 检测到化验文本</div>
       <p class="text-sm text-secondary mb-12">粘贴的内容看起来是化验报告</p>
-      <button class="btn btn-primary btn-block mb-8" onclick="closeSheet();sendToAI('请分析以下化验结果：\\n${text.replace(/'/g,"\\'").slice(0,500)}')">🤖 AI 分析</button>
+      <button class="btn btn-primary btn-block mb-8" onclick="closeSheet();sendToAI('请分析以下化验结果：\\n${text.replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/\n/g,'\\n').replace(/\r/g,'').slice(0,500)}')">🤖 AI 分析</button>
       <button class="btn btn-secondary btn-block" onclick="closeSheet()">取消</button>
     `);
   }
@@ -908,7 +926,7 @@ function getLabTrends(p) {
       if (name.includes('万古') || name.includes('vanco')) {
         alerts.push({ level: 'warn', text: `⚠️ ${m.name}: Cr升高(${lastCr})，建议监测万古霉素谷浓度` });
       }
-      if (name.includes('氨基糖') || name.includes('庆大') || name.includes('阿米卡星') || name.includes('amicacin') || name.includes('gentam')) {
+      if (name.includes('氨基糖') || name.includes('庆大') || name.includes('阿米卡星') || name.includes('amikacin') || name.includes('gentam')) {
         alerts.push({ level: 'warn', text: `⚠️ ${m.name}: 肾功能下降，氨基糖苷类需调整剂量` });
       }
       if (name.includes('二甲双胍') || name.includes('metformin')) {
@@ -983,21 +1001,23 @@ function renderTrendCharts(p) {
 
 function getDrugSafetyAlerts(p, rec) {
   const cr = parseFloat(rec?.labs?.cr);
-  const eGFR = calcEgfrForPatient(p, rec);
+  const eGFRStr = calcEgfrForPatient(p, rec);
+  const eGFRMatch = eGFRStr.match(/eGFR\s*=\s*([\d.]+)/);
+  const eGFR = eGFRMatch ? parseFloat(eGFRMatch[1]) : null;
   const meds = rec?.medications || [];
-  if (!meds.length || isNaN(cr)) return '';
+  if (!meds.length || (isNaN(cr) && !eGFR)) return '';
   const alerts = [];
   // Check medications against renal function
   for (const m of meds) {
     const name = (m.name || '').toLowerCase();
-    if (cr > 200) {
-      if (name.includes('二甲双胍') || name.includes('metformin')) alerts.push(`⚠️ 二甲双胍: Cr${cr}μmol/L，eGFR<30时禁用`);
-      if (name.includes('地高辛') || name.includes('digoxin')) alerts.push(`⚠️ 地高辛: 肾功能减退，需减量并监测血药浓度`);
+    if (eGFR && eGFR < 30) {
+      if (name.includes('二甲双胍') || name.includes('metformin')) alerts.push(`⚠️ 二甲双胍: eGFR ${eGFR} mL/min < 30，禁用`);
+      if (name.includes('地高辛') || name.includes('digoxin')) alerts.push(`⚠️ 地高辛: eGFR ${eGFR}，需减量并监测血药浓度`);
     }
-    if (cr > 133) {
+    if (cr > 133 || (eGFR && eGFR < 60)) {
       if (name.includes('万古') || name.includes('vanco')) alerts.push(`⚠️ 万古霉素: Cr${cr}，建议监测谷浓度，调整剂量`);
-      if (name.includes('庆大') || name.includes('gentam') || name.includes('阿米卡') || name.includes('amicacin') || name.includes('妥布') || name.includes('tobra')) alerts.push(`⚠️ 氨基糖苷类: 肾功能下降，需调整剂量`);
-      if (name.includes('肝素') || name.includes('heparin') && !name.includes('低分子')) alerts.push(`ℹ️ 普通肝素: Cr${cr}，如HIT风险考虑换用`);
+      if (name.includes('庆大') || name.includes('gentam') || name.includes('阿米卡') || name.includes('amikacin') || name.includes('妥布') || name.includes('tobra')) alerts.push(`⚠️ 氨基糖苷类: 肾功能下降，需调整剂量`);
+      if ((name.includes('肝素') || name.includes('heparin')) && !name.includes('低分子')) alerts.push(`ℹ️ 普通肝素: Cr${cr}，如HIT风险考虑换用`);
     }
     if (cr > 100) {
       if (name.includes('nsaid') || name.includes('布洛芬') || name.includes('双氯芬') || name.includes('美洛昔康') || name.includes('塞来昔布')) alerts.push(`⚠️ NSAIDs: Cr${cr}，避免使用或密切监测`);
@@ -1136,7 +1156,7 @@ function renderWorkspace() {
     { id: 'abg', label: '血气分析', icon: '🩸' },
     { id: 'nadeficit', label: '补钠', icon: '💊' },
     { id: 'pumprate', label: '泵速', icon: '💉' },
-    { id: 'lactateclearance', label: '乳酸', icon: '📈' },
+    { id: 'lactate', label: '乳酸', icon: '📈' },
     { id: 'map', label: 'MAP', icon: '📊' }
   ];
 
@@ -1147,7 +1167,7 @@ function renderWorkspace() {
       <span class="text-sm text-secondary">⚡ 快捷工具</span>
     </div>
     <div class="quick-tools">
-      ${quickTools.map(t => `<button class="qt-btn" onclick="Router.switch('toolbox');setTimeout(()=>openCalc('${t.id}'),100)">${t.icon} ${t.label}</button>`).join('')}
+      ${quickTools.map(t => `<button class="qt-btn" onclick="Router.switch('toolbox');setTimeout(()=>openCalcCard('${t.id}'),100)">${t.icon} ${t.label}</button>`).join('')}
       <button class="qt-btn" onclick="Router.switch('toolbox')">更多 →</button>
     </div>
     <div class="flex-between mt-12 mb-8">
@@ -2152,7 +2172,7 @@ const Calc = {
     return { main: `乳酸清除率 = ${clearance}%`, detail: `${ok ? '✅' : '⚠️'} ${ok ? '清除率≥20%，复苏有效' : '清除率<20%，需继续积极复苏'}` };
   },
 
-  sofa(pao2, fio2, plt, bili, map, gcs, cr, uo) {
+  sofa(pao2, fio2, plt, bili, map, gcs, cr) {
     let total = 0, details = [];
     if (pao2 && fio2) {
       const pf = +pao2 / (+fio2/100);
@@ -2850,9 +2870,9 @@ function openAISettings() {
   openSheet(`
     <div class="card-title">AI 服务配置</div>
     <div style="display:flex;gap:6px;margin-bottom:12px">
-      <button class="btn btn-secondary btn-sm ${preset==='deepseek'?'active':''}" onclick="setAIPreset('deepseek')">DeepSeek</button>
-      <button class="btn btn-secondary btn-sm ${preset==='minimax'?'active':''}" onclick="setAIPreset('minimax')">MiniMax</button>
-      <button class="btn btn-secondary btn-sm ${preset==='custom'?'active':''}" onclick="setAIPreset('custom')">自定义</button>
+      <button class="btn btn-secondary btn-sm ${preset==='deepseek'?'active':''}" onclick="setAIPreset('deepseek',this)">DeepSeek</button>
+      <button class="btn btn-secondary btn-sm ${preset==='minimax'?'active':''}" onclick="setAIPreset('minimax',this)">MiniMax</button>
+      <button class="btn btn-secondary btn-sm ${preset==='custom'?'active':''}" onclick="setAIPreset('custom',this)">自定义</button>
     </div>
     <div class="form-group"><label>API URL</label><input type="text" id="ai-url" class="form-input" value="${url}"></div>
     <div class="form-group"><label>API Key</label><input type="password" id="ai-key" class="form-input" value="${key}"></div>
@@ -2873,7 +2893,7 @@ function openAISettings() {
   `);
 }
 
-function setAIPreset(preset) {
+function setAIPreset(preset, btn) {
   const presets = {
     deepseek: { url: 'https://api.deepseek.com/chat/completions', model: 'deepseek-chat' },
     minimax: { url: 'https://api.minimax.chat/v1/chat/completions', model: 'MiniMax-Text-01' },
@@ -2887,7 +2907,7 @@ function setAIPreset(preset) {
   if (modelEl) modelEl.value = p.model;
   DB.set('mc_ai_preset', preset);
   document.querySelectorAll('#sheetContent .btn-sm').forEach(b => b.classList.remove('active'));
-  event.target.classList.add('active');
+  if (btn) btn.classList.add('active');
 }
 
 function saveAISettings() {
@@ -3022,30 +3042,13 @@ function renderSettings() {
 }
 
 function openLabRangeSettings() {
-  const defaults = [
-    { key: 'cr', label: 'Cr (μmol/L)', lo: 44, hi: 133 },
-    { key: 'bun', label: 'BUN (mmol/L)', lo: 2.9, hi: 8.2 },
-    { key: 'k', label: 'K⁺ (mmol/L)', lo: 3.5, hi: 5.0 },
-    { key: 'na', label: 'Na⁺ (mmol/L)', lo: 135, hi: 145 },
-    { key: 'wbc', label: 'WBC (×10⁹/L)', lo: 4, hi: 10 },
-    { key: 'hgb', label: 'Hb (g/L)', lo: 120, hi: 160 },
-    { key: 'plt', label: 'PLT (×10⁹/L)', lo: 125, hi: 350 },
-    { key: 'alt', label: 'ALT (U/L)', lo: 0, hi: 40 },
-    { key: 'ast', label: 'AST (U/L)', lo: 0, hi: 40 },
-    { key: 'tbili', label: 'TBil (μmol/L)', lo: 3.4, hi: 17.1 },
-    { key: 'alb', label: 'Alb (g/L)', lo: 35, hi: 55 },
-    { key: 'abg_ph', label: 'pH', lo: 7.35, hi: 7.45 },
-    { key: 'abg_lac', label: '乳酸 (mmol/L)', lo: 0, hi: 2.0 },
-    { key: 'crp', label: 'CRP (mg/L)', lo: 0, hi: 10 },
-    { key: 'pct', label: 'PCT (ng/mL)', lo: 0, hi: 0.05 }
-  ];
   const saved = DB.get('mc_lab_ranges', {});
-  const ranges = { ...Object.fromEntries(defaults.map(d => [d.key, d])), ...saved };
+  const ranges = { ...Object.fromEntries(LAB_RANGE_DEFAULTS.map(d => [d.key, d])), ...saved };
 
   let html = `<div class="card-title" style="margin-bottom:12px">化验参考范围</div>
   <p class="text-sm text-secondary mb-12">修改后将影响异常值判断和趋势预警</p>
   <div style="max-height:60vh;overflow-y:auto">`;
-  for (const def of defaults) {
+  for (const def of LAB_RANGE_DEFAULTS) {
     const r = ranges[def.key] || def;
     html += `<div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;font-size:.82rem">
       <span style="width:100px;flex-shrink:0;font-weight:500">${def.label}</span>
@@ -3064,11 +3067,13 @@ function openLabRangeSettings() {
 
 function saveLabRanges() {
   const ranges = {};
+  const defs = LAB_RANGE_DEFAULTS || [];
   document.querySelectorAll('.lr-lo').forEach(el => {
     const key = el.dataset.key;
     const lo = parseFloat(el.value);
     const hi = parseFloat(document.querySelector(`.lr-hi[data-key="${key}"]`)?.value);
-    ranges[key] = { key, label: '', lo: isNaN(lo) ? null : lo, hi: isNaN(hi) ? null : hi };
+    const def = defs.find(d => d.key === key);
+    ranges[key] = { key, label: def?.label || '', lo: isNaN(lo) ? null : lo, hi: isNaN(hi) ? null : hi };
   });
   DB.set('mc_lab_ranges', ranges);
   State.labRanges = ranges;
