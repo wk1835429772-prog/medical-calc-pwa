@@ -636,6 +636,8 @@ const DB = {
 
   set(key, val) {
     this._cache[key] = val;
+    // Always write to localStorage as primary fallback (reliable on file://)
+    try { localStorage.setItem(key, JSON.stringify(val)); } catch(e) {}
     if (this._db) {
       try {
         const tx = this._db.transaction('kv', 'readwrite');
@@ -646,6 +648,7 @@ const DB = {
 
   remove(key) {
     delete this._cache[key];
+    try { localStorage.removeItem(key); } catch(e) {}
     if (this._db) {
       try {
         const tx = this._db.transaction('kv', 'readwrite');
@@ -1288,7 +1291,6 @@ function renderPatientDetail(p, replace) {
   const otherOut = parseFloat(io.otherOut) || 0;
   const totalOut = urine + drain + stool + otherOut;
   const balance = totalIn - totalOut;
-  const balanceDisplay = totalIn || totalOut ? `<div style="margin-top:4px;font-size:.82rem"><span style="color:var(--text2)">总出量 ${totalOut} mL</span> · <span style="font-weight:600;color:${balance > 500 ? 'var(--danger)' : balance < -500 ? 'var(--warning)' : 'var(--success)'}">平衡 ${balance > 0 ? '+' : ''}${balance} mL</span></div>` : '';
 
   // Lab reference ranges
   const labRanges = {
@@ -1447,16 +1449,19 @@ function renderPatientDetail(p, replace) {
 
     <div class="card">
       <div class="card-title">出入量 (24h)</div>
+      <div style="font-size:.78rem;color:var(--text2);font-weight:600;margin-bottom:4px">入量</div>
+      <div class="form-group"><label>总入量 (mL)</label><input type="number" class="pt-input pt-io" data-pid="${p.id}" data-field="io.intake" min="0" value="${io.intake || ''}"></div>
+      <div style="font-size:.78rem;color:var(--text2);font-weight:600;margin:8px 0 4px">出量</div>
+      <div class="form-group"><label>总出量 (mL)</label><input type="text" class="pt-input" id="io-total-out" readonly style="background:var(--bg);color:var(--text);font-weight:600" value="${totalOut || ''}"></div>
       <div class="form-row">
-        <div class="form-group"><label>总入量 (mL)</label><input type="number" class="pt-input pt-io" data-pid="${p.id}" data-field="io.intake" min="0" value="${io.intake || ''}"></div>
         <div class="form-group"><label>尿量 (mL)</label><input type="number" class="pt-input pt-io" data-pid="${p.id}" data-field="io.urine" min="0" value="${io.urine || ''}"></div>
-        <div class="form-group"><label>大便量 (mL)</label><input type="number" class="pt-input pt-io" data-pid="${p.id}" data-field="io.stool" min="0" value="${io.stool || ''}"></div>
+        <div class="form-group"><label>引流量 (mL)</label><input type="number" class="pt-input pt-io" data-pid="${p.id}" data-field="io.drain" min="0" value="${io.drain || ''}"></div>
       </div>
       <div class="form-row">
-        <div class="form-group"><label>引流量 (mL)</label><input type="number" class="pt-input pt-io" data-pid="${p.id}" data-field="io.drain" min="0" value="${io.drain || ''}"></div>
-        <div class="form-group"><label>其他出量 (mL)</label><input type="number" class="pt-input pt-io" data-pid="${p.id}" data-field="io.otherOut" min="0" placeholder="自动" value="${io.otherOut || ''}"></div>
+        <div class="form-group"><label>大便量 (mL)</label><input type="number" class="pt-input pt-io" data-pid="${p.id}" data-field="io.stool" min="0" value="${io.stool || ''}"></div>
+        <div class="form-group"><label>其他出量 (mL)</label><input type="number" class="pt-input pt-io" data-pid="${p.id}" data-field="io.otherOut" min="0" value="${io.otherOut || ''}"></div>
       </div>
-      <div id="io-balance-display">${balanceDisplay}</div>
+      <div id="io-balance-display" style="margin-top:6px;padding:6px 10px;border-radius:6px;font-size:.85rem;font-weight:600;background:${totalIn||totalOut ? (balance>500?'var(--danger-bg)':balance<-500?'var(--warning-bg)':'var(--success-bg)') : 'var(--bg)'};color:${totalIn||totalOut ? (balance>500?'var(--danger)':balance<-500?'var(--warning)':'var(--success)') : 'var(--text2)'}">平衡 ${balance>0?'+':''}${balance} mL</div>
     </div>
     <details class="card" style="padding:8px 14px">
       <summary style="cursor:pointer;font-size:.85rem;font-weight:500;color:var(--text2)">📝 补充记录</summary>
@@ -1710,10 +1715,18 @@ function updateIODisplay() {
   const otherOut = parseFloat(document.querySelector('[data-field="io.otherOut"]')?.value) || 0;
   const totalOut = urine + drain + stool + otherOut;
   const balance = intake - totalOut;
+  // Update 总出量 readonly field
+  const outEl = document.getElementById('io-total-out');
+  if (outEl) outEl.value = totalOut || '';
+  // Update balance bar
   const el = document.getElementById('io-balance-display');
   if (!el) return;
-  if (!intake && !totalOut) { el.innerHTML = ''; return; }
-  el.innerHTML = `<div style="margin-top:4px;font-size:.82rem"><span style="color:var(--text2)">总出量 ${totalOut} mL</span> · <span style="font-weight:600;color:${balance > 500 ? 'var(--danger)' : balance < -500 ? 'var(--warning)' : 'var(--success)'}">平衡 ${balance > 0 ? '+' : ''}${balance} mL</span></div>`;
+  const hasData = intake || totalOut;
+  const bgColor = hasData ? (balance > 500 ? 'var(--danger-bg)' : balance < -500 ? 'var(--warning-bg)' : 'var(--success-bg)') : 'var(--bg)';
+  const fgColor = hasData ? (balance > 500 ? 'var(--danger)' : balance < -500 ? 'var(--warning)' : 'var(--success)') : 'var(--text2)';
+  el.style.background = bgColor;
+  el.style.color = fgColor;
+  el.textContent = `平衡 ${balance > 0 ? '+' : ''}${balance} mL`;
 }
 
 /* ===== Patient CRUD ===== */
@@ -1956,7 +1969,12 @@ function genHandoff(p, rec) {
   const otherOut = parseFloat(io.otherOut) || 0;
   const totalOut = urine + drain + stool + otherOut;
   if (intake || totalOut) {
-    lines.push(`出入量: 入${intake} 出${totalOut}(尿${urine}${stool ? ' 便'+stool : ''}${drain ? ' 引流'+drain : ''}) 平衡${intake-totalOut > 0 ? '+' : ''}${intake-totalOut}`);
+    const parts = [];
+    if (urine) parts.push(`尿${urine}`);
+    if (drain) parts.push(`引流${drain}`);
+    if (stool) parts.push(`便${stool}`);
+    if (otherOut) parts.push(`其他${otherOut}`);
+    lines.push(`出入量: 入${intake} 出${totalOut}(${parts.join(' ')}) 平衡${intake-totalOut > 0 ? '+' : ''}${intake-totalOut}`);
   }
 
   // Key labs
