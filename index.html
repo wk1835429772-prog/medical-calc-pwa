@@ -3876,54 +3876,6 @@ function sendToAI(prompt) {
   }, 200);
 }
 
-/* ===== PWA Install Guide ===== */
-let _deferredInstallPrompt = null;
-window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); _deferredInstallPrompt = e; });
-
-function showInstallGuide() {
-  const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
-  if (isStandalone) return; // Already installed
-  const dismissed = sessionStorage.getItem('mc_install_dismissed');
-  if (dismissed) return;
-
-  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
-  const guideText = isIOS
-    ? '点击 Safari 底部的 <b>分享按钮</b> ↑ → <b>添加到主屏幕</b>'
-    : '点击浏览器菜单 → <b>添加到主屏幕</b> 或 <b>安装应用</b>';
-
-  const div = document.createElement('div');
-  div.id = 'install-guide';
-  div.style.cssText = 'position:fixed;bottom:70px;left:12px;right:12px;z-index:9999;background:var(--card);border:2px solid var(--primary);border-radius:12px;padding:14px;box-shadow:0 4px 20px rgba(0,0,0,.15)';
-  div.innerHTML = `
-    <div style="display:flex;align-items:center;gap:10px">
-      <span style="font-size:1.5rem">📱</span>
-      <div style="flex:1">
-        <div style="font-weight:600;font-size:.9rem">添加到主屏幕</div>
-        <div style="font-size:.8rem;color:var(--text2);margin-top:2px">${guideText}</div>
-      </div>
-      <button onclick="dismissInstallGuide()" style="background:none;border:none;font-size:1.2rem;cursor:pointer;padding:4px">✕</button>
-    </div>
-    ${!isIOS && _deferredInstallPrompt ? '<button class="btn btn-primary btn-block btn-sm" style="margin-top:8px" onclick="promptInstall()">一键安装</button>' : ''}
-  `;
-  document.body.appendChild(div);
-}
-
-function promptInstall() {
-  if (_deferredInstallPrompt) {
-    _deferredInstallPrompt.prompt();
-    _deferredInstallPrompt.userChoice.then(() => { _deferredInstallPrompt = null; dismissInstallGuide(); });
-  }
-}
-
-function dismissInstallGuide() {
-  sessionStorage.setItem('mc_install_dismissed', '1');
-  const el = document.getElementById('install-guide');
-  if (el) el.remove();
-}
-
-// Show install guide after 3s on first visit
-setTimeout(showInstallGuide, 3000);
-
 /* ===== Start ===== */
 init();
 </script>
