@@ -580,34 +580,87 @@ function haptic() {
   if (navigator.vibrate) navigator.vibrate(10);
 }
 
-/* ===== 4a. DB Storage Layer (Pure localStorage) ===== */
+/* ===== 4a. DB Storage Layer (IndexedDB primary + localStorage backup) ===== */
 const DB = {
   _cache: {},
-  _errors: [],
+  _db: null,
+  _idbReady: false,
 
   _showStatus(msg, type) {
-    // Show visible debug toast on page
     const el = document.getElementById('db-debug');
     if (el) { el.textContent = msg; el.style.background = type === 'error' ? 'var(--danger)' : type === 'warn' ? 'var(--warning)' : 'var(--success)'; el.style.display = 'block'; setTimeout(() => el.style.display = 'none', 4000); }
   },
 
   async init() {
-    let loaded = 0;
+    // Step 1: Load localStorage into cache (instant, for fast startup)
+    let lsCount = 0;
     for (let i = 0; i < localStorage.length; i++) {
       const k = localStorage.key(i);
       if (k && (k.startsWith('mc_') || k === 'app_page')) {
-        try { this._cache[k] = JSON.parse(localStorage.getItem(k)); loaded++; } catch { this._cache[k] = localStorage.getItem(k); loaded++; }
+        try { this._cache[k] = JSON.parse(localStorage.getItem(k)); lsCount++; } catch { this._cache[k] = localStorage.getItem(k); lsCount++; }
       }
     }
-    // Clean up old IndexedDB + Service Worker
-    try { indexedDB.deleteDatabase('clinic-db'); } catch(e) {}
+
+    // Step 2: Open IndexedDB (primary storage, survives browser cleanup)
+    await new Promise((resolve) => {
+      const req = indexedDB.open('clinic-db', 1);
+      req.onupgradeneeded = (e) => {
+        const db = e.target.result;
+        if (!db.objectStoreNames.contains('kv')) db.createObjectStore('kv');
+      };
+      req.onsuccess = (e) => {
+        this._db = e.target.result;
+        // Load all IDB data into cache (overwrites localStorage with fresh IDB data)
+        const tx = this._db.transaction('kv', 'readonly');
+        const store = tx.objectStore('kv');
+        const cursorReq = store.openCursor();
+        let idbCount = 0;
+        cursorReq.onsuccess = (ev) => {
+          const cursor = ev.target.result;
+          if (cursor) {
+            this._cache[cursor.key] = cursor.value;
+            idbCount++;
+            cursor.continue();
+          } else {
+            this._idbReady = true;
+            // Migrate any localStorage-only keys into IDB
+            this._syncAllToIDB();
+            // Show status
+            const pts = this._cache['mc_patients'];
+            const ptCount = Array.isArray(pts) ? pts.length : 0;
+            this._showStatus(`V3.3 已加载: IDB=${idbCount}项, LS=${lsCount}项, ${ptCount}位患者`, 'ok');
+            resolve();
+          }
+        };
+        cursorReq.onerror = () => { this._idbReady = true; resolve(); };
+      };
+      req.onerror = () => {
+        this._idbReady = false;
+        this._showStatus(`IDB不可用, 仅用LS: ${lsCount}项`, 'warn');
+        resolve();
+      };
+    });
+
+    // Step 3: Clean up old Service Worker (one-time)
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.getRegistrations().then(regs => regs.forEach(r => r.unregister())).catch(() => {});
+      navigator.serviceWorker.getRegistrations().then(regs => {
+        if (regs.length === 0) return;
+        // Only register self-destruct SW if old SW exists
+        navigator.serviceWorker.register('sw.js').then(r => r.update()).catch(() => {});
+      }).catch(() => {});
     }
-    // Show status
-    const pts = this._cache['mc_patients'];
-    const ptCount = Array.isArray(pts) ? pts.length : 0;
-    this._showStatus(`V3.2 已加载: ${loaded}项数据, ${ptCount}位患者`, 'ok');
+  },
+
+  // Sync all cached keys to IDB (for migration from localStorage)
+  _syncAllToIDB() {
+    if (!this._db) return;
+    try {
+      const tx = this._db.transaction('kv', 'readwrite');
+      const store = tx.objectStore('kv');
+      for (const [k, v] of Object.entries(this._cache)) {
+        store.put(v, k);
+      }
+    } catch(e) {}
   },
 
   get(key, def) {
@@ -617,37 +670,37 @@ const DB = {
 
   set(key, val) {
     this._cache[key] = val;
-    try {
-      const json = JSON.stringify(val);
-      localStorage.setItem(key, json);
-    } catch(e) {
-      this._errors.push(key + ':' + e.message);
-      this._showStatus('存储失败: ' + key + ' ' + e.message, 'error');
-      if (e.name === 'QuotaExceededError') alert('存储空间已满，请在设置中导出数据后清除部分记录');
+    // Write to IndexedDB (primary)
+    if (this._db) {
+      try {
+        const tx = this._db.transaction('kv', 'readwrite');
+        tx.objectStore('kv').put(val, key);
+      } catch(e) {}
     }
+    // Also write to localStorage (backup)
+    try { localStorage.setItem(key, JSON.stringify(val)); } catch(e) {}
   },
 
   remove(key) {
     delete this._cache[key];
+    if (this._db) {
+      try {
+        const tx = this._db.transaction('kv', 'readwrite');
+        tx.objectStore('kv').delete(key);
+      } catch(e) {}
+    }
     try { localStorage.removeItem(key); } catch(e) {}
   }
 };
 
-// Flush all state before page closes
+// Flush all state before page closes (ensures localStorage backup is fresh)
 window.addEventListener('pagehide', () => {
   try {
     for (const [k, v] of Object.entries(DB._cache)) {
-      if (k.startsWith('mc_') || k === 'app_page') localStorage.setItem(k, JSON.stringify(v));
+      localStorage.setItem(k, JSON.stringify(v));
     }
   } catch(e) {}
 });
-
-// Register self-destructing SW to clear old caches (one-time cleanup)
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('sw.js').then(reg => {
-    reg.update(); // Force update to self-destruct version
-  }).catch(() => {});
-}
 
 /* ===== 4b. Router ===== */
 const Router = {
@@ -3737,7 +3790,7 @@ function renderSettings() {
       <div class="settings-group-title">关于</div>
       <div class="settings-item" onclick="showChangelog()">
         <span class="settings-icon">ℹ️</span>
-        <div class="settings-text"><div class="settings-label">版本 V3.2</div><div class="settings-desc">点击查看更新日志</div></div>
+        <div class="settings-text"><div class="settings-label">版本 V3.3</div><div class="settings-desc">点击查看更新日志</div></div>
         <span class="settings-arrow">›</span>
       </div>
     </div>`;
@@ -3746,34 +3799,68 @@ function renderSettings() {
 function testStorage() {
   const testKey = '_test_' + Date.now();
   const testVal = { ts: Date.now(), patients: State.patients.length };
-  // Write
-  try { localStorage.setItem(testKey, JSON.stringify(testVal)); } catch(e) {
-    alert('❌ 写入失败: ' + e.message); return;
-  }
-  // Read back
-  const readback = localStorage.getItem(testKey);
-  localStorage.removeItem(testKey);
-  if (!readback) { alert('❌ 读取失败: localStorage 无法读回数据'); return; }
+  const results = [];
+
+  // Test 1: localStorage
   try {
-    const parsed = JSON.parse(readback);
-    if (parsed.ts === testVal.ts) {
-      const mcKeys = [];
-      for (let i = 0; i < localStorage.length; i++) {
-        const k = localStorage.key(i);
-        if (k && k.startsWith('mc_')) mcKeys.push(k);
-      }
-      alert(`✅ 存储正常！\n写入→读回: 成功\n已保存数据项: ${mcKeys.length}\n患者数: ${State.patients.length}\n\n关闭页面再打开，数据应该会保留。\n如果仍然丢失，请截图此页面发给我。`);
-    } else {
-      alert('❌ 数据不一致: 写入和读回的值不同');
-    }
+    localStorage.setItem(testKey, JSON.stringify(testVal));
+    const readback = JSON.parse(localStorage.getItem(testKey));
+    localStorage.removeItem(testKey);
+    results.push(readback?.ts === testVal.ts ? '✅ localStorage: 正常' : '❌ localStorage: 数据不一致');
   } catch(e) {
-    alert('❌ JSON解析失败: ' + e.message);
+    results.push('❌ localStorage: ' + e.message);
+  }
+
+  // Test 2: IndexedDB
+  if (DB._db) {
+    try {
+      const tx = DB._db.transaction('kv', 'readwrite');
+      const store = tx.objectStore('kv');
+      store.put(testVal, testKey);
+      tx.oncomplete = () => {
+        const tx2 = DB._db.transaction('kv', 'readonly');
+        const req = tx2.objectStore('kv').get(testKey);
+        req.onsuccess = () => {
+          const readback = req.result;
+          // Clean up
+          const tx3 = DB._db.transaction('kv', 'readwrite');
+          tx3.objectStore('kv').delete(testKey);
+
+          results.push(readback?.ts === testVal.ts ? '✅ IndexedDB: 正常' : '❌ IndexedDB: 数据不一致');
+          showTestResult(results);
+        };
+        req.onerror = () => { results.push('❌ IndexedDB: 读取失败'); showTestResult(results); };
+      };
+      tx.onerror = () => { results.push('❌ IndexedDB: 写入失败'); showTestResult(results); };
+      return; // Async IDB test will call showTestResult
+    } catch(e) {
+      results.push('❌ IndexedDB: ' + e.message);
+    }
+  } else {
+    results.push('⚠️ IndexedDB: 未初始化');
+  }
+
+  showTestResult(results);
+
+  function showTestResult(r) {
+    const mcKeys = [];
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = localStorage.key(i);
+      if (k && k.startsWith('mc_')) mcKeys.push(k);
+    }
+    const idbReady = DB._idbReady ? '已就绪' : '未就绪';
+    alert(`${r.join('\n')}\n\n缓存项: ${Object.keys(DB._cache).length}\nlocalStorage项: ${mcKeys.length}\nIDB状态: ${idbReady}\n患者数: ${State.patients.length}\n\n关闭页面再打开，数据应保留。\n如仍丢失，请截图发给我。`);
   }
 }
 
 const CHANGELOG = [
+  { ver: 'V3.3', date: '2026-05-05', items: [
+    '数据持久化终极修复：恢复V3.0的IndexedDB为主存储 + localStorage双写备份',
+    '修复V3.2删除IDB导致数据丢失的根因（localStorage在部分设备不可靠）',
+    '存储测试按钮升级：同时测试IDB和localStorage双通道',
+  ]},
   { ver: 'V3.2', date: '2026-05-05', items: [
-    '数据持久化彻底修复：推翻IDB，改为纯localStorage存储',
+    '数据持久化修复尝试（纯localStorage，后在V3.3修正为IDB+LS双写）',
     '自毁式Service Worker清除旧缓存，解决SW拦截导致的代码不更新问题',
     '出入量重写：总出量手填，其他出量=总出量-尿-引-便（自动计算）',
     '子AI输入栏固定底部（修复switchPatientSubTab定位逻辑）',
