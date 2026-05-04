@@ -1,0 +1,21 @@
+{
+  "name": "临床助手",
+  "short_name": "临床助手",
+  "description": "ICU/内科临床助手 — 患者管理、AI分析、医学计算器",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f0f4f8",
+  "theme_color": "#0077b6",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["medical", "health"],
+  "lang": "zh-CN"
+}
