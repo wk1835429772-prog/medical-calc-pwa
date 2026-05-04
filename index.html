@@ -6,7 +6,9 @@
 <meta name="theme-color" content="#0077b6">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<link rel="manifest" href="data:application/json;base64,eyJuYW1lIjoi5Li05bqK5Yqp5YqpIiwic2hvcnRfbmFtZSI6IuS4tOW6iiIsInN0YXJ0X3VybCI6Ii4iLCJkaXNwbGF5Ijoic3RhbmRhbG9uZSIsImJhY2tncm91bmRfY29sb3IiOiIjZjBmNGY4IiwidGhlbWVfY29sb3IiOiIjMDA3N2I2IiwiaWNvbnMiOlt7InNyYyI6ImRhdGE6aW1hZ2Uvc3ZnK3htbCwlM0NzdmcgeG1sbnM9J2h0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnJyB2aWV3Qm94PScwIDAgMTkyIDE5Mic+PHJlY3QgZmlsbD0nIzAwNzdiNicgd2lkdGg9JzE5MicgaGVpZ2h0PScxOTInIHJ4PSczNicvPjx0ZXh0IHg9Jzk2JyB5PScxMjAnIGZvbnQtc2l6ZT0nODAnIHRleHQtYW5jaG9yPSdkb21pbmFudC1iYXNlbGluZScgZmlsbD0nd2hpdGUnPkM8L3RleHQ+PC9zdmc+Iiwic2l6ZXMiOiIxOTJ4MTkyIiwidHlwZSI6ImltYWdlL3N2Zyt4bWwifV19">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon.svg">
 <title>临床助手</title>
 <style>
 /* ===== 1. CSS Variables ===== */
@@ -3839,30 +3841,11 @@ function sendToAI(prompt) {
 }
 
 /* ===== PWA Service Worker ===== */
-(function registerSW() {
-  if ('serviceWorker' in navigator) {
-    const swCode = `
-      const CACHE_NAME = 'clinic-v3.1';
-      const ASSETS = [self.location.href.replace(/sw\\.js.*/, '')];
-      self.addEventListener('install', e => {
-        e.waitUntil(caches.open(CACHE_NAME).then(c => c.addAll(ASSETS)).then(() => self.skipWaiting()));
-      });
-      self.addEventListener('activate', e => {
-        e.waitUntil(caches.keys().then(keys => Promise.all(keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k)))).then(() => self.clients.claim()));
-      });
-      self.addEventListener('fetch', e => {
-        if (e.request.method !== 'GET') return;
-        e.respondWith(caches.match(e.request).then(r => r || fetch(e.request).then(resp => {
-          if (resp.ok) { const clone = resp.clone(); caches.open(CACHE_NAME).then(c => c.put(e.request, clone)); }
-          return resp;
-        }).catch(() => caches.match(e.request)));
-      });
-    `;
-    const blob = new Blob([swCode], { type: 'application/javascript' });
-    const swUrl = URL.createObjectURL(blob);
-    navigator.serviceWorker.register(swUrl, { scope: './' }).catch(() => {});
-  }
-})();
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js').catch(() => {});
+  });
+}
 
 /* ===== PWA Install Guide ===== */
 let _deferredInstallPrompt = null;
