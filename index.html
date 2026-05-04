@@ -3735,9 +3735,10 @@ function renderSettings() {
     </div>
     <div class="settings-group">
       <div class="settings-group-title">关于</div>
-      <div class="settings-item" style="cursor:default">
+      <div class="settings-item" onclick="showChangelog()">
         <span class="settings-icon">ℹ️</span>
-        <div class="settings-text"><div class="settings-label">版本 V3.2</div><div class="settings-desc">临床助手 · 移动端 PWA</div></div>
+        <div class="settings-text"><div class="settings-label">版本 V3.2</div><div class="settings-desc">点击查看更新日志</div></div>
+        <span class="settings-arrow">›</span>
       </div>
     </div>`;
 }
@@ -3768,6 +3769,49 @@ function testStorage() {
   } catch(e) {
     alert('❌ JSON解析失败: ' + e.message);
   }
+}
+
+const CHANGELOG = [
+  { ver: 'V3.2', date: '2026-05-05', items: [
+    '数据持久化彻底修复：推翻IDB，改为纯localStorage存储',
+    '自毁式Service Worker清除旧缓存，解决SW拦截导致的代码不更新问题',
+    '出入量重写：总出量手填，其他出量=总出量-尿-引-便（自动计算）',
+    '子AI输入栏固定底部（修复switchPatientSubTab定位逻辑）',
+    '系统提示词编辑器修复（showSheet→openSheet）',
+    '删除"打包为APK"死代码',
+    '性别/AI预设按钮选中可见（.btn-secondary.active CSS）',
+    '设置页新增"测试存储"按钮',
+    '页面顶部加载状态提示',
+  ]},
+  { ver: 'V3.1', date: '2026-05-04', items: [
+    '计算器系统修复：恢复32个丢失计算器（TPN/DKA/GCS/Apgar等）',
+    '急算工具改为可展开卡片模式',
+    'AI图片上传、子AI独立tab、临床Prompt内置',
+    'AI连接状态同步修复',
+    '快捷指令补全（八项汇报/查房/分析全部）',
+    '用户自选急算工具',
+  ]},
+  { ver: 'V3.0', date: '2026-05-03', items: [
+    '全新UI框架：底部导航+滑动页面',
+    '患者管理系统：增删改查、日期切换、多tab详情',
+    'AI助手：SSE流式对话、快捷指令',
+    '63个医学计算器（10大分类）',
+    '交班报告自动生成',
+    '深色模式、搜索、数据导入导出',
+  ]}
+];
+
+function showChangelog() {
+  const html = `<div class="card-title" style="margin-bottom:12px">更新日志</div>` +
+    CHANGELOG.map(c => `
+      <div style="margin-bottom:16px">
+        <div style="font-weight:700;font-size:.95rem;color:var(--primary);margin-bottom:4px">${c.ver} <span style="font-weight:400;font-size:.78rem;color:var(--text2)">${c.date}</span></div>
+        <ul style="margin:0;padding-left:18px;font-size:.82rem;color:var(--text);line-height:1.8">
+          ${c.items.map(i => `<li>${i}</li>`).join('')}
+        </ul>
+      </div>
+    `).join('');
+  openSheet(html);
 }
 
 function openSystemPromptEditor() {
