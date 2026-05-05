@@ -628,7 +628,7 @@ const DB = {
             // Show status
             const pts = this._cache['mc_patients'];
             const ptCount = Array.isArray(pts) ? pts.length : 0;
-            this._showStatus(`V3.3 已加载: IDB=${idbCount}项, LS=${lsCount}项, ${ptCount}位患者`, 'ok');
+            this._showStatus(`V3.4 已加载: IDB=${idbCount}项, LS=${lsCount}项, ${ptCount}位患者`, 'ok');
             resolve();
           }
         };
@@ -641,7 +641,23 @@ const DB = {
       };
     });
 
-    // Step 3: Clean up old Service Worker (one-time)
+    // Step 3: Request persistent storage (CRITICAL for Chrome PWA — prevents system from auto-clearing data)
+    if (navigator.storage && navigator.storage.persist) {
+      try {
+        const isPersisted = await navigator.storage.persisted();
+        if (!isPersisted) {
+          const granted = await navigator.storage.persist();
+          this._persistGranted = granted;
+          setTimeout(() => {
+            this._showStatus(granted ? '✅ 持久存储已授权(系统不再清理数据)' : '⚠️ 持久存储未授权,数据可能被系统清理', granted ? 'ok' : 'warn');
+          }, 2000);
+        } else {
+          this._persistGranted = true;
+        }
+      } catch(e) {}
+    }
+
+    // Step 4: Clean up old Service Worker (one-time)
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.getRegistrations().then(regs => {
         if (regs.length === 0) return;
@@ -693,13 +709,27 @@ const DB = {
   }
 };
 
-// Flush all state before page closes (ensures localStorage backup is fresh)
-window.addEventListener('pagehide', () => {
+// V3.4: Flush all state before page closes/hides (mobile Chrome may not fire pagehide reliably)
+function _flushAllStorage(reason) {
   try {
+    // Force-save any unsaved input value (even without blur)
+    document.querySelectorAll('.pt-input').forEach(el => {
+      try {
+        if (el.dataset.pid && el.dataset.field) {
+          _handleAutoSave({ target: el });
+        }
+      } catch(e) {}
+    });
+    // Flush full cache to localStorage as backup
     for (const [k, v] of Object.entries(DB._cache)) {
-      localStorage.setItem(k, JSON.stringify(v));
+      try { localStorage.setItem(k, JSON.stringify(v)); } catch(e) {}
     }
   } catch(e) {}
+}
+window.addEventListener('pagehide', () => _flushAllStorage('pagehide'));
+window.addEventListener('beforeunload', () => _flushAllStorage('beforeunload'));
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'hidden') _flushAllStorage('visibilitychange');
 });
 
 /* ===== 4b. Router ===== */
@@ -1702,12 +1732,20 @@ function navPatientDate(pid, delta) {
 }
 
 /* ===== Auto-save ===== */
+let _autoSaveDebounceTimer = null;
+function _handleAutoSaveDebounced(e) {
+  clearTimeout(_autoSaveDebounceTimer);
+  _autoSaveDebounceTimer = setTimeout(() => _handleAutoSave(e), 300);
+}
 function bindAutoSave() {
   document.querySelectorAll('.pt-input').forEach(el => {
     el.removeEventListener('blur', _handleAutoSave);
     el.addEventListener('blur', _handleAutoSave);
     el.removeEventListener('change', _handleAutoSave);
     el.addEventListener('change', _handleAutoSave);
+    // V3.4: also save on every input (debounced 300ms) to prevent loss before blur
+    el.removeEventListener('input', _handleAutoSaveDebounced);
+    el.addEventListener('input', _handleAutoSaveDebounced);
   });
   document.querySelectorAll('.pt-check').forEach(el => {
     el.removeEventListener('change', _handleCheckSave);
@@ -1839,6 +1877,13 @@ function selectNPSex(s) {
   if (mb) mb.classList.toggle('active', s === '男');
   if (fb) fb.classList.toggle('active', s === '女');
 }
+let _editSex = '';
+function selectEditSex(s) {
+  _editSex = s;
+  document.querySelectorAll('#sheetContent .sex-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.sex === s);
+  });
+}
 
 function saveNewPatient() {
   const name = document.getElementById('np-name')?.value?.trim();
@@ -1868,6 +1913,7 @@ function saveNewPatient() {
 function openEditPatient(id) {
   const p = State.patients.find(x => x.id === id);
   if (!p) return;
+  _editSex = p.sex || '';
   Router.pop(true);
   openSheet(`
     <div class="card-title">编辑患者</div>
@@ -1882,8 +1928,8 @@ function openEditPatient(id) {
     </div>
     <div class="form-group"><label>性别</label>
       <div style="display:flex;gap:8px">
-        <button class="btn btn-secondary ${p.sex==='男'?'active':''}" onclick="this.classList.add('active');this.nextElementSibling.classList.remove('active')">男</button>
-        <button class="btn btn-secondary ${p.sex==='女'?'active':''}" onclick="this.classList.add('active');this.previousElementSibling.classList.remove('active')">女</button>
+        <button class="btn btn-secondary sex-btn ${p.sex==='男'?'active':''}" data-sex="男" onclick="selectEditSex('男')">男</button>
+        <button class="btn btn-secondary sex-btn ${p.sex==='女'?'active':''}" data-sex="女" onclick="selectEditSex('女')">女</button>
       </div>
     </div>
     <div class="form-row">
@@ -1902,13 +1948,12 @@ function openEditPatient(id) {
 function saveEditPatient(id) {
   const p = State.patients.find(x => x.id === id);
   if (!p) return;
-  const sexBtn = document.querySelector('#sheetContent .btn.active');
   p.name = document.getElementById('ep-name')?.value?.trim() || p.name;
   p.bed = document.getElementById('ep-bed')?.value?.trim() || '';
   p.age = parseInt(document.getElementById('ep-age')?.value) || 0;
   p.height = parseFloat(document.getElementById('ep-height')?.value) || 0;
   p.weight = parseFloat(document.getElementById('ep-weight')?.value) || 0;
-  p.sex = sexBtn?.textContent?.trim() || p.sex;
+  p.sex = _editSex || p.sex;
   p.admitDate = document.getElementById('ep-admit')?.value || '';
   p.surgeryDate = document.getElementById('ep-surgery')?.value || '';
   p.diagnosis = document.getElementById('ep-diag')?.value?.trim() || '';
@@ -3455,6 +3500,7 @@ function _callAI(messages) {
   }).catch(e => { if (e.name !== 'AbortError') _aiError(e.message); });
 }
 
+let _aiStreamSaveTimer = null;
 function _aiChunk(content) {
   if (_aiFirstContent) {
     _aiFirstContent = false;
@@ -3465,14 +3511,21 @@ function _aiChunk(content) {
   const last = State.aiHistory[State.aiHistory.length - 1];
   if (last?.role === 'assistant') last.content += content;
   renderAIChatMessages();
+  // V3.4: debounce-save streaming progress (every 1s during stream)
+  clearTimeout(_aiStreamSaveTimer);
+  _aiStreamSaveTimer = setTimeout(() => {
+    DB.set('mc_ai_history', State.aiHistory);
+  }, 1000);
 }
 
 function _aiDone() {
+  clearTimeout(_aiStreamSaveTimer);
   DB.set('mc_ai_history', State.aiHistory);
   _aiAbortController = null;
 }
 
 function _aiError(msg) {
+  clearTimeout(_aiStreamSaveTimer);
   const last = State.aiHistory[State.aiHistory.length - 1];
   if (last?.role === 'assistant') last.content = `⚠️ ${msg}`;
   renderAIChatMessages();
@@ -3522,6 +3575,8 @@ function sendPatientAI(pid, presetPrompt) {
 
   if (!State.patientAIHistory[pid]) State.patientAIHistory[pid] = [];
   State.patientAIHistory[pid].push({ role: 'user', content: prompt });
+  // V3.4: persist user message immediately (don't wait for stream done)
+  DB.set('mc_patient_ai_' + pid, State.patientAIHistory[pid]);
 
   const messages = [
     { role: 'system', content: getSystemPrompt() },
@@ -3541,6 +3596,7 @@ function sendPatientAI(pid, presetPrompt) {
     const reader = response.body.getReader();
     const decoder = new TextDecoder();
     let buffer = '';
+    let _streamSaveTimer = null;
     const readChunk = () => {
       reader.read().then(({ done, value }) => {
         if (done) { _patientAIDone(pid); return; }
@@ -3558,6 +3614,11 @@ function sendPatientAI(pid, presetPrompt) {
               if (hist?.length) { hist[hist.length-1].content += delta.content; }
               if (histEl) histEl.innerHTML = renderPatientAIHistory(pid);
               histEl.scrollTop = histEl.scrollHeight;
+              // V3.4: debounce-save streaming progress (every 1s during stream)
+              clearTimeout(_streamSaveTimer);
+              _streamSaveTimer = setTimeout(() => {
+                DB.set('mc_patient_ai_' + pid, State.patientAIHistory[pid]);
+              }, 1000);
             }
           } catch {}
         }
@@ -3577,6 +3638,8 @@ function _patientAIError(pid, msg) {
   if (hist?.length) hist[hist.length-1].content = `⚠️ ${msg}`;
   const histEl = document.getElementById(`patient-ai-history-${pid}`);
   if (histEl) histEl.innerHTML = renderPatientAIHistory(pid);
+  // V3.4: persist error state
+  DB.set('mc_patient_ai_' + pid, State.patientAIHistory[pid]);
 }
 
 function clearPatientAI(pid) {
@@ -3790,13 +3853,13 @@ function renderSettings() {
       <div class="settings-group-title">关于</div>
       <div class="settings-item" onclick="showChangelog()">
         <span class="settings-icon">ℹ️</span>
-        <div class="settings-text"><div class="settings-label">版本 V3.3</div><div class="settings-desc">点击查看更新日志</div></div>
+        <div class="settings-text"><div class="settings-label">版本 V3.4</div><div class="settings-desc">点击查看更新日志</div></div>
         <span class="settings-arrow">›</span>
       </div>
     </div>`;
 }
 
-function testStorage() {
+async function testStorage() {
   const testKey = '_test_' + Date.now();
   const testVal = { ts: Date.now(), patients: State.patients.length };
   const results = [];
@@ -3822,17 +3885,15 @@ function testStorage() {
         const req = tx2.objectStore('kv').get(testKey);
         req.onsuccess = () => {
           const readback = req.result;
-          // Clean up
           const tx3 = DB._db.transaction('kv', 'readwrite');
           tx3.objectStore('kv').delete(testKey);
-
           results.push(readback?.ts === testVal.ts ? '✅ IndexedDB: 正常' : '❌ IndexedDB: 数据不一致');
           showTestResult(results);
         };
         req.onerror = () => { results.push('❌ IndexedDB: 读取失败'); showTestResult(results); };
       };
       tx.onerror = () => { results.push('❌ IndexedDB: 写入失败'); showTestResult(results); };
-      return; // Async IDB test will call showTestResult
+      return;
     } catch(e) {
       results.push('❌ IndexedDB: ' + e.message);
     }
@@ -3842,18 +3903,44 @@ function testStorage() {
 
   showTestResult(results);
 
-  function showTestResult(r) {
+  async function showTestResult(r) {
     const mcKeys = [];
     for (let i = 0; i < localStorage.length; i++) {
       const k = localStorage.key(i);
       if (k && k.startsWith('mc_')) mcKeys.push(k);
     }
     const idbReady = DB._idbReady ? '已就绪' : '未就绪';
-    alert(`${r.join('\n')}\n\n缓存项: ${Object.keys(DB._cache).length}\nlocalStorage项: ${mcKeys.length}\nIDB状态: ${idbReady}\n患者数: ${State.patients.length}\n\n关闭页面再打开，数据应保留。\n如仍丢失，请截图发给我。`);
+
+    // V3.4: persistent storage & quota info
+    let persistLine = '持久存储: 不支持';
+    let quotaLine = '';
+    try {
+      if (navigator.storage) {
+        if (navigator.storage.persisted) {
+          const persisted = await navigator.storage.persisted();
+          persistLine = persisted ? '✅ 持久存储: 已生效(数据安全)' : '⚠️ 持久存储: 未生效(可能被系统清理)';
+        }
+        if (navigator.storage.estimate) {
+          const est = await navigator.storage.estimate();
+          const usedMB = ((est.usage || 0) / 1048576).toFixed(1);
+          const quotaMB = ((est.quota || 0) / 1048576).toFixed(0);
+          quotaLine = `\n存储配额: ${usedMB}MB / ${quotaMB}MB`;
+        }
+      }
+    } catch(e) {}
+
+    alert(`${r.join('\n')}\n\n${persistLine}${quotaLine}\n\n缓存项: ${Object.keys(DB._cache).length}\nlocalStorage项: ${mcKeys.length}\nIDB状态: ${idbReady}\n患者数: ${State.patients.length}\n\n关闭页面再打开，数据应保留。\n如仍丢失，请截图发给我。`);
   }
 }
 
 const CHANGELOG = [
+  { ver: 'V3.4', date: '2026-05-05', items: [
+    'Chrome PWA数据永久丢失修复：调用navigator.storage.persist()申请持久存储权限',
+    '输入框实时保存（debounce 300ms）+页面关闭前强制flush所有缓存',
+    'AI流式对话过程中每秒自动保存进度（防止网络中断或关页丢失已接收内容）',
+    '编辑患者性别按钮改为State变量存储（不再依赖DOM查询）',
+    '测试存储按钮升级：显示持久存储状态和配额用量',
+  ]},
   { ver: 'V3.3', date: '2026-05-05', items: [
     '数据持久化终极修复：恢复V3.0的IndexedDB为主存储 + localStorage双写备份',
     '修复V3.2删除IDB导致数据丢失的根因（localStorage在部分设备不可靠）',
