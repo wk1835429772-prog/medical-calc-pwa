@@ -6,7 +6,7 @@
 <meta name="theme-color" content="#0077b6">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<link rel="manifest" href="data:application/json,{&quot;name&quot;:&quot;临床助手&quot;,&quot;short_name&quot;:&quot;临床助手&quot;,&quot;display&quot;:&quot;standalone&quot;,&quot;orientation&quot;:&quot;portrait&quot;,&quot;background_color&quot;:&quot;#f0f4f8&quot;,&quot;theme_color&quot;:&quot;#0077b6&quot;,&quot;start_url&quot;:&quot;.&quot;}">
+<link rel="manifest" href="manifest.json">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect fill='%230077b6' width='512' height='512' rx='96'/%3E%3Ctext x='256' y='320' font-size='240' font-family='Arial' font-weight='bold' text-anchor='middle' fill='white'%3EC%3C/text%3E%3C/svg%3E" type="image/svg+xml">
 <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect fill='%230077b6' width='512' height='512' rx='96'/%3E%3Ctext x='256' y='320' font-size='240' font-family='Arial' font-weight='bold' text-anchor='middle' fill='white'%3EC%3C/text%3E%3C/svg%3E">
 <title>临床助手</title>
@@ -657,13 +657,9 @@ const DB = {
       } catch(e) {}
     }
 
-    // Step 4: Clean up old Service Worker (one-time)
+    // Step 4: Register Service Worker (required for navigator.storage.persist())
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.getRegistrations().then(regs => {
-        if (regs.length === 0) return;
-        // Only register self-destruct SW if old SW exists
-        navigator.serviceWorker.register('sw.js').then(r => r.update()).catch(() => {});
-      }).catch(() => {});
+      navigator.serviceWorker.register('sw.js').then(r => r.update()).catch(() => {});
     }
   },
 
