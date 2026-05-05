@@ -641,7 +641,24 @@ const DB = {
       };
     });
 
-    // Step 3: Request persistent storage (CRITICAL for Chrome PWA — prevents system from auto-clearing data)
+    // Step 3: Register Service Worker
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('sw.js').then(reg => {
+        reg.update();
+        // Auto-reload when new SW takes over (avoids stale cache)
+        reg.addEventListener('updatefound', () => {
+          const nw = reg.installing;
+          if (nw) nw.addEventListener('statechange', () => {
+            if (nw.state === 'activated' && navigator.serviceWorker.controller) {
+              location.reload();
+            }
+          });
+        });
+      }).catch(() => {});
+    }
+
+    // Step 4: Request persistent storage (prevents browser from auto-clearing data)
+    const isPWA = window.matchMedia('(display-mode: standalone)').matches || navigator.standalone;
     if (navigator.storage && navigator.storage.persist) {
       try {
         const isPersisted = await navigator.storage.persisted();
@@ -649,17 +666,21 @@ const DB = {
           const granted = await navigator.storage.persist();
           this._persistGranted = granted;
           setTimeout(() => {
-            this._showStatus(granted ? '✅ 持久存储已授权(系统不再清理数据)' : '⚠️ 持久存储未授权,数据可能被系统清理', granted ? 'ok' : 'warn');
+            if (granted) {
+              this._showStatus('✅ 持久存储已授权(数据安全)', 'ok');
+            } else if (isPWA) {
+              this._showStatus('⚠️ 持久存储未授权,请重新添加到主屏幕', 'warn');
+            } else {
+              this._showStatus('💡 请从主屏幕打开以启用持久存储', 'warn');
+            }
           }, 2000);
         } else {
           this._persistGranted = true;
+          setTimeout(() => this._showStatus('✅ 持久存储已生效', 'ok'), 2000);
         }
       } catch(e) {}
-    }
-
-    // Step 4: Register Service Worker (required for navigator.storage.persist())
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('sw.js').then(r => r.update()).catch(() => {});
+    } else if (!isPWA) {
+      setTimeout(() => this._showStatus('💡 请添加到主屏幕以获得最佳体验', 'warn'), 2000);
     }
   },
 
