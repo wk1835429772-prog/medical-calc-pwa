@@ -1,6 +1,6 @@
 {
-  "name": "临床助手",
-  "short_name": "临床助手",
+  "name": "医学计算器",
+  "short_name": "医学计算器",
   "display": "standalone",
   "orientation": "portrait",
   "background_color": "#f0f4f8",

@@ -1,4 +1,4 @@
-const CACHE_NAME = 'mc-v3.4';
+const CACHE_NAME = 'mc-v5.0';
 const SHELL_URL = './index.html';
 
 // Take over immediately — replaces any old self-destructing SW
