@@ -614,13 +614,6 @@ const Router = {
     $('headerTitle').textContent = titles[saved] || '医学计算器';
   }
 };
-async function init() {
-  await DB.init();
-  State.load();
-  applyTheme();
-  Router.init();
-  Pages.render(Router.current);
-}
 /* ===== Page Rendering ===== */
 const Pages = {
   render(page) {
@@ -1789,6 +1782,13 @@ document.addEventListener('visibilitychange', () => {
 });
 
 /* ===== Start ===== */
+async function init() {
+  await DB.init();
+  State.load();
+  applyTheme();
+  Router.init();
+  Pages.render(Router.current);
+}
 init();
 </script>
 </body>
